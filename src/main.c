@@ -41,5 +41,10 @@ int main(int argc, char *argv[])
         return guimain(argc, argv);
     else
 #endif
+  {
+#ifdef _OPENMP
+	printf("OpenMP support: %d threads\n", omp_get_max_threads());
+#endif
         return commandmain(argc, argv);
+  }
 }
