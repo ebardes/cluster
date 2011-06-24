@@ -1395,7 +1395,6 @@ static double(*setmetric(char dist))
     case 'k': return &kendall;
     default: return &euclid;
   }
-  return NULL; /* Never get here */
 }
 
 /* *********************************************************************  */
@@ -1600,8 +1599,6 @@ An integer drawn from a binomial distribution with parameters (p, n).
       }
     }
   }
-  /* Never get here */
-  return -1;
 }
 
 /* ************************************************************************ */
@@ -2094,7 +2091,7 @@ kmeans(int nclusters, int nrows, int ncolumns, double** data, int** mask,
         }
         total += distance;
       }
-#pragma omp end
+// #pragma omp end
       if (total>=previous) break;
       /* total>=previous is FALSE on some machines even if total and previous
        * are bitwise identical. */
@@ -2678,7 +2675,7 @@ when microarrays are being clustered.
       matrix[i][j]=metric(ndata,data,data,mask,mask,weights,i,j,transpose);
     }
   }
-#pragma omp end
+// #pragma omp end
   return matrix;
 }
 
@@ -3180,11 +3177,13 @@ If a memory error occurs, pslcluster returns NULL.
   // if(!temp) return NULL;
     result[i].distance = DBL_MAX;
     //printf("Hello from thread %d, nthreads %d\n", omp_get_thread_num(), omp_get_num_threads());
+{
 #pragma omp parallel private(j)
 #pragma omp for schedule(dynamic, 1)
       for (j = 0; j < i; j++) temp[j] =
         metric(ndata, data, data, mask, mask, weight, i, j, transpose);
-#pragma omp end
+//#pragma omp end
+}
       for (j = 0; j < i; j++)
       { k = vector[j];
         if (result[j].distance >= temp[j])
