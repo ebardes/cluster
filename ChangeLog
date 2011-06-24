@@ -1,3 +1,56 @@
+2010.04.05
+Remove the #include's of stdio.h where they are not needed (perl/Cluster.xs,
+src/cluster.c). Remove the tests on the eigenvectors calculated for PCA when
+the corresponding eigenvalue is zero, since those eigenvectors are strongly
+affected by roundoff error, and are not relevant for PCA anyway.
+
+2010.03.29
+Rewrote the code for Principal Component Analysis and made it accessible from
+Python, Perl, and the GUI and command line programs. The previous code for the
+singular value decomposition is no longer available. Fixed a bug in src/data.c,
+in which sizeof(char**) was used instead of sizeof(char*). Check memory
+allocation in X11/gui.c and src/command.c more carefully.
+
+2009.09.11
+Fix an error in the calculation of the number of times the optimal solution
+is found in the kmeans and kmedians routines. In Algorithm::Cluster, fix the
+routine identifying which values in the data matrix are missing. Try to be
+more consistent in the coding standards of Cluster.xs and Cluster.pm. Make
+the docstrings in Python/__init__.py consistent with the Python recommendations.
+Changed the tests for NumPy arrays in Python/__init__.py by tests for None.
+
+2009.05.30
+Rewrote the Algorithm::Cluster test scripts using Perl's testing framework.
+The text 02_matrix_parse.t was dropped. Rewrote two lines in perl/Cluster.xs
+to be ANSI compliant. Added a missing reference to numpy in python/__init__.py.
+Improved unsigned/int correctness in python/clustermodule.c. Added a cast from
+int to char in src/data.c. Fixed a bug in src/cluster.c in the calculation of
+the number of times the best solution was found in kmedoids.
+
+2009.04.21
+Fixed a bug in Perl/Cluster.xs, which caused the size of the array returned by
+somcluster to be incorrect if transpose==1.
+Modified python/__init__.py to be consistent with the Python style guide.
+Updated the docstrings.
+Removed the CALL (STDCALL) definitions in src/cluster.c; this doesn't seem to
+be needed any more.
+Updated windows/resources.rc to be consistent with the latest version of
+windres.
+
+2009.03.22
+Fixing a bug in Cluster 3.0 on Windows, which caused Cluster 3.0 to crash if
+a user attempts to read in a file that does not have a file extension.
+For Cluster 3.0 with X11, don't use the obsolete Xp library.
+In Pycluster, call test_Cluster.py from "python setup.py test" instead of from
+a separate script test.py. When initializing a Record, read the data file line
+by line instead of all lines at the same time. Updating the unit tests.
+In Algorithm::Cluster, removed the typemap as it was not being used.
+Replace Record by Algorithm::Cluster::Record for robustness.
+Introduced the Algorithm::Cluster::Tree and Algorithm::Cluster::Node classes
+to represent hierarchical clustering results. Adding cut and scale methods to
+the Tree class. This will affect Perl scripts calling treecluster.
+Make sure that all tests and examples are included in the distribution.
+
 2008.10.01
 Removed the print_matrix_dbl function from perl/Cluster.xs, since it was not
 being used.

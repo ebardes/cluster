@@ -12,9 +12,6 @@
 /* Define to 1 if you have the `Xm' library (-lXm). */
 #undef HAVE_LIBXM
 
-/* Define to 1 if you have the `Xp' library (-lXp). */
-#undef HAVE_LIBXP
-
 /* Define to 1 if you have the `Xt' library (-lXt). */
 #undef HAVE_LIBXT
 

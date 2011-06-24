@@ -34,7 +34,6 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-LIBOBJDIR =
 bin_PROGRAMS = cluster$(EXEEXT)
 @MOTIF_TRUE@am__append_1 = gui.h
 subdir = src

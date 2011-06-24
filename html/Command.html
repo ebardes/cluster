@@ -3,7 +3,7 @@
 <title>Command - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
 <meta http-equiv="Content-Type" content="text/html">
 <meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.7">
+<meta name="generator" content="makeinfo 4.13">
 <link title="Top" rel="start" href="index.html#Top">
 <link rel="prev" href="Cluster.html#Cluster" title="Cluster">
 <link rel="next" href="TreeView.html#TreeView" title="TreeView">
@@ -16,17 +16,19 @@
   pre.smallformat  { font-family:inherit; font-size:smaller }
   pre.smallexample { font-size:smaller }
   pre.smalllisp    { font-size:smaller }
-  span.sc { font-variant:small-caps }
-  span.roman { font-family: serif; font-weight: normal; } 
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
 --></style>
 </head>
 <body>
 <div class="node">
+<a name="Command"></a>
 <p>
-<a name="Command"></a>Next:&nbsp;<a rel="next" accesskey="n" href="TreeView.html#TreeView">TreeView</a>,
+Next:&nbsp;<a rel="next" accesskey="n" href="TreeView.html#TreeView">TreeView</a>,
 Previous:&nbsp;<a rel="previous" accesskey="p" href="Cluster.html#Cluster">Cluster</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
-<hr><br>
+<hr>
 </div>
 
 <h2 class="chapter">5 Running Cluster 3.0 as a command line program</h2>
@@ -64,14 +66,16 @@ in which the options consist of the following command line parameters:
 <code>a</code>: Pairwise average-linkage
 <br><dt><code>-k </code><var>number</var><dd>Specifies whether to run
 <i>k</i>-meansclustering instead of hierarchical clustering, and the number of clusters
-<i>k</i> to use (default: 0, no <i>k</i>-means clustering)<br><dt><code>-s</code><dd>Specifies to calculate an SOM instead of hierarchical clustering
+<i>k</i> to use (default: 0, no <i>k</i>-means clustering)<br><dt><code>-pg</code><dd>Specifies to apply Principal Component Analysis to genes instead of clustering
+<br><dt><code>-pa</code><dd>Specifies to apply Principal Component Analysis to arrays instead of clustering
+<br><dt><code>-s</code><dd>Specifies to calculate an SOM instead of hierarchical clustering
 <br><dt><code>-x </code><var>number</var><dd>Specifies the horizontal dimension of the SOM grid (default: 2)
 <br><dt><code>-y </code><var>number</var><dd>Specifies the vertical dimension of the SOM grid (default: 1)
 <br><dt><code>-v, --version</code><dd>Display version information
 <br><dt><code>-h, --help</code><dd>Display help information
 </dl>
 
-   <p>For the command line options <span class="option">-g</span>, <span class="option">-e</span>, the following integers can be used to specify the distance measure:
+   <p>For the command line options <samp><span class="option">-g</span></samp>, <samp><span class="option">-e</span></samp>, the following integers can be used to specify the distance measure:
      <dl>
 <dt><code>0</code><dd>No clustering
 <br><dt><code>1</code><dd>Uncentered correlation

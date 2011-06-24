@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup, Extension
+from distutils.core import setup, Extension, Command
 import sys
 import os.path
 import shutil
@@ -20,9 +20,29 @@ extension = Extension("Pycluster.cluster",
                       extra_link_args=extra_link_args
                       )
 
+class test_Pycluster(Command):
+    "Run all of the tests for the package."
+
+    user_options = []
+
+    def initialize_options(self):
+        shutil.copyfile(os.path.join('python','test','test_Cluster.py'),
+                        'test_Cluster.py')
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import unittest
+        import test_Cluster
+        test_Cluster.TestCluster.module = 'Pycluster'
+        suite = unittest.TestLoader().loadTestsFromModule(test_Cluster)
+        runner = unittest.TextTestRunner(sys.stdout, verbosity = 2)
+        runner.run(suite)
+
 
 setup(name="Pycluster",
-      version="1.43",
+      version="1.50",
       description="The C Clustering Library",
       author="Michiel de Hoon",
       author_email="mdehoon 'AT' gsc.riken.jp",
@@ -30,5 +50,6 @@ setup(name="Pycluster",
       license="Python License",
       package_dir = {'Pycluster':'python'},
       packages = ['Pycluster'],
-      ext_modules=[extension]
+      ext_modules=[extension],
+      cmdclass={"test" : test_Pycluster},
       )

@@ -65,6 +65,8 @@
     IBOutlet id SOMArrayMetric;
     IBOutlet id SOMArrayXDim;
     IBOutlet id SOMArrayYDim;
+	IBOutlet id PCAGeneXB;
+    IBOutlet id PCAArrayXB;
     IBOutlet id FileFormatPanel;
     IBOutlet id AboutPanel;
     NSString* directory;

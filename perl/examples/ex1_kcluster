@@ -20,13 +20,12 @@ open(DATA,"<$file") or die "Can't open file $file: $!";
 #
 my $firstline = <DATA>;  # Skip the title line
 while(<DATA>) {
-
-	chomp(my $line = $_);
-	my @field     = split /\t/, $line;
-	$orfname[$i]  =   $field[0];
-	$orfdata[$i]  = [ @field[2..5] ];
-	$mask[$i]     = [ 1,1,1,1 ];
-	++$i;
+    chomp(my $line = $_);
+    my @field     = split /\t/, $line;
+    $orfname[$i]  =   $field[0];
+    $orfdata[$i]  = [ @field[2..5] ];
+    $mask[$i]     = [ 1,1,1,1 ];
+    ++$i;
 }
 close(DATA);
 
@@ -43,14 +42,14 @@ $orfname_by_rowid{$i++} = $_, foreach(@orfname);
 #------------------
 # Define the params we want to pass to kcluster
 my %params = (
-	nclusters =>         6,
-	transpose =>         0,
-	npass     =>       100,
-	method    =>       'a',
-	dist      =>       'e',
-	data      =>    \@orfdata,
-	mask      =>       \@mask,
-	weight    =>     \@weight,
+    nclusters =>         6,
+    transpose =>         0,
+    npass     =>       100,
+    method    =>       'a',
+    dist      =>       'e',
+    data      =>    \@orfdata,
+    mask      =>       \@mask,
+    weight    =>     \@weight,
 );
 
 
@@ -69,7 +68,7 @@ my ($clusters, $error, $found) = kcluster(%params);
 my %orfname_by_cluster;
 $i=0;
 foreach(@{$clusters}) {
-        push @{$orfname_by_cluster{$_}}, $orfname_by_rowid{$i++};
+    push @{$orfname_by_cluster{$_}}, $orfname_by_rowid{$i++};
 }
 
 
@@ -78,13 +77,13 @@ foreach(@{$clusters}) {
 # as returned by the kcluster() function.
 #
 for ($i = 0; $i < $params{"nclusters"}; $i++) {
-        print "------------------\n";
-        printf("Cluster %d:  %d ORFs\n\n",
-                $i, scalar(@{$orfname_by_cluster{$i} })
-        );
+    print "------------------\n";
+    printf("Cluster %d:  %d ORFs\n\n",
+           $i, scalar(@{$orfname_by_cluster{$i} })
+    );
 
-        print "\t$_\n", foreach( sort { $a cmp $b } @{$orfname_by_cluster{$i} } );
-        print "\n";
+    print "\t$_\n", foreach( sort { $a cmp $b } @{$orfname_by_cluster{$i} } );
+    print "\n";
 }
 
 
@@ -103,14 +102,14 @@ my @initialid = (0,1,2,3,4,5) x 15;
 # choice for the initial clustering; the data file contains 90 genes.
 
 %params = (
-	nclusters =>         6,
-	transpose =>         0,
-	method    =>       'a',
-	dist      =>       'e',
-	data      =>    \@orfdata,
-	mask      =>       \@mask,
-	weight    =>     \@weight,
-	initialid =>  \@initialid,
+    nclusters =>         6,
+    transpose =>         0,
+    method    =>       'a',
+    dist      =>       'e',
+    data      =>    \@orfdata,
+    mask      =>       \@mask,
+    weight    =>     \@weight,
+    initialid =>  \@initialid,
 );
 
 printf("Executing k-means clustering with a specified initial clustering\n");

@@ -37,7 +37,7 @@
 		40BF80960D78432B002D71C0 /* command.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = command.c; path = ../src/command.c; sourceTree = SOURCE_ROOT; };
 		40BF809C0D784354002D71C0 /* command.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = command.h; path = ../src/command.h; sourceTree = SOURCE_ROOT; };
 		40CDB55C0A2ABD9100E334F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
-		40CDB55D0A2ABD9100E334F0 /* Cluster.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Cluster.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		40CDB55D0A2ABD9100E334F0 /* Cluster.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cluster.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F54CD24A035FAD1001000082 /* cluster3.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = cluster3.pdf; path = ../doc/cluster3.pdf; sourceTree = "<group>"; };
 		F54D6BC20359C81501000082 /* data.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = data.c; path = ../src/data.c; sourceTree = "<group>"; };
 		F54D6BC40359C83001000082 /* data.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = data.h; path = ../src/data.h; sourceTree = "<group>"; };

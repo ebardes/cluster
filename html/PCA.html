@@ -3,7 +3,7 @@
 <title>PCA - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
 <meta http-equiv="Content-Type" content="text/html">
 <meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.7">
+<meta name="generator" content="makeinfo 4.13">
 <link title="Top" rel="start" href="index.html#Top">
 <link rel="up" href="Cluster.html#Cluster" title="Cluster">
 <link rel="prev" href="SOM.html#SOM" title="SOM">
@@ -16,36 +16,102 @@
   pre.smallformat  { font-family:inherit; font-size:smaller }
   pre.smallexample { font-size:smaller }
   pre.smalllisp    { font-size:smaller }
-  span.sc { font-variant:small-caps }
-  span.roman { font-family: serif; font-weight: normal; } 
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
 --></style>
 </head>
 <body>
 <div class="node">
+<a name="PCA"></a>
 <p>
-<a name="PCA"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="SOM.html#SOM">SOM</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="SOM.html#SOM">SOM</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
-<hr><br>
+<hr>
 </div>
 
 <h3 class="section">4.4 Principal Component Analysis</h3>
 
-<p>Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data. 
-In PCA, the data vectors are written as a linear sum over principal components. The number of principal components is equal to the number of dimensions of the data vectors.
+<div class="block-image"><img src="images/pca.png" alt="images/pca.png"></div>
 
-   <p>The principal components are chosen such that they maximally explain the variance in the data vectors. For example, in case of 3D data vectors, the data can be represented as an ellipsoidal cloud of points in three dimensional space. The first principal component would be the longest axis of the ellipsoid, the second principal component would be the second longest axis of the ellipsoid, and the third principal component would be the shortest axis. In other words, the principal components are ordered by the amount of variance they explain.
+   <p>Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data.  A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
 
-   <p>Each data point can be reconstructed by a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are used. The remaining variance present in the data is then regarded as unexplained variance.
+   <p>In essence, PCA is a coordinate transformation in which each row in the data matrix is written as a linear sum over basis vectors called principal components, which are ordered and chosen such that each maximally explains the remaining variance in the data vectors. For example, an n \times 3 data matrix can be represented as an ellipsoidal cloud of n points in three dimensional space. The first principal component is the longest axis of the ellipsoid, the second principal component the second longest axis of the ellipsoid, and the third principal component is the shortest axis. Each row in the data matrix can be reconstructed as a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are retained. The remaining variance present in the data is then regarded as unexplained variance.
 
    <p>The principal components can be found by calculating the eigenvectors of the covariance matrix of the data. The corresponding eigenvalues determine how much of the variance present in the data is explained by each principal component.
 
-   <p>In Cluster, the eigenvectors are found by calculating the singular value decomposition of the data matrix. 
-The output is very simple in
-this version and consists of two files: <span class="file">JobName_svv.txt</span> that contains the principal
-components and <span class="file">JobName_svu.txt</span> that contains the loadings of each gene on the principal
-components. By multiplying the principal components by the loadings and summing, the data vector of each gene can be recovered.
+   <p>Before applying PCA, typically the mean is subtracted from each column in the data matrix. In the example above, this effectively centers the ellipsoidal cloud around its centroid in 3D space, with the principal components describing the variation of poins in the ellipsoidal cloud with respect to their centroid.
 
-   <p>A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
+   <p>In Cluster, you can apply PCA to the rows (genes) of the data matrix, or to the columns (microarrays) of the data matrix. In each case, the output consists of two files. When applying PCA to genes, the names of the output files are <samp><var>JobName</var><span class="file">_pca_gene.pc.txt</span></samp> and <samp><var>JobName</var><span class="file">_pca_gene.coords.txt</span></samp>, where the former contains contains the principal components, and the latter contains the coordinates of each row in the data matrix with respect to the principal components. When applying PCA to the columns in the data matrix, the respective file names are <samp><var>JobName</var><span class="file">_pca_array.pc.txt</span></samp> and <samp><var>JobName</var><span class="file">_pca_array.coords.txt</span></samp>. The original data matrix can be recovered from the principal components and the coordinates.
+
+   <p>As an example, consider this input file:
+   <p><table summary=""><tr align="left"><td valign="top"><code>UNIQID</code> </td><td valign="top"><code>EXP1</code> </td><td valign="top"><code>EXP2</code> </td><td valign="top"><code>EXP3</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE1</code> </td><td valign="top"><code>3</code> </td><td valign="top"><code>4</code> </td><td valign="top"><code>-2</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE2</code> </td><td valign="top"><code>4</code> </td><td valign="top"><code>1</code> </td><td valign="top"><code>-3</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE3</code> </td><td valign="top"><code>1</code> </td><td valign="top"><code>-8</code> </td><td valign="top"><code>7</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE4</code> </td><td valign="top"><code>-6</code> </td><td valign="top"><code>6</code> </td><td valign="top"><code>4</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE5</code> </td><td valign="top"><code>0</code> </td><td valign="top"><code>-3</code> </td><td valign="top"><code>8</code>
+   <br></td></tr></table>
+Applying PCA to the rows (genes) of the data in this input file generates a coordinate file containing
+   <p><table summary=""><tr align="left"><td valign="top"><code>UNIQID</code> </td><td valign="top"><code>NAME</code>  </td><td valign="top"><code>GWEIGHT</code>  </td><td valign="top"><code> 13.513398</code> </td><td valign="top"><code>10.162987</code> </td><td valign="top"><code>2.025283</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE1 </code> </td><td valign="top"><code>GENE1</code> </td><td valign="top"><code>1.000000</code> </td><td valign="top"><code>  6.280326</code> </td><td valign="top"><code>-2.404095</code> </td><td valign="top"><code>-0.760157</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE2 </code> </td><td valign="top"><code>GENE2</code> </td><td valign="top"><code>1.000000</code> </td><td valign="top"><code>  4.720801</code> </td><td valign="top"><code>-4.995230</code> </td><td valign="top"><code> 0.601424</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE3 </code> </td><td valign="top"><code>GENE3</code> </td><td valign="top"><code>1.000000</code> </td><td valign="top"><code> -8.755665</code> </td><td valign="top"><code>-2.117608</code> </td><td valign="top"><code> 0.924161</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE4 </code> </td><td valign="top"><code>GENE4</code> </td><td valign="top"><code>1.000000</code> </td><td valign="top"><code>  3.443490</code> </td><td valign="top"><code> 8.133673</code> </td><td valign="top"><code> 0.621082</code>
+<br></td></tr><tr align="left"><td valign="top"><code>GENE5 </code> </td><td valign="top"><code>GENE5</code> </td><td valign="top"><code>1.000000</code> </td><td valign="top"><code> -5.688953</code> </td><td valign="top"><code> 1.383261</code> </td><td valign="top"><code>-1.386509</code>
+   <br></td></tr></table>
+where the first line shows the eigenvalues of the principal components, and a prinpical component file containing
+   <p><table summary=""><tr align="left"><td valign="top"><code>EIGVALUE</code>  </td><td valign="top"><code>EXP1</code>      </td><td valign="top"><code>EXP2</code>     </td><td valign="top"><code>EXP3</code>
+<br></td></tr><tr align="left"><td valign="top"><code>MEAN</code>      </td><td valign="top"><code> 0.400000</code> </td><td valign="top"><code>0.000000</code> </td><td valign="top"><code> 2.800000</code>
+<br></td></tr><tr align="left"><td valign="top"><code>13.513398</code> </td><td valign="top"><code> 0.045493</code> </td><td valign="top"><code>0.753594</code> </td><td valign="top"><code>-0.655764</code>
+<br></td></tr><tr align="left"><td valign="top"><code>10.162987</code> </td><td valign="top"><code>-0.756275</code> </td><td valign="top"><code>0.454867</code> </td><td valign="top"><code> 0.470260</code>
+<br></td></tr><tr align="left"><td valign="top"><code>2.025283</code>  </td><td valign="top"><code>-0.652670</code> </td><td valign="top"><code>-0.474545</code> </td><td valign="top"><code>-0.590617</code>
+   <br></td></tr></table>
+with the eigenvalues of the principal components shown in the first column.  From this principal component decomposition, we can regenerate the original data matrix as follows:
+<p>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr> <td> &#X239B; </td> <td align=right>  6.280326 </td> <td width=80 align=right> -2.404095 </td> <td width=80 align=right> -0.760157 </td> <td> &#X239E; </td> </tr>
+<tr> <td> &#X239C; </td> <td align=right>  4.720801 </td> <td align=right> -4.995230 </td> <td align=right>  0.601424 </td> <td> &#X239F; </td> </tr>
+<tr> <td> &#X239C; </td> <td align=right> -8.755665 </td> <td align=right> -2.117608 </td> <td align=right>  0.924161 </td> <td> &#X239F; </td> </tr>
+<tr> <td> &#X239C; </td> <td align=right>  3.443490 </td> <td align=right>  8.133673 </td> <td align=right>  0.621082 </td> <td> &#X239F; </td> </tr>
+<tr> <td> &#X239D; </td> <td align=right> -5.688953 </td> <td align=right>  1.383261 </td> <td align=right> -1.386509 </td> <td> &#X23A0; </td> </tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr><td><br></td></tr>
+<tr><td><br></td></tr>
+<tr><td>&middot;</td></tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr></tr>
+<tr> <td> &#X239B; </td> <td align=right>  0.045493 </td> <td width=80 align=right>  0.753594 </td> <td width=80 align=right>  -0.655764</td> <td> &#X239E; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right> -0.756275 </td> <td align=right> 0.454867 </td> <td align=right>  0.470260 </td>  <td> &#X239F; </td> </tr>
+<tr> <td> &#X239D; </td> <td align=right> -0.652670 </td> <td align=right> -0.474545 </td> <td align=right> -0.590617 </td>  <td> &#X23A0; </td> </tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr><td><br></td></tr>
+<tr><td><br></td></tr>
+<tr><td>+</td></tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr> <td> &#X239B; </td> <td align=right>  0.4 </td> <td width=40 align=right>  0.0 </td> <td width=40 align=right> 2.8 </td> <td> &#X239E; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  0.4 </td> <td align=right>  0.0 </td> <td align=right> 2.8 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  0.4 </td> <td align=right>  0.0 </td> <td align=right> 2.8 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  0.4 </td> <td align=right>  0.0 </td> <td align=right> 2.8 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239D; </td> <td align=right>  0.4 </td> <td align=right>  0.0 </td> <td align=right> 2.8 </td> <td> &#X23A0; </td></tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr><td><br></td></tr>
+<tr><td><br></td></tr>
+<tr><td>=</td></tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr> <td> &#X239B; </td> <td align=right>  3 </td> <td width=40 align=right>  4 </td> <td width=40 align=right> -2 </td> <td> &#X239E; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  4 </td> <td align=right> 1 </td> <td align=right> -3 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  1 </td> <td align=right> -8 </td> <td align=right> 7 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  -6 </td> <td align=right> 6 </td> <td align=right> 4 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239D; </td> <td align=right>  0 </td> <td align=right> -3</td> <td align=right> 8 </td> <td> &#X23A0; </td></tr>
+</table>
+</p>Note that the coordinate file <samp><var>JobName</var><span class="file">_pca_gene.coords.txt</span></samp> is a valid input file to Cluster 3.0. Hence, it can be loaded into Cluster 3.0 for further analysis, possibly after removing columns with low eigenvalues.
 
    </body></html>
 

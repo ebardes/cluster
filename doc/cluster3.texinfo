@@ -81,34 +81,17 @@ Adjust Data tabs.
 
 @section Loading Data
 
-The first step in using Cluster is to import data. Currently, Cluster only
-reads tab-delimited text files in a particular format, described below. Such tab-delimited
-text files can be created and exported in any standard spreadsheet program, such as
-Microsoft Excel. An example datafile can be found under the File format help item in the Help menu.
-This contains all the information you need for
-making a Cluster input file.
+The first step in using Cluster is to import data. Currently, Cluster only reads tab-delimited text files in a particular format, described below. Such tab-delimited text files can be created and exported in any standard spreadsheet program, such as Microsoft Excel. An example datafile can be found under the File format help item in the Help menu. This contains all the information you need for making a Cluster input file.
 
-By convention, in Cluster input tables rows represent genes and columns represent
-samples or observations (e.g. a single microarray hybridization). For a simple timecourse,
-a minimal Cluster input file would look like this:@*
+By convention, in Cluster input tables rows represent genes and columns represent samples or observations (e.g. a single microarray hybridization). For a simple timecourse, a minimal Cluster input file would look like this:@*
 
 @image{images/minifile}
 @*
-Each row (gene) has an identifier (in green) that always goes in the first column. Here we
-are using yeast open reading frame codes. Each column (sample) has a label (in blue)
-that is always in the first row; here the labels describe the time at which a sample was
-taken. The first column of the first row contains a special field (in red) that tells the
-program what kind of objects are in each row. In this case, YORF stands for yeast open
-reading frame. This field can be any alpha-numeric value. It is used in TreeView to
-specify how rows are linked to external websites.
+Each row (gene) has an identifier (in green) that always goes in the first column. Here we are using yeast open reading frame codes. Each column (sample) has a label (in blue) that is always in the first row; here the labels describe the time at which a sample was taken. The first column of the first row contains a special field (in red) that tells the program what kind of objects are in each row. In this case, YORF stands for yeast open reading frame. This field can be any alpha-numeric value. It is used in TreeView to specify how rows are linked to external websites.
 
-The remaining cells in the table contain data for the appropriate gene and sample. The
-5.8 in row 2 column 4 means that the observed data value for gene YAL001C at 2
-hours was 5.8. Missing values are acceptable and are designated by empty cells (e.g.
-YAL005C at 2 hours).
+The remaining cells in the table contain data for the appropriate gene and sample. The 5.8 in row 2 column 4 means that the observed data value for gene YAL001C at 2 hours was 5.8. Missing values are acceptable and are designated by empty cells (e.g.  YAL005C at 2 hours).
 
-It is possible to have additional information in the input file. A maximal Cluster input file
-would look like this:@*
+It is possible to have additional information in the input file. A maximal Cluster input file would look like this:@*
 
 @image{images/maxifile}
 @*
@@ -1567,7 +1550,7 @@ have to be unique.
 Cluster writes up to three output files for each hierarchical clustering run. The root
 filename of each file is whatever text you enter into the Job Name dialog box. When you
 load a file, Job Name is set to the root filename of the input file. The three output files are
-@file{JobName.cdt}, @file{JobName.gtr}, @file{JobName.atr}
+@file{@var{JobName}.cdt}, @file{@var{JobName}.gtr}, @file{@var{JobName}.atr}
 The @file{.cdt} (for clustered data table) file contains the original data with the rows and
 columns reordered based on the clustering result. It is the same format as the input files,
 except that an additional column and/or row is added if clustering is performed on genes
@@ -1581,8 +1564,7 @@ each item to be clustered is assigned a unique identifier (e.g. @samp{GENE1X} or
 used). These identifiers are added to the .cdt file. As each node is generated, it receives a
 unique identifier as well, starting is @samp{NODE1X}, @samp{NODE2X}, etc. Each joining event is
 stored in the @file{.gtr} or @file{.atr} file as a row with the node identifier, the identifiers of the two
-joined elements, and the similarity score for the two joined elements. These files look
-like:@*
+joined elements, and the similarity score for the two joined elements. These files look like:@*
 @image{images/tree}
 @multitable {NODEXX} {GENEXX} {GENEXX} {0.XX}
 @item @code{NODE1X} @tab @code{GENE1X} @tab @code{GENE4X} @tab @code{0.98}
@@ -1695,7 +1677,7 @@ $k$-means
 
 
 The output is simply an assignment of items to a cluster. The implementation here simply rearranges the rows and/or columns based on which cluster they were assigned to.
-The output data file is @file{JobName_K_GKg_AKa.cdt}, where @file{_GKg} is included if genes were organized, and @file{_AKa} is included if arrays were organized. Here, @file{Kg} and @file{Ka} represent the number of clusters for gene clustering and array clustering, respectively. This file contains the gene expression data, organized by cluster by rearranging the rows and columns. In addition, the files @file{JobName_K_GKg.kgg} and @file{JobName_K_AKa.kag} are created, containing a list of genes/arrays and the cluster they were assigned to.
+The output data file is @file{@var{JobName}_K_GKg_AKa.cdt}, where @file{_GKg} is included if genes were organized, and @file{_AKa} is included if arrays were organized. Here, @file{Kg} and @file{Ka} represent the number of clusters for gene clustering and array clustering, respectively. This file contains the gene expression data, organized by cluster by rearranging the rows and columns. In addition, the files @file{@var{JobName}_K_GKg.kgg} and @file{@var{JobName}_K_AKa.kag} are created, containing a list of genes/arrays and the cluster they were assigned to.
 
 Whereas 
 @tex
@@ -1771,7 +1753,7 @@ more detailed description is available in the book by Kohonen, Self-Organizing M
 The current implementation varies slightly from that of Tamayo et al., in that it restricts
 the analysis one-dimensional SOMs along each axis, as opposed to a two-dimensional
 network. The one-dimensional SOM is used to reorder the elements on whichever axes
-are selected. The result is similar to the result of k-means clustering, except that, unlike kmeans,
+are selected. The result is similar to the result of k-means clustering, except that, unlike in k-means clustering,
 the nodes in a SOM are ordered. This tends to result in a relatively smooth
 transition between groups.
 
@@ -1792,11 +1774,11 @@ $n$
 @html
 <i>n</i>
 @end html
-is the number of items. The total number of clusters is then equal to the square root of the number of items.
+is the number of items; the total number of clusters is then equal to the square root of the number of items);
 @item the number of iterations to be run.
 @end itemize
 
-The output file is of the form @file{JobName_SOM_GXg-Yg_AXa-Ya.txt}, where @file{GXg-Yg} is
+The output file is of the form @file{@var{JobName}_SOM_GXg-Yg_AXa-Ya.txt}, where @file{GXg-Yg} is
 included if genes were organized, and @file{AXg-Yg} is included if arrays were organized. @file{X} and
 @file{Y} represent the dimensions of the corresponding SOM.
 Up to two additional files (@file{.gnf} and @file{.anf}) are written containing the vectors for
@@ -1818,22 +1800,125 @@ structure of the tree.
 @node PCA, , SOM, Cluster
 @section Principal Component Analysis
 
-Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data.
-In PCA, the data vectors are written as a linear sum over principal components. The number of principal components is equal to the number of dimensions of the data vectors.
+@image{images/pca}
 
-The principal components are chosen such that they maximally explain the variance in the data vectors. For example, in case of 3D data vectors, the data can be represented as an ellipsoidal cloud of points in three dimensional space. The first principal component would be the longest axis of the ellipsoid, the second principal component would be the second longest axis of the ellipsoid, and the third principal component would be the shortest axis. In other words, the principal components are ordered by the amount of variance they explain.
+Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data.  A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
 
-Each data point can be reconstructed by a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are used. The remaining variance present in the data is then regarded as unexplained variance.
+In essence, PCA is a coordinate transformation in which each row in the data matrix is written as a linear sum over basis vectors called principal components, which are ordered and chosen such that each maximally explains the remaining variance in the data vectors. For example, an @math{n \times 3} data matrix can be represented as an ellipsoidal cloud of @math{n} points in three dimensional space. The first principal component is the longest axis of the ellipsoid, the second principal component the second longest axis of the ellipsoid, and the third principal component is the shortest axis. Each row in the data matrix can be reconstructed as a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are retained. The remaining variance present in the data is then regarded as unexplained variance.
 
 The principal components can be found by calculating the eigenvectors of the covariance matrix of the data. The corresponding eigenvalues determine how much of the variance present in the data is explained by each principal component.
 
-In Cluster, the eigenvectors are found by calculating the singular value decomposition of the data matrix.
-The output is very simple in
-this version and consists of two files: @file{JobName_svv.txt} that contains the principal
-components and @file{JobName_svu.txt} that contains the loadings of each gene on the principal
-components. By multiplying the principal components by the loadings and summing, the data vector of each gene can be recovered.
+Before applying PCA, typically the mean is subtracted from each column in the data matrix. In the example above, this effectively centers the ellipsoidal cloud around its centroid in 3D space, with the principal components describing the variation of poins in the ellipsoidal cloud with respect to their centroid.
 
-A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
+In Cluster, you can apply PCA to the rows (genes) of the data matrix, or to the columns (microarrays) of the data matrix. In each case, the output consists of two files. When applying PCA to genes, the names of the output files are @file{@var{JobName}_pca_gene.pc.txt} and @file{@var{JobName}_pca_gene.coords.txt}, where the former contains contains the principal components, and the latter contains the coordinates of each row in the data matrix with respect to the principal components. When applying PCA to the columns in the data matrix, the respective file names are @file{@var{JobName}_pca_array.pc.txt} and @file{@var{JobName}_pca_array.coords.txt}. The original data matrix can be recovered from the principal components and the coordinates.
+
+As an example, consider this input file:
+@multitable {UNIQID} {EXPX} {EXPX} {EXPX}
+@item @code{UNIQID} @tab @code{EXP1} @tab @code{EXP2} @tab @code{EXP3}
+@item @code{GENE1} @tab @code{3} @tab @code{4} @tab @code{-2}
+@item @code{GENE2} @tab @code{4} @tab @code{1} @tab @code{-3}
+@item @code{GENE3} @tab @code{1} @tab @code{-8} @tab @code{7}
+@item @code{GENE4} @tab @code{-6} @tab @code{6} @tab @code{4}
+@item @code{GENE5} @tab @code{0} @tab @code{-3} @tab @code{8}
+@end multitable
+@noindent Applying PCA to the rows (genes) of the data in this input file generates a coordinate file containing
+@multitable {UNIQID} {GENEX} {1.000000} {+00.000000} {+00.000000} {+00.000000}
+@item @code{UNIQID} @tab @code{NAME}  @tab @code{GWEIGHT}  @tab @code{ 13.513398} @tab @code{10.162987} @tab @code{2.025283}
+@item @code{GENE1 } @tab @code{GENE1} @tab @code{1.000000} @tab @code{  6.280326} @tab @code{-2.404095} @tab @code{-0.760157}
+@item @code{GENE2 } @tab @code{GENE2} @tab @code{1.000000} @tab @code{  4.720801} @tab @code{-4.995230} @tab @code{ 0.601424}
+@item @code{GENE3 } @tab @code{GENE3} @tab @code{1.000000} @tab @code{ -8.755665} @tab @code{-2.117608} @tab @code{ 0.924161}
+@item @code{GENE4 } @tab @code{GENE4} @tab @code{1.000000} @tab @code{  3.443490} @tab @code{ 8.133673} @tab @code{ 0.621082}
+@item @code{GENE5 } @tab @code{GENE5} @tab @code{1.000000} @tab @code{ -5.688953} @tab @code{ 1.383261} @tab @code{-1.386509}
+@end multitable
+@noindent where the first line shows the eigenvalues of the principal components, and a prinpical component file containing
+@multitable {00.000000} {+00.000000} {+00.000000} {+00.000000}
+@item @code{EIGVALUE}  @tab @code{EXP1}      @tab @code{EXP2}     @tab @code{EXP3}
+@item @code{MEAN}      @tab @code{ 0.400000} @tab @code{0.000000} @tab @code{ 2.800000}
+@item @code{13.513398} @tab @code{ 0.045493} @tab @code{0.753594} @tab @code{-0.655764}
+@item @code{10.162987} @tab @code{-0.756275} @tab @code{0.454867} @tab @code{ 0.470260}
+@item @code{2.025283}  @tab @code{-0.652670} @tab @code{-0.474545} @tab @code{-0.590617}
+@end multitable
+@noindent with the eigenvalues of the principal components shown in the first column.  From this principal component decomposition, we can regenerate the original data matrix as follows:
+@tex
+$$
+\eqalign{
+&
+\pmatrix{
+ 6.280326 & -2.404095 & -0.760157 \cr
+ 4.720801 & -4.995230 &  0.601424 \cr
+-8.755665 & -2.117608 &  0.924161 \cr
+ 3.443490 &  8.133673 &  0.621082 \cr
+-5.688953 &  1.383261 & -1.386509}
+\cdot
+\pmatrix{
+ 0.045493 &  0.753594 & -0.655764 \cr
+-0.756275 &  0.454867 &  0.470260 \cr
+-0.652670 & -0.474545 & -0.590617}
+\cr
+&+
+\pmatrix{
+0.400000 & 0.000000 & 2.800000 \cr
+0.400000 & 0.000000 & 2.800000 \cr
+0.400000 & 0.000000 & 2.800000 \cr
+0.400000 & 0.000000 & 2.800000 \cr
+0.400000 & 0.000000 & 2.800000}
+=
+\pmatrix{
+3 & 4 & -2 \cr
+4 & 1 & -3 \cr
+1 & -8 & 7 \cr
+-6 & 6 & 4 \cr
+0 & -3 & 8}
+}
+$$
+@end tex
+@html
+<p>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr> <td> &#X239B; </td> <td align=right>  6.280326 </td> <td width=80 align=right> -2.404095 </td> <td width=80 align=right> -0.760157 </td> <td> &#X239E; </td> </tr>
+<tr> <td> &#X239C; </td> <td align=right>  4.720801 </td> <td align=right> -4.995230 </td> <td align=right>  0.601424 </td> <td> &#X239F; </td> </tr>
+<tr> <td> &#X239C; </td> <td align=right> -8.755665 </td> <td align=right> -2.117608 </td> <td align=right>  0.924161 </td> <td> &#X239F; </td> </tr>
+<tr> <td> &#X239C; </td> <td align=right>  3.443490 </td> <td align=right>  8.133673 </td> <td align=right>  0.621082 </td> <td> &#X239F; </td> </tr>
+<tr> <td> &#X239D; </td> <td align=right> -5.688953 </td> <td align=right>  1.383261 </td> <td align=right> -1.386509 </td> <td> &#X23A0; </td> </tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr><td><br></td></tr>
+<tr><td><br></td></tr>
+<tr><td>&middot;</td></tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr></tr>
+<tr> <td> &#X239B; </td> <td align=right>  0.045493 </td> <td width=80 align=right>  0.753594 </td> <td width=80 align=right>  -0.655764</td> <td> &#X239E; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right> -0.756275 </td> <td align=right> 0.454867 </td> <td align=right>  0.470260 </td>  <td> &#X239F; </td> </tr>
+<tr> <td> &#X239D; </td> <td align=right> -0.652670 </td> <td align=right> -0.474545 </td> <td align=right> -0.590617 </td>  <td> &#X23A0; </td> </tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr><td><br></td></tr>
+<tr><td><br></td></tr>
+<tr><td>+</td></tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr> <td> &#X239B; </td> <td align=right>  0.4 </td> <td width=40 align=right>  0.0 </td> <td width=40 align=right> 2.8 </td> <td> &#X239E; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  0.4 </td> <td align=right>  0.0 </td> <td align=right> 2.8 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  0.4 </td> <td align=right>  0.0 </td> <td align=right> 2.8 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  0.4 </td> <td align=right>  0.0 </td> <td align=right> 2.8 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239D; </td> <td align=right>  0.4 </td> <td align=right>  0.0 </td> <td align=right> 2.8 </td> <td> &#X23A0; </td></tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr><td><br></td></tr>
+<tr><td><br></td></tr>
+<tr><td>=</td></tr>
+</table>
+<table style="display:inline" cellspacing=0 cellpadding=0>
+<tr> <td> &#X239B; </td> <td align=right>  3 </td> <td width=40 align=right>  4 </td> <td width=40 align=right> -2 </td> <td> &#X239E; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  4 </td> <td align=right> 1 </td> <td align=right> -3 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  1 </td> <td align=right> -8 </td> <td align=right> 7 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239C; </td> <td align=right>  -6 </td> <td align=right> 6 </td> <td align=right> 4 </td> <td> &#X239F; </td></tr>
+<tr> <td> &#X239D; </td> <td align=right>  0 </td> <td align=right> -3</td> <td align=right> 8 </td> <td> &#X23A0; </td></tr>
+</table>
+</p>
+@end html
+Note that the coordinate file @file{@var{JobName}_pca_gene.coords.txt} is a valid input file to Cluster 3.0. Hence, it can be loaded into Cluster 3.0 for further analysis, possibly after removing columns with low eigenvalues.
 
 @node Command, TreeView, Cluster, Top
 @chapter Running Cluster 3.0 as a command line program
@@ -1894,6 +1979,10 @@ $k$ to use (default: 0, no $k$-means clustering)
 @html
 <i>k</i> to use (default: 0, no <i>k</i>-means clustering)
 @end html
+@item -pg
+Specifies to apply Principal Component Analysis to genes instead of clustering
+@item -pa
+Specifies to apply Principal Component Analysis to arrays instead of clustering
 @item -s
 Specifies to calculate an SOM instead of hierarchical clustering
 @item -x @var{number}

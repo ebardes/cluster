@@ -3,7 +3,7 @@
 <title>Data - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
 <meta http-equiv="Content-Type" content="text/html">
 <meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.7">
+<meta name="generator" content="makeinfo 4.13">
 <link title="Top" rel="start" href="index.html#Top">
 <link rel="prev" href="Introduction.html#Introduction" title="Introduction">
 <link rel="next" href="Distance.html#Distance" title="Distance">
@@ -16,17 +16,19 @@
   pre.smallformat  { font-family:inherit; font-size:smaller }
   pre.smallexample { font-size:smaller }
   pre.smalllisp    { font-size:smaller }
-  span.sc { font-variant:small-caps }
-  span.roman { font-family: serif; font-weight: normal; } 
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
 --></style>
 </head>
 <body>
 <div class="node">
+<a name="Data"></a>
 <p>
-<a name="Data"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Distance.html#Distance">Distance</a>,
+Next:&nbsp;<a rel="next" accesskey="n" href="Distance.html#Distance">Distance</a>,
 Previous:&nbsp;<a rel="previous" accesskey="p" href="Introduction.html#Introduction">Introduction</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
-<hr><br>
+<hr>
 </div>
 
 <h2 class="chapter">2 Loading, filtering, and adjusting data</h2>
@@ -40,34 +42,17 @@ Adjust Data tabs.
 
 <h3 class="section">2.1 Loading Data</h3>
 
-<p>The first step in using Cluster is to import data. Currently, Cluster only
-reads tab-delimited text files in a particular format, described below. Such tab-delimited
-text files can be created and exported in any standard spreadsheet program, such as
-Microsoft Excel. An example datafile can be found under the File format help item in the Help menu. 
-This contains all the information you need for
-making a Cluster input file.
+<p>The first step in using Cluster is to import data. Currently, Cluster only reads tab-delimited text files in a particular format, described below. Such tab-delimited text files can be created and exported in any standard spreadsheet program, such as Microsoft Excel. An example datafile can be found under the File format help item in the Help menu. This contains all the information you need for making a Cluster input file.
 
-   <p>By convention, in Cluster input tables rows represent genes and columns represent
-samples or observations (e.g. a single microarray hybridization). For a simple timecourse,
-a minimal Cluster input file would look like this:<br>
+   <p>By convention, in Cluster input tables rows represent genes and columns represent samples or observations (e.g. a single microarray hybridization). For a simple timecourse, a minimal Cluster input file would look like this:<br>
 
    <div class="block-image"><img src="images/minifile.png" alt="images/minifile.png"></div>
 <br>
-Each row (gene) has an identifier (in green) that always goes in the first column. Here we
-are using yeast open reading frame codes. Each column (sample) has a label (in blue)
-that is always in the first row; here the labels describe the time at which a sample was
-taken. The first column of the first row contains a special field (in red) that tells the
-program what kind of objects are in each row. In this case, YORF stands for yeast open
-reading frame. This field can be any alpha-numeric value. It is used in TreeView to
-specify how rows are linked to external websites.
+Each row (gene) has an identifier (in green) that always goes in the first column. Here we are using yeast open reading frame codes. Each column (sample) has a label (in blue) that is always in the first row; here the labels describe the time at which a sample was taken. The first column of the first row contains a special field (in red) that tells the program what kind of objects are in each row. In this case, YORF stands for yeast open reading frame. This field can be any alpha-numeric value. It is used in TreeView to specify how rows are linked to external websites.
 
-   <p>The remaining cells in the table contain data for the appropriate gene and sample. The
-5.8 in row 2 column 4 means that the observed data value for gene YAL001C at 2
-hours was 5.8. Missing values are acceptable and are designated by empty cells (e.g. 
-YAL005C at 2 hours).
+   <p>The remaining cells in the table contain data for the appropriate gene and sample. The 5.8 in row 2 column 4 means that the observed data value for gene YAL001C at 2 hours was 5.8. Missing values are acceptable and are designated by empty cells (e.g.  YAL005C at 2 hours).
 
-   <p>It is possible to have additional information in the input file. A maximal Cluster input file
-would look like this:<br>
+   <p>It is possible to have additional information in the input file. A maximal Cluster input file would look like this:<br>
 
    <div class="block-image"><img src="images/maxifile.png" alt="images/maxifile.png"></div>
 <br>

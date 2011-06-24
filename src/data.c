@@ -88,7 +88,7 @@ static char* GetLine(FILE* inputfile)
     { size *= 2;
       line = realloc(line,(size+1)*sizeof(char));
     }
-    line[n] = c;
+    line[n] = (char)c;
     n++;
   }
   if (c=='\r')
@@ -721,8 +721,8 @@ void Save(FILE* outputfile, int geneID, int arrayID)
 
 void SelectSubset(int useRows, const int use[])
 { /* Allocate temporary space */
-  char** tempID = malloc(_rows*sizeof(char**));
-  char** tempName = malloc(_rows*sizeof(char**));
+  char** tempID = malloc(_rows*sizeof(char*));
+  char** tempName = malloc(_rows*sizeof(char*));
   double* tempOrder = malloc(_rows*sizeof(double));
   double* tempWeight = malloc(_rows*sizeof(double));
   double** tempData = malloc(_rows*sizeof(double*));
@@ -1158,182 +1158,202 @@ SaveArrayKCluster(FILE* file, int k, const int* NodeMap)
   free(arrayindex);
 }
 
-static void
-SaveArrayPCA (FILE* file, double eigenvalues[], double** eigenvectors,
-  int order[])
-{ int Row, Column;
-  fputs ("EIGVALUE", file);
-  for (Column=0;Column<_columns;Column++)
-    fprintf(file, "\t%s", _arrayname[Column]);
-  putc ('\n', file);
-  if (_rows > _columns)
-  { for (Row=0;Row<_columns;Row++)
-    { fprintf (file, "%f", eigenvalues[order[Row]]);
-      for (Column=0;Column<_columns;Column++)
-        fprintf (file, "\t%f", eigenvectors[Column][order[Row]]);
-      putc ('\n', file);
-    }
-  }
-  else
-  { for (Row=0;Row<_rows;Row++)
-    { fprintf (file, "%f", eigenvalues[order[Row]]);
-      for (Column=0;Column<_columns;Column++)
-        fprintf (file, "\t%f", eigenvectors[Column][order[Row]]);
-      putc ('\n', file);
-    }
-  }
-}
-
-static void
-SaveGenePCA (FILE* file, double eigenvalues[], double** eigenvectors,
-  int order[])
-{ int Row, Column;
-  fprintf (file, "%s\tNAME\tGWEIGHT", _uniqID);
-  for (Column=0;Column<min(_rows,_columns);Column++)
-    fprintf (file, "\t%f", eigenvalues[order[Column]]);
-  putc ('\n', file);
-  if (_rows>_columns)
-  { for (Row=0;Row<_rows;Row++)
-    { fprintf (file, "%s\t",_geneuniqID[Row]);
-      if (_genename[Row]) fputs (_genename[Row], file);
-      else fputs (_geneuniqID[Row], file);
-      fprintf (file, "\t%f", _geneweight[Row]);
-      for (Column=0;Column<_columns;Column++)
-        fprintf (file, "\t%f", eigenvectors[Row][order[Column]]);
-      putc ('\n', file);
-    }
-  }
-  else
-  { for (Row=0;Row<_rows;Row++)
-    { fprintf (file, "%s\t",_geneuniqID[Row]);
-      if (_genename[Row]) fputs (_genename[Row], file);
-      else fputs (_geneuniqID[Row], file);
-      fprintf (file, "\t%f", _geneweight[Row]);
-      for (Column=0;Column<_rows;Column++)
-        fprintf (file, "\t%f", eigenvectors[Column][order[Row]]);
-      putc ('\n', file);
-    }
-  }
-}
-
-const char* PerformPCA(FILE* genefile, FILE* arrayfile)
-{ int Row, Column;
-  int* svdorder= NULL;
-  double* svdsortval= NULL;
-  int ierr = 0;
-  const int nvals = min(_rows,_columns);
+const char* PerformGenePCA(FILE* coordinatefile, FILE* pcfile)
+{
+  int i, j;
+  const int nmin = min(_rows,_columns);
   double** u = malloc(_rows*sizeof(double*));
-  double** v = malloc(_columns*sizeof(double*));
-  double* w = malloc(nvals*sizeof(double));
-  if (!u || !v || !w)
+  double** v = malloc(nmin*sizeof(double*));
+  double* w = malloc(nmin*sizeof(double));
+  double* m = malloc(_columns*sizeof(double));
+  for (i = 0; i < _rows; i++)
+  { u[i] = malloc(_columns*sizeof(double));
+    if (!u[i]) break;
+  }
+  if (i < _rows) /* then we encountered the break */
+  { while(i-- > 0) free(u[i]);
+    free(u);
+    u = NULL;
+  }
+  for (i = 0; i < nmin; i++)
+  { v[i] = malloc(nmin*sizeof(double));
+    if (!v[i]) break;
+  }
+  if (i < nmin) /* then we encountered the break */
+  { while(i-- > 0) free(v[i]);
+    free(v);
+    v = NULL;
+  }
+  if (!u || !v || !w ||!m)
   { if (u) free(u);
     if (v) free(v);
     if (w) free(w);
-    return "Memory allocation error in PerformPCA";
+    if (m) free(m);
+    return "Memory allocation error in PerformGenePCA";
   }
-  if (_rows > _columns)
-  { for (Row=0;Row<_rows;Row++)
-    { double Mag  = 0;
-      u[Row] = malloc(_columns*sizeof(double));
-      if (!u[Row])
-      { while(--Row >=0) free(u[Row]);
-        free(u);
-        free(v);
-        free(w);
-        return "Memory allocation error in PerformPCA";
-      }
-      for (Column=0;Column<_columns;Column++)
-      { if (_mask[Row][Column])
-        { const double Value = _data[Row][Column];
-          Mag += Value*Value;
-        }
-      }
-      Mag = sqrt(Mag);
-      if (Mag == 0) Mag = 1;
-      for (Column=0;Column<_columns;Column++)
-      { if (_mask[Row][Column]) u[Row][Column] = _data[Row][Column] / Mag;
-        else u[Row][Column] = 0;
-      }
+  for (j = 0; j < _columns; j++)
+  { double value;
+    m[j] = 0.0;
+    for (i = 0; i < _rows; i++)
+    { value = _data[i][j];
+      u[i][j] = value;
+      m[j] += value;
     }
-    for (Row=0;Row<_columns;Row++)
-    { v[Row] = malloc(_columns*sizeof(double));
-      if (!v[Row])
-      { while (--Row >= 0) free(v[Row]);
-        for (Row=0; Row<_rows; Row++) free(u[Row]);
-        free(u);
-        free(v);
-        free(w);
-        return "Memory allocation error in PerformPCA";
-      }
+    m[j] /= _rows;
+    for (i = 0; i < _rows; i++) u[i][j] -= m[j];
+  }
+  pca(_rows, _columns, u, v, w);
+  fprintf(coordinatefile, "%s\tNAME\tGWEIGHT", _uniqID);
+  for (j=0; j < nmin; j++)
+    fprintf(coordinatefile, "\t%f", w[j]);
+  putc ('\n', coordinatefile);
+  fprintf(pcfile, "EIGVALUE");
+  for (j=0; j < _columns; j++)
+    fprintf(pcfile, "\t%s", _arrayname[j]);
+  putc ('\n', pcfile);
+  fprintf(pcfile, "MEAN");
+  for (j=0; j < _columns; j++)
+    fprintf(pcfile, "\t%f", m[j]);
+  putc ('\n', pcfile);
+  if (_rows>_columns)
+  { for (i=0; i<_rows; i++)
+    { fprintf (coordinatefile, "%s\t",_geneuniqID[i]);
+      if (_genename[i]) fputs (_genename[i], coordinatefile);
+      else fputs (_geneuniqID[i], coordinatefile);
+      fprintf (coordinatefile, "\t%f", _geneweight[i]);
+      for (j=0; j<_columns; j++)
+        fprintf (coordinatefile, "\t%f", u[i][j]);
+      putc ('\n', coordinatefile);
     }
-    svd(_rows,_columns,u,w,v,&ierr);
+    for (i = 0; i < nmin; i++)
+    { fprintf(pcfile, "%f", w[i]);
+      for (j=0; j < _columns; j++)
+        fprintf(pcfile, "\t%f", v[i][j]);
+      putc ('\n', pcfile);
+    }
   }
   else
-  { for (Column=0;Column<_columns;Column++)
-    { v[Column] = malloc(_rows*sizeof(double));
-      if (!v[Column])
-      { while (--Column >= 0) free(v[Column]);
-        free(u);
-        free(v);
-        free(w);
-        return "Memory allocation error in PerformPCA";
-      }
+  { for (i=0; i<_rows; i++)
+    { fprintf (coordinatefile, "%s\t",_geneuniqID[i]);
+      if (_genename[i]) fputs (_genename[i], coordinatefile);
+      else fputs (_geneuniqID[i], coordinatefile);
+      fprintf (coordinatefile, "\t%f", _geneweight[i]);
+      for (j=0; j<nmin; j++)
+        fprintf (coordinatefile, "\t%f", v[i][j]);
+      putc ('\n', coordinatefile);
     }
-    for (Row=0;Row<_rows;Row++)
-    { double Mag  = 0;
-      for (Column=0;Column<_columns;Column++)
-      { if (_mask[Row][Column])
-        { const double Value = _data[Row][Column];
-          Mag += Value*Value;
-        }
-      }
-      Mag = sqrt(Mag);
-      if (Mag == 0) Mag = 1;
-      for (Column=0;Column<_columns;Column++)
-      { if (_mask[Row][Column]) v[Column][Row] = _data[Row][Column] / Mag;
-        else v[Column][Row] = 0;
-      }
+    for (i = 0; i < _rows; i++)
+    { fprintf(pcfile, "%f", w[i]);
+      for (j=0; j < _columns; j++)
+        fprintf(pcfile, "\t%f", u[i][j]);
+      putc('\n', pcfile);
     }
-    for (Row=0;Row<_rows;Row++)
-    { u[Row] = malloc(_rows*sizeof(double));
-      if(!u[Row])
-      { while(--Row >= 0) free(u[Row]);
-        for (Column=0;Column<_columns;Column++) free(v[Column]);
-        free(u);
-        free(v);
-        free(w);
-        return "Memory allocation error in PerformPCA";
-      }
-    }
-    svd(_columns,_rows,v,w,u,&ierr);
   }
-  if(!ierr)
-  { svdorder = malloc(nvals*sizeof(int));
-    svdsortval= malloc(nvals*sizeof(double));
-  }
-  if (!svdorder || !svdsortval)
-  { if(svdorder) free(svdorder);
-    if(svdsortval) free(svdsortval);
-    for (Row = 0; Row < _rows; Row++) free(u[Row]);
-    for (Column = 0; Column < _columns; Column++) free(v[Column]);
-    free(u);
-    free(v);
-    free(w); 
-    return "Memory allocation error in PerformPCA";
-  }
-  for (Column=0;Column<nvals;Column++)
-  { svdorder[Column] = Column;
-    svdsortval[Column] = -w[Column];
-  }
-  sort(nvals,svdsortval,svdorder);
-  SaveArrayPCA(arrayfile, w, v, svdorder);
-  SaveGenePCA(genefile, w, u, svdorder);
-  for (Row=0;Row<_rows;Row++) free(u[Row]);
-  for (Column=0;Column<_columns;Column++) free(v[Column]);
+  for (i = 0; i < _rows; i++) free(u[i]);
+  for (i = 0; i < nmin; i++) free(v[i]);
   free(u);
   free(v);
   free(w); 
-  free(svdorder);
-  free(svdsortval);
+  free(m); 
+  return NULL;
+}
+
+const char* PerformArrayPCA(FILE* coordinatefile, FILE* pcfile)
+{
+  int i, j;
+  const int nmin = min(_rows,_columns);
+  double** u = malloc(_columns*sizeof(double*));
+  double** v = malloc(nmin*sizeof(double*));
+  double* w = malloc(nmin*sizeof(double));
+  double* m = malloc(_rows*sizeof(double));
+  for (i = 0; i < _columns; i++)
+  { u[i] = malloc(_rows*sizeof(double));
+    if (!u[i]) break;
+  }
+  if (i < _columns) /* then we encountered the break */
+  { while(i-- > 0) free(u[i]);
+    free(u);
+    u = NULL;
+  }
+  for (i = 0; i < nmin; i++)
+  { v[i] = malloc(nmin*sizeof(double));
+    if (!v[i]) break;
+  }
+  if (i < nmin) /* then we encountered the break */
+  { while(i-- > 0) free(v[i]);
+    free(v);
+    v = NULL;
+  }
+  if (!u || !v || !w ||!m)
+  { if (u) free(u);
+    if (v) free(v);
+    if (w) free(w);
+    if (m) free(m);
+    return "Memory allocation error in PerformGenePCA";
+  }
+  for (j = 0; j < _rows; j++)
+  { double value;
+    m[j] = 0.0;
+    for (i = 0; i < _columns; i++)
+    { value = _data[j][i];
+      u[i][j] = value;
+      m[j] += value;
+    }
+    m[j] /= _columns;
+    for (i = 0; i < _columns; i++) u[i][j] -= m[j];
+  }
+  pca(_columns, _rows, u, v, w);
+  fprintf(coordinatefile, "EIGVALUE");
+  for (j=0; j < _columns; j++)
+    fprintf (coordinatefile, "\t%s", _arrayname[j]);
+  putc ('\n', coordinatefile);
+  fprintf(coordinatefile, "EWEIGHT");
+  for (j=0; j < _columns; j++)
+    fprintf (coordinatefile, "\t%f", _arrayweight[j]);
+  putc ('\n', coordinatefile);
+  fprintf(pcfile, "%s\tNAME\tMEAN", _uniqID);
+  for (j=0; j < nmin; j++)
+    fprintf(pcfile, "\t%f", w[j]);
+  putc ('\n', pcfile);
+  if (_rows>_columns)
+  { for (i = 0; i < nmin; i++)
+    { fprintf(coordinatefile, "%f", w[i]);
+      for (j=0; j<_columns; j++)
+        fprintf (coordinatefile, "\t%f", v[j][i]);
+      putc ('\n', coordinatefile);
+    }
+    for (i = 0; i < _rows; i++)
+    { fprintf(pcfile, "%s\t",_geneuniqID[i]);
+      if (_genename[i]) fputs (_genename[i], pcfile);
+      else fputs (_geneuniqID[i], pcfile);
+      fprintf(pcfile, "\t%f", m[i]);
+      for (j=0; j<_columns; j++)
+        fprintf(pcfile, "\t%f", u[j][i]);
+      putc ('\n', pcfile);
+    }
+  }
+  else /* _rows < _columns */
+  { for (i=0; i<_rows; i++)
+    { fprintf(coordinatefile, "%f", w[i]);
+      for (j=0; j<_columns; j++)
+        fprintf (coordinatefile, "\t%f", u[j][i]);
+      putc ('\n', coordinatefile);
+    }
+    for (i = 0; i < _rows; i++)
+    { fprintf(pcfile, "%s\t",_geneuniqID[i]);
+      if (_genename[i]) fputs (_genename[i], pcfile);
+      else fputs (_geneuniqID[i], pcfile);
+      fprintf(pcfile, "\t%f", m[i]);
+      for (j=0; j<nmin; j++)
+        fprintf(pcfile, "\t%f", v[j][i]);
+      putc ('\n', pcfile);
+    }
+  }
+  for (i = 0; i < _columns; i++) free(u[i]);
+  for (i = 0; i < nmin; i++) free(v[i]);
+  free(u);
+  free(v);
+  free(w); 
+  free(m); 
   return NULL;
 }

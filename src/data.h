@@ -53,5 +53,6 @@ void SaveArrayKCluster(FILE* outputfile, int k, const int* NodeMap);
 void PerformSOM(FILE* GeneFile, int GeneXDim, int GeneYDim, int GeneIters,
   double GeneTau, char GeneMetric, FILE* ArrayFile, int ArrayXDim,
   int ArrayYDim, int ArrayIters, double ArrayTau, char ArrayMetric);
-const char* PerformPCA(FILE* genefile, FILE* arrayfile);
+const char* PerformGenePCA(FILE* coordinatefile, FILE* pcfile);
+const char* PerformArrayPCA(FILE* coordinatefile, FILE* pcfile);
 void Free(void);

@@ -10,16 +10,16 @@
 		<string>46 272 235 44 0 0 1440 878 </string>
 	</dict>
 	<key>IBFramework Version</key>
-	<string>443.0</string>
+	<string>489.0</string>
 	<key>IBOldestOS</key>
 	<integer>3</integer>
 	<key>IBOpenObjects</key>
 	<array>
-		<integer>29</integer>
 		<integer>21</integer>
+		<integer>29</integer>
 	</array>
 	<key>IBSystem Version</key>
-	<string>8I1121</string>
+	<string>8S2167</string>
 	<key>IBUsesTextArchiving</key>
 	<true/>
 </dict>

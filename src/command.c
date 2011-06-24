@@ -143,6 +143,10 @@ static void display_help(void)
   printf ("  -r number     For k-means clustering, the number of times the\n"
           "                k-means clustering algorithm is run\n"
           "                (default: 1)\n");
+  printf ("  -pg           Specifies to apply Principal Component Analysis to\n"
+          "                genes instead of clustering\n");
+  printf ("  -pa           Specifies to apply Principal Component Analysis to\n"
+          "                arrays instead of clustering\n");
   printf ("  -s            Specifies to calculate an SOM instead of hierarchical\n"
           "                clustering\n");
   printf ("  -x number     Specifies the horizontal dimension of the SOM grid\n"
@@ -351,6 +355,62 @@ static void KMeans(char genemetric, char arraymetric, int k, int r,
   return;
 }
 
+static void PCA(char which, const int Rows, const int Columns,
+                const char* jobname)
+{ const char* error;
+  FILE* coordinatefile;
+  FILE* pcfile;
+  const int n = strlen(jobname) + strlen("_pca_array.coords.txt") + 1;
+  char* const filename = malloc(n*sizeof(char));
+  if (!filename)
+  { printf("ERROR: Failed to allocate memory for file name\n");
+    return;
+  }
+  if (which=='g')
+  { sprintf(filename, "%s_pca_gene.coords.txt", jobname);
+    coordinatefile = fopen(filename, "wt");
+    sprintf(filename, "%s_pca_gene.pc.txt", jobname);
+    pcfile = fopen(filename, "wt");
+    if(!coordinatefile || !pcfile)
+    { printf("Error: Unable to open the output file");
+      if (coordinatefile) fclose(coordinatefile);
+      if (pcfile) fclose(pcfile);
+      free(filename);
+      return;
+    }
+    error = PerformGenePCA(coordinatefile, pcfile);
+    fclose(coordinatefile);
+    fclose(pcfile);
+    if (error)
+    { printf(error);
+      free(filename);
+      return;
+    }
+  }
+  else if (which=='a')
+  { sprintf(filename, "%s_pca_array.coords.txt", jobname);
+    coordinatefile = fopen(filename, "wt");
+    sprintf(filename, "%s_pca_array.pc.txt", jobname);
+    pcfile = fopen(filename, "wt");
+    if(!coordinatefile || !pcfile)
+    { printf("Error: Unable to open the output file");
+      if (coordinatefile) fclose(coordinatefile);
+      if (pcfile) fclose(pcfile);
+      free(filename);
+      return;
+    }
+    error = PerformArrayPCA(coordinatefile, pcfile);
+    fclose(coordinatefile);
+    fclose(pcfile);
+    if (error)
+    { printf(error);
+      free(filename);
+      return;
+    }
+  }
+  free(filename);
+}
+
 static void SOM(char genemetric, char arraymetric, int x, int y,
                 int Rows, int Columns, char* jobname)
 { char* filename;
@@ -456,6 +516,8 @@ int commandmain(int argc, char* argv[])
   char ca = '\0';
   int ng = 0;
   int na = 0;
+  int pg = 0;
+  int pa = 0;
   while (i < argc)
   { const char* const argument = argv[i];
     i++;
@@ -499,6 +561,14 @@ int commandmain(int argc, char* argv[])
     }
     if(!strcmp(argument,"-na"))
     { na = 1;
+      continue;
+    }
+    if(!strcmp(argument,"-pg"))
+    { pg = 1;
+      continue;
+    }
+    if(!strcmp(argument,"-pa"))
+    { pa = 1;
       continue;
     }
     switch (argument[1])
@@ -644,6 +714,10 @@ int commandmain(int argc, char* argv[])
     if(jobname)
     { if(k>0)
         KMeans(genemetric, arraymetric, k, r, Rows, Columns, jobname);
+      else if (pg==1)
+        PCA('g', Rows, Columns, jobname);
+      else if (pa==1)
+        PCA('a', Rows, Columns, jobname);
       else if(s!=0)
         SOM(genemetric, arraymetric, x, y, Rows, Columns, jobname);
       else if (genemetric!='\0' || arraymetric!='\0')
@@ -656,4 +730,3 @@ int commandmain(int argc, char* argv[])
   Free();
   return 0;
 }
-

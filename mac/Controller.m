@@ -699,9 +699,14 @@ static void CloseFile(FileHandle file)
 - (IBAction)PCAExecute:(id)sender
 {
     NSString* filename;
-    FileHandle genefile;
-    FileHandle arrayfile;
+    FileHandle coordinatefile;
+    FileHandle pcfile;
     const char* error;
+
+    const BOOL DoGenePCA = [PCAGeneXB state];
+    const BOOL DoArrayPCA = [PCAArrayXB state];
+
+    if (!DoGenePCA && !DoArrayPCA) return; // Nothing to do
 
     int rows = GetRows();
     int columns = GetColumns();
@@ -713,39 +718,76 @@ static void CloseFile(FileHandle file)
     NSString* base = [[FileMemo stringValue] stringByDeletingLastPathComponent];
     NSString* jobname = [base stringByAppendingPathComponent: [JobName stringValue]];
 
-    [statusbar setStringValue: @"Calculating SVD"];
-    [statusbar display];
+    if (DoGenePCA) {
+        [statusbar setStringValue: @"Performing Principal Component Analysis"];
+        [statusbar display];
 
-    filename = [NSString stringWithString: jobname];
-    filename = [filename stringByAppendingString: @"_svv"];
-    filename = [filename stringByAppendingPathExtension: @"txt"];
-    [[NSFileManager defaultManager] createFileAtPath: filename
-                                            contents: nil
-                                          attributes: nil];
-    if (!OpenFile(&genefile, filename, "wt")) {
-        [statusbar setStringValue: @"Error: Unable to open the output file"];
-        return;
-    }
+        filename = [NSString stringWithString: jobname];
+        filename = [filename stringByAppendingString: @"_pca_gene.coords"];
+        filename = [filename stringByAppendingPathExtension: @"txt"];
+        [[NSFileManager defaultManager] createFileAtPath: filename
+                                                contents: nil
+                                              attributes: nil];
+        if (!OpenFile(&coordinatefile, filename, "wt")) {
+            [statusbar setStringValue: @"Error: Unable to open the output file"];
+            return;
+        }
 
-    filename = [NSString stringWithString: jobname];
-    filename = [filename stringByAppendingString: @"_svu"];
-    filename = [filename stringByAppendingPathExtension: @"txt"];
-    [[NSFileManager defaultManager] createFileAtPath: filename
-                                            contents: nil
-                                          attributes: nil];
-    if (!OpenFile(&arrayfile, filename, "wt")) {
-        CloseFile(genefile);
-        [statusbar setStringValue: @"Error: Unable to open the output file"];
-        return;
+        filename = [NSString stringWithString: jobname];
+        filename = [filename stringByAppendingString: @"_pca_gene.pc"];
+        filename = [filename stringByAppendingPathExtension: @"txt"];
+        [[NSFileManager defaultManager] createFileAtPath: filename
+                                                contents: nil
+                                              attributes: nil];
+        if (!OpenFile(&pcfile, filename, "wt")) {
+            CloseFile(coordinatefile);
+            [statusbar setStringValue: @"Error: Unable to open the output file"];
+            return;
+        }
+        error = PerformGenePCA(coordinatefile.pointer, pcfile.pointer);
+        CloseFile(coordinatefile);
+        CloseFile(pcfile);
+        if (error) {
+            [statusbar setStringValue: [NSString stringWithCString: error]];
+            return;
+        }
+        [statusbar setStringValue: @"Finished Principal Component Analysis"];
     }
-    error = PerformPCA(genefile.pointer, arrayfile.pointer);
-    CloseFile(genefile);
-    CloseFile(arrayfile);
-    if (error) {
-        [statusbar setStringValue: [NSString stringWithCString: error]];
-        return;
+    if (DoArrayPCA) {
+        [statusbar setStringValue: @"Performing Principal Component Analysis"];
+        [statusbar display];
+
+        filename = [NSString stringWithString: jobname];
+        filename = [filename stringByAppendingString: @"_pca_array.coords"];
+        filename = [filename stringByAppendingPathExtension: @"txt"];
+        [[NSFileManager defaultManager] createFileAtPath: filename
+                                                contents: nil
+                                              attributes: nil];
+        if (!OpenFile(&coordinatefile, filename, "wt")) {
+            [statusbar setStringValue: @"Error: Unable to open the output file"];
+            return;
+        }
+
+        filename = [NSString stringWithString: jobname];
+        filename = [filename stringByAppendingString: @"_pca_array.pc"];
+        filename = [filename stringByAppendingPathExtension: @"txt"];
+        [[NSFileManager defaultManager] createFileAtPath: filename
+                                                contents: nil
+                                              attributes: nil];
+        if (!OpenFile(&pcfile, filename, "wt")) {
+            CloseFile(coordinatefile);
+            [statusbar setStringValue: @"Error: Unable to open the output file"];
+            return;
+        }
+        error = PerformArrayPCA(coordinatefile.pointer, pcfile.pointer);
+        CloseFile(coordinatefile);
+        CloseFile(pcfile);
+        if (error) {
+            [statusbar setStringValue: [NSString stringWithCString: error]];
+            return;
+        }
+        [statusbar setStringValue: @"Finished Principal Component Analysis"];
     }
-    [statusbar setStringValue: @"Finished Principal Component Analysis"];
 }
 
 - (IBAction)ShowFileFormatPanel:(id)sender

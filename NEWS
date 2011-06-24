@@ -1,5 +1,4 @@
-2008.10.01
-Removed the print_matrix_dbl function from perl/Cluster.xs, since it was not
-being used.
-Removed the deprecated PyArray_FromDims function from python/clustermodule.c.
-Check memory allocations rigorously in src/command.c.
+2010.12.27
+Modified Pycluster/Bio.Cluster to be able to compile and run with Python 3.
+Changed the number of passes in perl/t/14_kmedoids to avoid spurious test
+failures. Some minor updates in the documentation.

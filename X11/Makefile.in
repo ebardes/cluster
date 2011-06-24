@@ -35,7 +35,6 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-LIBOBJDIR =
 subdir = X11
 DIST_COMMON = $(dist_doc_DATA) $(dist_fileformat_DATA) \
 	$(dist_html_DATA) $(dist_image_DATA) $(srcdir)/Makefile.am \

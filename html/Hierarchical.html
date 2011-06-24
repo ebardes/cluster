@@ -3,7 +3,7 @@
 <title>Hierarchical - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
 <meta http-equiv="Content-Type" content="text/html">
 <meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.7">
+<meta name="generator" content="makeinfo 4.13">
 <link title="Top" rel="start" href="index.html#Top">
 <link rel="up" href="Cluster.html#Cluster" title="Cluster">
 <link rel="next" href="KMeans.html#KMeans" title="KMeans">
@@ -16,16 +16,18 @@
   pre.smallformat  { font-family:inherit; font-size:smaller }
   pre.smallexample { font-size:smaller }
   pre.smalllisp    { font-size:smaller }
-  span.sc { font-variant:small-caps }
-  span.roman { font-family: serif; font-weight: normal; } 
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
 --></style>
 </head>
 <body>
 <div class="node">
+<a name="Hierarchical"></a>
 <p>
-<a name="Hierarchical"></a>Next:&nbsp;<a rel="next" accesskey="n" href="KMeans.html#KMeans">KMeans</a>,
+Next:&nbsp;<a rel="next" accesskey="n" href="KMeans.html#KMeans">KMeans</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
-<hr><br>
+<hr>
 </div>
 
 <h3 class="section">4.1 Hierarchical Clustering</h3>
@@ -138,7 +140,7 @@ Cluster currently provides four choices, which are called centroid linkage, sing
 some cases you may want to give some observations more weight than others. For
 example, if you have duplicate copies of a gene on your array, you might want to
 downweight each individual copy when computing distances between arrays. You can
-specify weights using the <span class="samp">GWEIGHT</span> (gene weight) and <span class="samp">EWEIGHT</span> (experiment weight)
+specify weights using the &lsquo;<samp><span class="samp">GWEIGHT</span></samp>&rsquo; (gene weight) and &lsquo;<samp><span class="samp">EWEIGHT</span></samp>&rsquo; (experiment weight)
 parameters in the input file. By default all weights are set to 1.0. Thus, the actual formula,
 with weights included, for the Pearson correlation of
 <i>x</i> = {<i>x</i><SUB>1</SUB>, <i>x</i><SUB>2</SUB>, ..., <i>x<SUB>n</SUB></i>}and
@@ -269,14 +271,14 @@ you can flip any node on the tree (exchange the bottom and top branches) and you
 get a new ordering that is equally consistent with the tree. By default, when Cluster joins
 two items, it randomly places one item on the top branch and the other on the bottom
 branch. It is possible to guide this process to generate the best ordering consistent with
-a given tree. This is done by using the <span class="samp">GORDER</span> (gene order) and <span class="samp">EORDER</span> (experiment
+a given tree. This is done by using the &lsquo;<samp><span class="samp">GORDER</span></samp>&rsquo; (gene order) and &lsquo;<samp><span class="samp">EORDER</span></samp>&rsquo; (experiment
 order) parameters in the input file, or by running a self-organizing map (see section
 below) prior to clustering. By default, Cluster sets the order parameter for each
 row/column to 1. When a new node is created, Cluster compares the order parameters of
 the two joined items, and places the item with the smaller order value on the top branch. 
 The order parameter for a node is the average of the order parameters of its members. 
 Thus, if you want the gene order produced by Cluster to be as close as possible (without
-violating the structure of the tree) to the order in your input file, you use the <span class="samp">GORDER</span>
+violating the structure of the tree) to the order in your input file, you use the &lsquo;<samp><span class="samp">GORDER</span></samp>&rsquo;
 column, and assign a value that increases for each row. Note that order parameters do not
 have to be unique.
 
@@ -285,22 +287,21 @@ have to be unique.
 <p>Cluster writes up to three output files for each hierarchical clustering run. The root
 filename of each file is whatever text you enter into the Job Name dialog box. When you
 load a file, Job Name is set to the root filename of the input file. The three output files are
-<span class="file">JobName.cdt</span>, <span class="file">JobName.gtr</span>, <span class="file">JobName.atr</span>
-The <span class="file">.cdt</span> (for clustered data table) file contains the original data with the rows and
+<samp><var>JobName</var><span class="file">.cdt</span></samp>, <samp><var>JobName</var><span class="file">.gtr</span></samp>, <samp><var>JobName</var><span class="file">.atr</span></samp>
+The <samp><span class="file">.cdt</span></samp> (for clustered data table) file contains the original data with the rows and
 columns reordered based on the clustering result. It is the same format as the input files,
 except that an additional column and/or row is added if clustering is performed on genes
 and/or arrays. This additional column/row contains a unique identifier for each
-row/column that is linked to the description of the tree structure in the <span class="file">.gtr</span> and <span class="file">.atr</span> files. 
-The <span class="file">.gtr</span> (gene tree) and <span class="file">.atr</span> (array tree) files are tab-delimited text files that report on the
+row/column that is linked to the description of the tree structure in the <samp><span class="file">.gtr</span></samp> and <samp><span class="file">.atr</span></samp> files. 
+The <samp><span class="file">.gtr</span></samp> (gene tree) and <samp><span class="file">.atr</span></samp> (array tree) files are tab-delimited text files that report on the
 history of node joining in the gene or array clustering (note that these files are produced
 only when clustering is performed on the corresponding axis). When clustering begins
-each item to be clustered is assigned a unique identifier (e.g. <span class="samp">GENE1X</span> or <span class="samp">ARRY42X</span> &mdash; the
-<span class="samp">X</span> is a relic from the days when this was written in Perl and substring searches were
+each item to be clustered is assigned a unique identifier (e.g. &lsquo;<samp><span class="samp">GENE1X</span></samp>&rsquo; or &lsquo;<samp><span class="samp">ARRY42X</span></samp>&rsquo; &mdash; the
+&lsquo;<samp><span class="samp">X</span></samp>&rsquo; is a relic from the days when this was written in Perl and substring searches were
 used). These identifiers are added to the .cdt file. As each node is generated, it receives a
-unique identifier as well, starting is <span class="samp">NODE1X</span>, <span class="samp">NODE2X</span>, etc. Each joining event is
-stored in the <span class="file">.gtr</span> or <span class="file">.atr</span> file as a row with the node identifier, the identifiers of the two
-joined elements, and the similarity score for the two joined elements. These files look
-like:<br>
+unique identifier as well, starting is &lsquo;<samp><span class="samp">NODE1X</span></samp>&rsquo;, &lsquo;<samp><span class="samp">NODE2X</span></samp>&rsquo;, etc. Each joining event is
+stored in the <samp><span class="file">.gtr</span></samp> or <samp><span class="file">.atr</span></samp> file as a row with the node identifier, the identifiers of the two
+joined elements, and the similarity score for the two joined elements. These files look like:<br>
 <img src="images/tree.png" alt="images/tree.png">
    <p><table summary=""><tr align="left"><td valign="top"><code>NODE1X</code> </td><td valign="top"><code>GENE1X</code> </td><td valign="top"><code>GENE4X</code> </td><td valign="top"><code>0.98</code>
 <br></td></tr><tr align="left"><td valign="top"><code>NODE2X</code> </td><td valign="top"><code>GENE5X</code> </td><td valign="top"><code>GENE2X</code> </td><td valign="top"><code>0.80</code>
@@ -308,8 +309,8 @@ like:<br>
 <br></td></tr><tr align="left"><td valign="top"><code>NODE4X</code> </td><td valign="top"><code>NODE2X</code> </td><td valign="top"><code>NODE3X</code> </td><td valign="top"><code>0.60</code>
    <br></td></tr></table>
 <br>
-The <span class="file">.gtr</span> and/or <span class="file">.atr</span> files are automatically read in TreeView when you open the
-corresponding <span class="file">.cdt</span> file.
+The <samp><span class="file">.gtr</span></samp> and/or <samp><span class="file">.atr</span></samp> files are automatically read in TreeView when you open the
+corresponding <samp><span class="file">.cdt</span></samp> file.
 
    </body></html>
 

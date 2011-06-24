@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(cluster, 1.43)
+AC_INIT(cluster, 1.50)
 AC_CONFIG_SRCDIR(src/cluster.c)
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
@@ -44,9 +44,6 @@ Use --without-x if you want to build the command-line version of Cluster 3.0.])
 Use --without-x if you want to build the command-line version of Cluster 3.0.])])
   AC_CHECK_LIB(Xt, XtMalloc, [],
     [AC_MSG_ERROR([Failed to locate the Xt library.
-Use --without-x if you want to build the command-line version of Cluster 3.0.])])
-  AC_CHECK_LIB(Xp, XpGetContext, [],
-    [AC_MSG_ERROR([Failed to locate the Xp library.
 Use --without-x if you want to build the command-line version of Cluster 3.0.])])
   AC_CHECK_LIB(Xm, XmStringCreateSimple, [],
     [AC_MSG_ERROR([Failed to locate the Motif library.

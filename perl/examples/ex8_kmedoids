@@ -20,13 +20,12 @@ open(DATA,"<$file") or die "Can't open file $file: $!";
 #
 my $firstline = <DATA>;  # Skip the title line
 while(<DATA>) {
-
-	chomp(my $line = $_);
-	my @field     = split /\t/, $line;
-	$orfname[$i]  =   $field[0];
-	$orfdata[$i]  = [ @field[2..5] ];
-	$mask[$i]     = [ 1,1,1,1 ];
-	++$i;
+    chomp(my $line = $_);
+    my @field     = split /\t/, $line;
+    $orfname[$i]  =   $field[0];
+    $orfdata[$i]  = [ @field[2..5] ];
+    $mask[$i]     = [ 1,1,1,1 ];
+    ++$i;
 }
 close(DATA);
 
@@ -43,11 +42,11 @@ $orfname_by_rowid{$i++} = $_, foreach(@orfname);
 #------------------
 # Define the params we want to pass to distancematrix
 my %params1 = (
-	transpose =>         0,
-	dist      =>       'e',
-	data      =>    \@orfdata,
-	mask      =>       \@mask,
-	weight    =>     \@weight,
+    transpose =>         0,
+    dist      =>       'e',
+    data      =>    \@orfdata,
+    mask      =>       \@mask,
+    weight    =>     \@weight,
 );
 
 
@@ -61,9 +60,9 @@ my $matrix = distancematrix(%params1);
 #------------------
 
 my %params2 = (
-        nclusters =>         6,
-        distances =>   $matrix,
-	npass     =>      1000,
+    nclusters =>         6,
+    distances =>   $matrix,
+    npass     =>      1000,
 );
 
 printf("Executing k-medoids clustering 1000 times, using random initial clusterings\n");
@@ -73,8 +72,8 @@ my ($clusters, $error, $found) = kmedoids(%params2);
 my $item;
 $i = 0;
 foreach $item (@{$clusters}) {
-	print $i, ": ", $item, "\n";
-	++$i;
+    print $i, ": ", $item, "\n";
+    ++$i;
 }
 
 #------------------
@@ -92,9 +91,9 @@ my @initialid = (0,1,2,3,4,5) x 15;
 # choice for the initial clustering; the data file contains 90 genes.
                                                                                 
 %params2 = (
-        nclusters =>         6,
-        distances =>   $matrix,
-        initialid =>  \@initialid,
+    nclusters =>         6,
+    distances =>   $matrix,
+    initialid =>  \@initialid,
 );
                                                                                 
 printf("Executing k-medoids clustering with a specified initial clustering\n");

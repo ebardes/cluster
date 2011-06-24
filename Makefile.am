@@ -19,14 +19,14 @@ MACDIST = mac/main.m mac/Controller.h mac/Controller.m mac/cluster.icns \
   mac/Cluster.xcodeproj/project.pbxproj mac/Cluster.pmproj mac/Makefile \
   mac/Info.plist
 PYTHONDIST = setup.py python/MANIFEST.python python/__init__.py \
-  python/clustermodule.c python/test/README python/test/test.py \
-  python/test/test_Cluster.py
+  python/clustermodule.c python/test/README python/test/test_Cluster.py
 PERLDIST = perl/Artistic.txt perl/MANIFEST.perl \
   Makefile.PL perl/Makefile.PL src/Makefile.PL \
-  perl/Cluster.pm perl/Record.pm perl/Cluster.xs perl/typemap \
-  perl/t/01_mean_median.t perl/t/02_matrix_parse.t \
+  perl/Cluster.pm perl/Record.pm perl/Cluster.xs \
+  perl/t/01_mean_median.t perl/t/02_tree.t \
   perl/t/10_kcluster.t perl/t/11_clusterdistance.t perl/t/12_treecluster.t \
   perl/t/13_somcluster.t perl/t/14_kmedoids.t perl/t/15_distancematrix.t \
+  perl/t/16_pca.t \
   perl/examples/ex1_kcluster perl/examples/ex2_mean_median \
   perl/examples/ex3_kcluster perl/examples/ex4_somcluster \
   perl/examples/ex5_treecluster perl/examples/ex6_clusterdistance \

@@ -1,4 +1,4 @@
-package Record;
+package Algorithm::Cluster::Record;
 use strict;
 
 use Algorithm::Cluster;
@@ -251,13 +251,47 @@ sub save {
     my $nexps = scalar @{$self->{expid}};
     my $jobname = $param{jobname};
     defined ($jobname) or die 'jobname undefined';
-    my @geneclusters;
-    my @expclusters;
+    my $geneclusters;
+    my $expclusters;
+    my $gene_cluster_type;
+    my $exp_cluster_type;
     if (defined $param{geneclusters}) {
-        @geneclusters = @{$param{geneclusters}};
+        $geneclusters = $param{geneclusters};
+        if (ref($geneclusters) eq "ARRAY") {
+            if (scalar @{$geneclusters} != $ngenes) {
+                die "k-means solution found, but its size does not agree with the number of genes";
+            }
+            $gene_cluster_type = 'k'; # k-means clustering result
+        }
+        elsif (ref($geneclusters) eq "Algorithm::Cluster::Tree") {
+            $gene_cluster_type = 'h'; # hierarchical clustering result
+            my $n = $geneclusters->length;
+            if ($n != $ngenes - 1) {
+                die "Size of the hierarchical clustering tree ($n) should be equal to the number of genes ($ngenes) minus one";
+            }
+        }
+        else {
+            die "Cannot understand gene clustering result! $!";
+        }
     }
     if (defined $param{expclusters}) {
-        @expclusters = @{$param{expclusters}};
+        $expclusters = $param{expclusters};
+        if (ref($expclusters) eq "ARRAY") {
+            if (scalar @$expclusters != $nexps) {
+                die "k-means solution found, but its size does not agree with the number of experiments";
+            }
+            $exp_cluster_type = 'k'; # k-means clustering result
+        }
+        elsif (ref($expclusters) eq "Algorithm::Cluster::Tree") {
+            $exp_cluster_type = 'h'; # hierarchical clustering result
+            my $n = $expclusters->length;
+            if ($n != $nexps - 1) {
+                die "Size of the hierarchical clustering tree ($n) should be equal to the number of experiments ($nexps) minus one";
+            }
+        }
+        else {
+            die "Cannot understand experiment clustering result! $!";
+        }
     }
     my @gorder;
     if (defined $self->{gorder}) {
@@ -273,30 +307,6 @@ sub save {
     else {
         @eorder = (0..$nexps-1);
     }
-    my $gene_cluster_type;
-    if (defined @geneclusters) {
-        if (scalar @geneclusters == $ngenes) {
-            $gene_cluster_type = 'k'; # k-means clustering result
-        }
-        elsif (scalar @geneclusters == $ngenes - 1) {
-            $gene_cluster_type = 'h'; # hierarchical clustering result
-        }
-        else {
-            die "Cannot understand gene clustering result! $!";
-        }
-    }
-    my $exp_cluster_type;
-    if (defined @expclusters) {
-        if (scalar @expclusters == $nexps) {
-            $exp_cluster_type = 'k'; # k-means clustering result
-        }
-        elsif (scalar @expclusters == $nexps - 1) {
-            $exp_cluster_type = 'h'; # hierarchical clustering result
-        }
-        else {
-            die "Cannot understand experiment clustering result! $!";
-        }
-    }
     if (defined $gene_cluster_type and defined $exp_cluster_type) {
         if ($gene_cluster_type ne $exp_cluster_type) {
             die 'found one k-means and one hierarchical clustering solution in geneclusters and expclusters';
@@ -311,7 +321,7 @@ sub save {
     if ($gene_cluster_type eq 'h') {
         # Hierarchical clustering result
         @geneindex = _savetree(jobname   => $jobname,
-                               tree      => \@geneclusters,
+                               tree      => $geneclusters,
                                order     => \@gorder,
                                transpose =>  0);
         $gid = 1;
@@ -320,7 +330,7 @@ sub save {
         # k-means clustering result
         $filename = $jobname . '_K';
         my $k = -1;
-        foreach (@geneclusters) {
+        foreach (@$geneclusters) {
             if ($_ > $k) {
                 $k = $_;
             }
@@ -328,7 +338,7 @@ sub save {
         $k++;
         my $kggfilename = $jobname . "_K_G$k.kgg";
         @geneindex = $self->_savekmeans(filename => $kggfilename,
-                                        clusterids => \@geneclusters,
+                                        clusterids => \@$geneclusters,
                                         order => \@gorder,
                                         transpose => 0);
         $postfix = "_G$k";
@@ -339,7 +349,7 @@ sub save {
     if ($exp_cluster_type eq 'h') {
         # Hierarchical clustering result
         @expindex = _savetree(jobname   => $jobname,
-                              tree      => \@expclusters,
+                              tree      => $expclusters,
                               order     => \@eorder,
                               transpose =>  1);
         $aid = 1;
@@ -348,7 +358,7 @@ sub save {
         # k-means clustering result
         $filename = $jobname . '_K';
         my $k = -1;
-        foreach (@expclusters) {
+        foreach (@$expclusters) {
             if ($_ > $k) {
                 $k = $_;
             }
@@ -356,7 +366,7 @@ sub save {
         $k++;
         my $kagfilename = $jobname . "_K_A$k.kag";
         @expindex = $self->_savekmeans(filename => $kagfilename,
-                                       clusterids => \@expclusters,
+                                       clusterids => \@$expclusters,
                                        order => \@eorder,
                                        transpose => 1);
         $postfix = $postfix . "_A$k";
@@ -377,14 +387,14 @@ sub _treesort {
     my @order = @{$param{order}};
     my @nodeorder = @{$param{nodeorder}};
     my @nodecounts = @{$param{nodecounts}};
-    my @tree = @{$param{tree}};
-    my $nNodes = scalar @tree;
+    my $tree = $param{tree};
+    my $nNodes = $tree->length;
     my $nElements = $nNodes + 1;
     my @neworder = (0.0) x $nElements;
     my @clusterids = (0..$nElements-1);
     for (my $i = 0; $i < $nNodes; $i++) {
-        my $i1 = $tree[$i][0];
-        my $i2 = $tree[$i][1];
+        my $i1 = $tree->get($i)->left;
+        my $i2 = $tree->get($i)->right;
         my ($order1, $order2, $count1, $count2);
         if ($i1 < 0) {
             $order1 = $nodeorder[-$i1-1];
@@ -453,7 +463,7 @@ sub _treesort {
 sub _savetree {
     my %param = @_;
     my $jobname = $param{jobname};
-    my @tree = @{$param{tree}};
+    my $tree = $param{tree};
     my @order = @{$param{order}};
     my $transpose = $param{transpose};
     my ($extension, $keyword);
@@ -465,15 +475,20 @@ sub _savetree {
         $extension = 'atr';
         $keyword = 'ARRY';
     }
-    my $nnodes = scalar (@tree);
+    my $nnodes = $tree->length;
     open OUTPUT, ">$jobname.$extension" or die 'Error: Unable to open output file';
     my @nodeID = ('') x $nnodes;
     my @nodecounts = (0) x $nnodes;
     my @nodeorder = (0.0) x $nnodes;
-    my @nodedist = map {$_ -> [2]} @tree;
+    my @nodedist;
+    my $i;
+    for ($i = 0; $i < $nnodes; $i++) {
+        my $node = $tree->get($i);
+        push (@nodedist, $node->distance);
+    }
     for (my $nodeindex = 0; $nodeindex < $nnodes; $nodeindex++) {
-        my $min1 = $tree[$nodeindex][0];
-        my $min2 = $tree[$nodeindex][1];
+        my $min1 = $tree->get($nodeindex)->left;
+        my $min2 = $tree->get($nodeindex)->right;
         my $order1;
         my $order2;
         my $counts1;
@@ -521,7 +536,7 @@ sub _savetree {
     return _treesort(order      => \@order,
                      nodeorder  => \@nodeorder,
                      nodecounts => \@nodecounts,
-                     tree       => \@tree);
+                     tree       => $tree);
 }
 
 sub _savekmeans {

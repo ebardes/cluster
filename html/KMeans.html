@@ -3,7 +3,7 @@
 <title>KMeans - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
 <meta http-equiv="Content-Type" content="text/html">
 <meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.7">
+<meta name="generator" content="makeinfo 4.13">
 <link title="Top" rel="start" href="index.html#Top">
 <link rel="up" href="Cluster.html#Cluster" title="Cluster">
 <link rel="prev" href="Hierarchical.html#Hierarchical" title="Hierarchical">
@@ -17,17 +17,19 @@
   pre.smallformat  { font-family:inherit; font-size:smaller }
   pre.smallexample { font-size:smaller }
   pre.smalllisp    { font-size:smaller }
-  span.sc { font-variant:small-caps }
-  span.roman { font-family: serif; font-weight: normal; } 
+  span.sc    { font-variant:small-caps }
+  span.roman { font-family:serif; font-weight:normal; } 
+  span.sansserif { font-family:sans-serif; font-weight:normal; } 
 --></style>
 </head>
 <body>
 <div class="node">
+<a name="KMeans"></a>
 <p>
-<a name="KMeans"></a>Next:&nbsp;<a rel="next" accesskey="n" href="SOM.html#SOM">SOM</a>,
+Next:&nbsp;<a rel="next" accesskey="n" href="SOM.html#SOM">SOM</a>,
 Previous:&nbsp;<a rel="previous" accesskey="p" href="Hierarchical.html#Hierarchical">Hierarchical</a>,
 Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
-<hr><br>
+<hr>
 </div>
 
 <h3 class="section">4.2 The <i>k</i>-means Clustering Algorithm</h3>
@@ -62,7 +64,7 @@ Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
 </ul>
 
    <p>The output is simply an assignment of items to a cluster. The implementation here simply rearranges the rows and/or columns based on which cluster they were assigned to. 
-The output data file is <span class="file">JobName_K_GKg_AKa.cdt</span>, where <span class="file">_GKg</span> is included if genes were organized, and <span class="file">_AKa</span> is included if arrays were organized. Here, <span class="file">Kg</span> and <span class="file">Ka</span> represent the number of clusters for gene clustering and array clustering, respectively. This file contains the gene expression data, organized by cluster by rearranging the rows and columns. In addition, the files <span class="file">JobName_K_GKg.kgg</span> and <span class="file">JobName_K_AKa.kag</span> are created, containing a list of genes/arrays and the cluster they were assigned to.
+The output data file is <samp><var>JobName</var><span class="file">_K_GKg_AKa.cdt</span></samp>, where <samp><span class="file">_GKg</span></samp> is included if genes were organized, and <samp><span class="file">_AKa</span></samp> is included if arrays were organized. Here, <samp><span class="file">Kg</span></samp> and <samp><span class="file">Ka</span></samp> represent the number of clusters for gene clustering and array clustering, respectively. This file contains the gene expression data, organized by cluster by rearranging the rows and columns. In addition, the files <samp><var>JobName</var><span class="file">_K_GKg.kgg</span></samp> and <samp><var>JobName</var><span class="file">_K_AKa.kag</span></samp> are created, containing a list of genes/arrays and the cluster they were assigned to.
 
    <p>Whereas
 <i>k</i>-means clustering as implemented in Cluster 3.0 allows any of the eight distance measures to be used, we recommend using the Euclidean distance or city-block distance instead of the distance measures based on the Pearson correlation, for the same reason as in case of pairwise centroid-linkage hierarchical clustering. The distance measures based on the Pearson correlation effectively normalize the data vectors when calculating the distance, whereas no normalization is used when calculating the cluster centroid. To use

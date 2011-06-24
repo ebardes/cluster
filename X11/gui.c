@@ -206,9 +206,11 @@ static char* GetBaseName(Widget work)
     *(index+1) = '\0';
     n = strlen(directory) + strlen(jobname) + 1;
     fullpath = malloc(n*sizeof(char));
-    strcpy(fullpath, directory);
+    if (fullpath)
+    {   strcpy(fullpath, directory);
+        strcat(fullpath, jobname);
+    }
     XtFree(directory);
-    strcat(fullpath, jobname);
     XtFree(jobname);
     return fullpath;
 }
@@ -417,6 +419,10 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
             }
 
             path = GetBaseName(work);
+            if (!path)
+            {   Statusbar(NULL, "Memory allocation failure");
+                return;
+            }
 
             button = XtNameToWidget(page,"Organize genes");
             ClusterGenes = XmToggleButtonGetState(button);
@@ -880,6 +886,11 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
             /* Store results in boolean use */
             if(use) free(use);
             use = malloc(Rows*sizeof(int));
+            if (!use)
+            {   Statusbar(NULL, "Memory allocation failure");
+                return;
+            }
+ 
             useRows = 0;
 
             for (Row = 0; Row < Rows; Row++)
@@ -1390,6 +1401,10 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             /* Nothing to do */
 
             path = GetBaseName(work);
+            if (!path)
+            {   Statusbar(NULL, "Memory allocation failure");
+                return;
+            }
             n = strlen(path) + strlen("_K") + strlen(".ext") + 1;
             /* .ext represents the extension (kgg, kag, or cdt) */
 
@@ -1448,6 +1463,11 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 widget = XtNameToWidget(page,"GeneMetric");
                 dist = GetMetric(widget);
                 NodeMap = malloc(Rows*sizeof(int));
+                if (!NodeMap)
+                {   Statusbar(NULL, "Memory allocation failure");
+                    free(path);
+                    return;
+                }
                 nTrials = GetWidgetItemInt(page, "KMeansGeneRuns");
 
                 ifound = GeneKCluster(kGenes, nTrials, method, dist, NodeMap);
@@ -1486,6 +1506,11 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 widget = XtNameToWidget(page,"ArrayMetric");
                 dist = GetMetric(widget);
                 NodeMap = malloc(Columns*sizeof(int));
+                if (!NodeMap)
+                {   Statusbar(NULL, "Memory allocation failure");
+                    free(path);
+                    return;
+                }
                 nTrials = GetWidgetItemInt(page, "KMeansArrayRuns");
                 ifound = ArrayKCluster(kArrays, nTrials, method, dist, NodeMap);
                 sprintf(buffer, "Solution was found %d times", ifound);
@@ -1530,7 +1555,7 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
     int* which = (int*) client_data;
     switch (*which)
     {   case ID_PCA_INIT:
-        {   Arg args[3];
+        {   Arg args[5];
             int n;
             Widget widget, frame;
             XmString xms;
@@ -1538,63 +1563,141 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
 
 	    page = w;
             n = 0;
-            XtSetArg(args[n], XmNx, 240); n++;
-            XtSetArg(args[n], XmNy, 190); n++;
-            widget = XmCreatePushButton(page, "Execute", args, n);
+            XtSetArg(args[n], XmNx, 180); n++;
+            widget = XmCreateLabel(page, "Principal Component Analysis", args, n);
             XtManageChild(widget);
-            XtAddCallback(widget, XmNactivateCallback, PCA, (XtPointer)&command);
             n = 0;
-            XtSetArg(args[n], XmNwidth, 520); n++;
-            XtSetArg(args[n], XmNheight, 320); n++;
+            XtSetArg(args[n], XmNx, 20); n++;
+            XtSetArg(args[n], XmNy, 70); n++;
+            widget = XmCreateToggleButton(page, "Apply PCA to genes", args, n);
+            XtManageChild(widget);
+            n = 0;
+            XtSetArg(args[n], XmNy, 30); n++;
+            XtSetArg(args[n], XmNwidth, 255); n++;
+            XtSetArg(args[n], XmNheight, 275); n++;
             XtSetArg(args[n], XmNshadowType, XmSHADOW_ETCHED_OUT); n++;
             frame = XmCreateFrame(page, "Frame", args, n);
             XtManageChild(frame);
             n = 0;
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
-            xms = XmStringCreateSimple("Principal Component Analysis");
+            xms = XmStringCreateSimple("Genes");
             XtSetArg(args[n], XmNlabelString, xms); n++;
             widget = XmCreateLabel (frame,NULL,args,n);
             XtManageChild(widget);
             XmStringFree(xms);
+            n = 0;
+            XtSetArg(args[n], XmNx, 290); n++;
+            XtSetArg(args[n], XmNy, 70); n++;
+            widget = XmCreateToggleButton(page, "Apply PCA to arrays", args, n);
+            XtManageChild(widget);
+            n = 0;
+            XtSetArg(args[n], XmNx, 280); n++;
+            XtSetArg(args[n], XmNy, 30); n++;
+            XtSetArg(args[n], XmNwidth, 255); n++;
+            XtSetArg(args[n], XmNheight, 275); n++;
+            XtSetArg(args[n], XmNshadowType, XmSHADOW_ETCHED_OUT); n++;
+            frame = XmCreateFrame(page, "Frame", args, n);
+            XtManageChild(frame);
+            n = 0;
+            XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
+            xms = XmStringCreateSimple("Arrays");
+            XtSetArg(args[n], XmNlabelString, xms); n++;
+            widget = XmCreateLabel (frame,NULL,args,n);
+            XtManageChild(widget);
+            XmStringFree(xms);
+            n = 0;
+            XtSetArg(args[n], XmNx, 240); n++;
+            XtSetArg(args[n], XmNy, 315); n++;
+            widget = XmCreatePushButton(page, "Execute", args, n);
+            XtManageChild(widget);
+            XtAddCallback(widget, XmNactivateCallback, PCA, (XtPointer)&command);
 	    break;
         }
 	case ID_PCA_EXECUTE:
-        {   const char* error;
+        {   Boolean DoGenePCA;
+            Boolean DoArrayPCA;
+            Widget button;
+
+            const char* error;
             const int Rows = GetRows();
             const int Columns = GetColumns();
-            char* path;
+            char* base;
+            char* path = NULL;
             char* extension;
-            FILE* genefile;
-            FILE* arrayfile;
+            FILE* coordinatefile;
+            FILE* pcfile;
 	    Widget notebook = XtParent(page);
 	    Widget work = XtParent(notebook);
+
+            button = XtNameToWidget(page, "Apply PCA to genes");
+            DoGenePCA = XmToggleButtonGetState(button);
+            button = XtNameToWidget(page, "Apply PCA to arrays");
+            DoArrayPCA = XmToggleButtonGetState(button);
 
             if (Rows==0 || Columns==0)
             {   Statusbar(NULL, "No data available");
 	        return;
             }
 
-            path = GetBaseName(work);
-            path = realloc(path, strlen(path)+strlen("_svx.txt"));
+            base = GetBaseName(work);
+            if (base)
+                path = realloc(base, strlen(base)+strlen("_pca_array.coords.txt"));
+            if (!path)
+            {   Statusbar(NULL, "Memory allocation failure");
+                if (base) free(base);
+	        return;
+            }
             extension = strchr(path, '\0');
  
-            Statusbar(NULL, "Calculating SVD");
-            sprintf (extension, "_svv.txt");
-            genefile = fopen(path, "wt");
-            sprintf (extension, "_svu.txt");
-            arrayfile = fopen(path, "wt");
-            free(path);
-            if(!genefile || !arrayfile)
-            { if(genefile) fclose(genefile);
-              if(arrayfile) fclose(genefile);
-              Statusbar(NULL, "Error: Unable to open the output file");
-              return;
+            if (DoGenePCA)
+            {
+                Statusbar(NULL, "Calculating PCA");
+                sprintf (extension, "_pca_gene.coords.txt");
+                coordinatefile = fopen(path, "wt");
+                sprintf (extension, "_pca_gene.pc.txt");
+                pcfile = fopen(path, "wt");
+                if(!coordinatefile || !pcfile)
+                { Statusbar(NULL, "Error: Unable to open the output file");
+                  if (coordinatefile) fclose(coordinatefile);
+                  if (pcfile) fclose(pcfile);
+                  free(path);
+                  return;
+                }
+                error = PerformGenePCA(coordinatefile, pcfile);
+                fclose(coordinatefile);
+                fclose(pcfile);
+                if (error)
+                { ShowError(w, error, "Error");
+                  free(path);
+                  return;
+                }
+                Statusbar(NULL, "Finished Principal Component Analysis");
             }
-            error = PerformPCA(genefile, arrayfile);
-            fclose(genefile);
-            fclose(arrayfile);
-            if (error) ShowError(NULL, error, "Error");
-            else Statusbar(NULL, "Finished Principal Component Analysis");
+            if (DoArrayPCA)
+            {
+                Statusbar(NULL, "Calculating PCA");
+                sprintf (extension, "_pca_array.coords.txt");
+                coordinatefile = fopen(path, "wt");
+                sprintf (extension, "_pca_array.pc.txt");
+                pcfile = fopen(path, "wt");
+                if(!coordinatefile || !pcfile)
+                { Statusbar(NULL, "Error: Unable to open the output file");
+                  if (coordinatefile) fclose(coordinatefile);
+                  if (pcfile) fclose(pcfile);
+                  free(path);
+                  return;
+                }
+                error = PerformArrayPCA(coordinatefile, pcfile);
+                fclose(coordinatefile);
+                fclose(pcfile);
+                if (error)
+                { ShowError(w, error, "Error");
+                  free(path);
+                  return;
+                }
+                Statusbar(NULL, "Finished Principal Component Analysis");
+            }
+            free(path);
 	    break;
         }
     }
@@ -1866,6 +1969,11 @@ static void MenuHelp(Widget w, XtPointer client_data, XtPointer call_data)
 "(e.g. log) should be applied before clustering. Missing values are acceptable.";
             for (n=0; n<12; n++) nchars += strlen(helplines[n]);
             helptext = malloc(nchars*sizeof(char));
+            if (!helptext)
+            {   Statusbar(NULL, "Memory allocation failuere");
+                return;
+            }
+
 	    helptext[0] = '\0';
             for (n=0; n<12; n++) strcat(helptext, helplines[n]);
 	    n = 0;
@@ -2180,7 +2288,15 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             arraymetric = GetMetric(widget);
 
             path = GetBaseName(work);
-            path = realloc(path, strlen(path)+strlen(".ext")+1);
+            if (path)
+            {   char* p = realloc(path, strlen(path)+strlen(".ext")+1);
+                if (!p) free(path);
+                path = p;
+            }
+            if (!path)
+            {   Statusbar(NULL, "Memory allocation failure");
+                return;
+            }
             extension = strchr(path, '\0');
 
             if (bCalculateGeneWeights || bCalculateArrayWeights)

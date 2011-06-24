@@ -1267,81 +1267,58 @@ If @var{clusterid} is @code{NULL}, the @code{somcluster} routine ignores this ar
 @node PCA, RNG, SOM, 
 @chapter Principal Component Analysis
 
-Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data. In PCA, the data vectors are written as a linear sum over principal components. The number of principal components is equal to the number of dimensions of the data vectors.
+Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data.  A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
 
-The principal components are chosen such that they maximally explain the variance in the data vectors. For example, in case of 3D data vectors, the data can be represented as an ellipsoidal cloud of points in three dimensional space. The first principal component would be the longest axis of the ellipsoid, the second principal component would be the second longest axis of the ellipsoid, and the third principal component would be the shortest axis. In other words, the principal components are ordered by the amount of variance they explain.
-
-Each data point can be reconstructed by a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are used. The remaining variance present in the data is then regarded as unexplained variance.
+In essence, PCA is a coordinate transformation in which each row in the data matrix is written as a linear sum over basis vectors called principal components, which are ordered and chosen such that each maximally explains the remaining variance in the data vectors. For example, an @math{n \times 3} data matrix can be represented as an ellipsoidal cloud of @math{n} points in three dimensional space. The first principal component is the longest axis of the ellipsoid, the second principal component the second longest axis of the ellipsoid, and the third principal component is the shortest axis. Each row in the data matrix can be reconstructed as a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are retained. The remaining variance present in the data is then regarded as unexplained variance.
 
 The principal components can be found by calculating the eigenvectors of the covariance matrix of the data. The corresponding eigenvalues determine how much of the variance present in the data is explained by each principal component.
 
-The eigenvectors are found by calculating the singular value decomposition of the data matrix. For this purpose, we have included a routine to calculate the singular value decomposition of a matrix.
-This subroutine is a translation in C of the Algol procedure @code{svd} (Golub and Reinsch, 1970).
-Python users can instead use the @code{svd} routine in the @code{linalg} package of Numerical Python.
+Before applying principal component analysis, typically the mean is subtracted from each column in the data matrix. In the example above, this effectively centers the ellipsoidal cloud around its centroid in 3D space, with the principal components describing the variation of points in the ellipsoidal cloud with respect to their centroid.
 
-A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
+The function @code{pca} below first uses the singular value decomposition to calculate the eigenvalues and eigenvectors of the data matrix. The singular value decomposition is implemented as a translation in C of the Algol procedure @code{svd} (Golub and Reinsch, 1970), which uses Householder bidiagonalization and a variant of the QR algorithm. The principal components, the coordinates of each data vector along the principal components, and the eigenvalues corresponding to the principal components are then evaluated and returned in decreasing order of the magnitude of the eigenvalue. If data centering is desired, the mean should be subtracted from each column in the data matrix before calling the @code{pca} routine.
 
 @subsubheading Prototype
 @noindent
-@code{void svd (int @var{nrows}, int @var{ncolumns}, double** @var{U}, double @var{S}[], double** @var{V}, int* @var{ierror});} @*
-calculates the singular value decomposition
-@tex
-@var{U}$_{\rm input}$ = @var{U}$_{\rm output} \cdot$ @var{S} $\cdot$ @var{V}$^{\rm T}$.
-@end tex
-@html
-<i>U</i> &middot; <i>S</i> &middot; <i>V</i><SUP>T</SUP>.
-@end html 
-Householder bidiagonalization and a variant of the QR algorithm are used.
+@code{int pca(int @var{nrows}, int @var{ncolumns}, double** @var{u}, double** @var{v}, double* @var{w});} @*
+applies Principal Component Analysis to the data matrix @var{u}.
 
 @subsubheading Arguments
 
 @itemize @bullet
 @item @code{int @var{nrows}} @*
-The number of rows in @var{U}. The number of rows should be greater than or
-equal to the number of columns.
+The number of rows in @code{@var{u}}.
 
 @item @code{int @var{ncolumns}} @*
-The number of columns in @var{U} and the order of @var{V}.
+The number of columns in @code{u}.
 
-@item @code{double** @var{U};} @*
-On input: @var{U} is the rectangular matrix to be decomposed.
-On output: The contents of @var{U} is replaced such that
-@tex
-@var{U}$_{\rm{input}}$ = @var{U}$_{\rm output} \cdot$ @var{S} $\cdot$ @var{V}$^{\rm T}$.
-@end tex
-@html
-@var{U} <SUB>initial</SUB> = @code{@var{U} * @var{S} * @var{V}<SUP>T</SUP>}.
-@end html
+@item @code{double** @var{u};} @*
+On input: @code{@var{u}} is the rectangular matrix to which Principal Component Analysis is to be applied. The function assumes that the mean has already been
+subtracted of each column, and hence that the mean of each column is zero.@*
+On output: @*
+If @code{@var{nrows}} @math{\ge} @code{@var{ncolumns}}, then on output @code{@var{u}} contains the coordinates with respect to the principal components. @*
+If @code{@var{nrows}} < @code{@var{ncolumns}}, then on output @code{@var{u}} contains the principal component vectors. @*
 Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
 
-@item @code{double* @var{S};} @*
-The @var{ncolumns} non-negative singular values of the matrix @var{U}, unordered.
-If an error exit is made, the singular values should be correct for indices
-@{ @code{*@var{ierror}}, @code{*@var{ierror}+1}, @dots{}, @code{@var{ncolumns}-1}@}.
-Dimension: @code{[@var{ncolumns}]}.
+@item @code{double** @var{v};} @*
+Unused on input. @*
+On output: @*
+If @code{@var{nrows}} @math{@ge} @code{@var{ncolumns}}, then on output @code{@var{v}} contains the principal component vectors. @*
+If @code{@var{nrows}} < @code{@var{ncolumns}}, then on output @code{@var{v}} contains the coordinates with respect to the principal components. @*
+Dimension: @code{[@var{n}][@var{n}]}, where @math{@var{n} = \min(@var{nrows}, @var{ncolumns})}.
 
-@item @code{double** @var{V};} @*
-The orthogonal matrix @var{V} of the decomposition.
-If an error exit is made, the columns of @var{V} corresponding
-to indices of correct singular values should be correct.
-Dimension: @code{[@var{ncolumns}][@var{ncolumns}]}.
-
-@item @code{int* @var{ierror};} @*
-Error exit:
-@itemize
-@item @code{*@var{ierror}==0} for normal return;
-@item @code{*@var{ierror}==@var{k}} if the
-@tex
-$k^{\rm th}$
-@end tex
-@html
-<i>k</i><SUP>th</SUP>
-@end html
-singular value has not been determined after 30 iterations;
-@item @code{*@var{ierror}==-1} if svd fails to allocate sufficient memory to complete.
+@item @code{double* @var{w};} @*
+Unused on input. @*
+On output:
+The eigenvalues corresponding to the the principal component vectors. @*
+Dimension: @code{[@var{n}]}, where @math{@var{n} = \min(@var{nrows}, @var{ncolumns})}.
 @end itemize
 
-@end itemize
+If @code{@var{nrows}} @math{\ge} @code{@var{ncolumns}}, then on output the dot product @math{@var{u} \cdot @var{v}} reproduces the data originally passed in through @var{u}.
+If @code{@var{nrows}} < @code{@var{ncolumns}}, then on output the dot product @math{@var{v} \cdot @var{u}} reproduces the data originally passed in through @var{u}.
+
+@subsubheading Return value
+@noindent
+The function returns 0 if successful, -1 if memory allocation fails, and a positive integer if the singular value decomposition fails to converge.
 
 @node RNG, Python, PCA,
 @chapter The random number generator
@@ -1583,7 +1560,7 @@ As a @code{Tree} object is read-only, we cannot change individual nodes in a @co
 @noindent
 This guarantees that any @code{Tree} object is always well-formed. 
 
-A @code{Tree} object has two methods (@code{scale} and @code{cut}, described below). @code{Tree} objects are generated by the @code{treecluster} function.
+A @code{Tree} object has two methods (@code{scale} and @code{cut}, described below). The @code{treecluster} function returns @code{Tree} objects.
 
 @subsection Performing hierarchical clustering: @code{treecluster}
 
@@ -1671,7 +1648,7 @@ scales the distances in the hierarchical clustering tree such that they are all 
 
 @noindent
 @code{@var{clusterid} = @var{tree}.cut(nclusters=1)} @*
-groups the items into @code{@var{nclusters}} clusters based on the tree structure generated by the hierarchical clustering routine @code{treecluster}.
+groups the items into @code{nclusters} clusters based on the tree structure generated by the hierarchical clustering routine @code{treecluster}.
 
 @subsubheading Arguments
 
@@ -1921,9 +1898,38 @@ $$
 @end html
 @end itemize 
 
+@section Principal Component Analysis: @code{pca}
+
+@noindent
+@code{@var{columnmean, coordinates, components, eigenvalues} = pca(data)} @*
+applies Principal Component Analysis to the rectangular matrix @code{data}.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+Array containing the data to which the Principal Component Analysis is to be applied.
+@end itemize
+
+@subsubheading Return values
+
+The function returns a tuple @var{columnmean}, @var{coordinates}, @var{components}, @var{eigenvalues}.
+
+@itemize @bullet
+@item @var{columnmean} @*
+Array containing the mean over each column in @code{data}.
+@item @var{coordinates} @*
+The coordinates of each row in @code{data} with respect to the principal components.
+@item @var{components} @*
+The principal components.
+@item @var{eigenvalues} @*
+The eigenvalues corresponding to each of the principal components.
+@end itemize
+The original matrix @code{data} can be recreated by calculating @code{@var{columnmean} +  dot(@var{coordinates}, @var{components})}.
+
 @section Handling Cluster/TreeView-type files
 
-Cluster/TreeView are GUI-based codes for clustering gene expression data. They were originally written by @uref{http://rana.lbl.gov, Michael Eisen} while at Stanford University. Pycluster contains routines for reading and writing data files that correspond to the format specified for Cluster/TreeView. In particular, by saving a clustering result in that format, TreeView can be used to visualize the clustering results. We recommend using Alok Saldanha's @uref{http://jtreeview.sourceforge.net/, Java TreeView program}, which can display hierarchical as well as @emph{k}-means clustering results.
+Cluster/TreeView are GUI-based codes for clustering gene expression data. They were originally written by @uref{http://rana.lbl.gov, Michael Eisen} while at Stanford University. Pycluster contains functions for reading and writing data files that correspond to the format specified for Cluster/TreeView. In particular, by saving a clustering result in that format, TreeView can be used to visualize the clustering results. We recommend using Alok Saldanha's @uref{http://jtreeview.sourceforge.net/, Java TreeView program}, which can display hierarchical as well as @emph{k}-means clustering results.
 
 @subsection The @code{Record} class
 
@@ -2353,7 +2359,7 @@ Similarly, we can save a @emph{k}-means clustering solution:
 @noindent
 This will create the files @code{cyano_result_K_G2_A2.cdt}, @code{cyano_result_K_G2.kgg}, and @code{cyano_result_K_A2.kag}.
 
-@section Auxiliary routines
+@section Auxiliary functions
 
 @noindent
 @code{median(data)} @*
@@ -2396,6 +2402,7 @@ Algorithm::Cluster offers the following functions:
 @item @code{clustercentroids}
 @item @code{clusterdistance}
 @item @code{distancematrix}
+@item @code{pca}
 @item @code{mean}
 @item @code{median}
 @end itemize
@@ -2623,6 +2630,121 @@ This function returns a list of three items: @var{$clusterid}, @code{$error}, @c
 
 @section Hierarchical clustering: @code{treecluster}
 
+The pairwise single-, maximum-, average-, and centroid-linkage clustering methods are accessible through the function @code{treecluster}. The hierarchical clustering routines can be applied either on the original gene expression data, or (except for centroid-linkage clustering) on the distance matrix directly. The tree structure generated by @code{treecluster} can be cut in order to separate the elements into a given number of clusters.
+
+@subsection Representing a hierarchical clustering solution
+
+A hierarchical clustering solution is represented using two Perl classes: @code{Node} and @code{Tree}.
+
+@subheading The class @code{Node}
+
+The Perl class @code{Node} corresponds to the C struct @code{Node} described above. A @code{Node} object has three attributes:
+
+@itemize @bullet
+@item left
+@item right
+@item distance
+@end itemize
+
+@noindent
+Here, @code{left} and @code{right} are integers referring to the two items or subnodes that are joined at this node, and @code{distance} is the distance between them. The items being clustered are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
+
+To create a new @code{Node} object, we need to specify @code{left}, @code{right}, and @code{distance}:
+
+@noindent
+@code{use Algorithm::Cluster; @*
+my $node = Algorithm::Cluster::Node->new(3, 4, 2.7); @*
+print "Left:", $node->left, "\n"; @*
+print "Right:", $node->right, "\n"; @*
+print "Distance:", $node->distance, "\n"; @*
+}
+
+@noindent Executing this code prints
+
+@noindent
+@code{Left:3 @*
+Right:4 @*
+Distance:2.7 @*
+}
+
+The attributes @code{left}, @code{right}, and @code{distance} of an existing @code{Node} object can be modified by using the @code{set_left}, @code{set_right}, and @code{set_distance} methods:
+
+@noindent
+@code{use Algorithm::Cluster; @*
+my $node = Algorithm::Cluster::Node->new(3, 4, 2.7); @*
+$node->set_left(2); @*
+$node->set_right(1); @*
+$node->set_distance(2.1); @*
+}
+@noindent
+
+@subheading The class @code{Tree}
+
+The Perl class @code{Tree} represents a full hierarchical clustering solution. A @code{Tree} object can be created from an array of @code{Node} objects:
+
+@noindent
+@code{use Algorithm::Cluster; @*
+my $node1 = Algorithm::Cluster::Node->new(1,2,3.1); @*
+my $node2 = Algorithm::Cluster::Node->new(-1,3,5.3); @*
+my $node3 = Algorithm::Cluster::Node->new(4,0,5.9); @*
+my $node4 = Algorithm::Cluster::Node->new(-2,-3,7.8); @*
+my @@nodes = [$node1,$node2,$node3,$node4]; @*
+my $tree = Algorithm::Cluster::Tree->new(@@nodes);
+}
+
+The @code{Tree} initializer checks if the list of nodes is a valid hierarchical clustering result:
+
+@noindent
+@code{use Algorithm::Cluster; @*
+my $node1 = Algorithm::Cluster::Node->new(1,2,0.3); @*
+my $node2 = Algorithm::Cluster::Node->new(1,3,0.7); @*
+my @@nodes = [$node1,$node2]; @*
+my $tree = Algorithm::Cluster::Tree->new(@@nodes); @*
+}
+
+results in the following error message:
+
+@noindent
+@code{the array of nodes passed to Algorithm::Cluster::Tree::new do not represent a valid tree}
+
+Individual nodes in a @code{Tree} object can be accessed using the @code{get} method. Continuing the previous example, the following code prints @code{0.7}:
+
+@noindent
+@code{my $node3 = $tree->get(1); @*
+print $node3->distance; @*
+}
+
+@noindent
+As a @code{Tree} object is read-only, we cannot change individual nodes in a @code{Tree} object. However, we can convert the tree to a list of nodes, modify this list, and create a new tree from this list:
+
+@noindent
+@code{use Algorithm::Cluster; @*
+my $node1 = Algorithm::Cluster::Node->new(0,1,0.3); @*
+my $node2 = Algorithm::Cluster::Node->new(2,3,0.7); @*
+my $node3 = Algorithm::Cluster::Node->new(-1,-2,0.9); @*
+my $nodes = [$node1, $node2, $node3]; @*
+my $tree = Algorithm::Cluster::Tree->new($nodes); @*
+my $i; @*
+my $n = $tree->length; @*
+my $node; @*
+my $nodes2 = []; @*
+for ($i = 0; $i < $n; $i++) @{ @*
+@ @ @ @ @ @ @ @ $nodes2->[$i] = $tree->get($i); @*
+@} @*
+$node = $nodes2->[1]; @*
+$node->set_left(-1); @*
+$node = $nodes2->[2]; @*
+$node->set_left(2); @*
+my $tree2 = Algorithm::Cluster::Tree->new($nodes2); @*
+}
+
+@noindent
+This guarantees that any @code{Tree} object is always well-formed. 
+
+A @code{Tree} object has two methods (@code{scale} and @code{cut}, described below). The @code{treecluster} function returns @code{Tree} objects.
+
+@subsection Performing hierarchical clustering: @code{treecluster}
+
 The pairwise single-, maximum-, average-, and centroid-linkage clustering methods are accessible through the function @code{treecluster}.
 @*
 @code{my %param = ( @*
@@ -2685,7 +2807,67 @@ Pairwise centroid-linkage clustering is not available if a user-defined distance
 
 @subsubheading Return values
 @noindent
-This method returns an array of @code{@emph{number of items} - 1} rows and three columns, where the number of items is the number of genes if genes were clustered, or the number of microarrays if microarrays were clustered. Each row describes a pairwise linking event, where the first two columns show which genes/microarrays or subnodes are being joined, and the third column shows the distance between them.  Genes/microarrays are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
+This function returns a @code{Tree} object. This object contains @code{@emph{number of items} - 1} nodes, where the number of items is the number of genes if genes were clustered, or the number of microarrays if microarrays were clustered. Each node describes a pairwise linking event, where the node attributes @code{left} and @code{right} each contain the number of one gene/microarray or subnode, and @code{distance} the distance between them.  Genes/microarrays are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
+
+@subsection Scaling a hierarchical clustering tree: @code{@var{$tree}->scale}
+
+To display a hierarchical clustering solution with Java TreeView, it is better to scale all node distances such that they are between zero and one. This can be accomplished by calling the @code{scale} method on an existing @code{Tree} object.
+
+@noindent
+@code{@var{$tree}->scale} @*
+scales the distances in the hierarchical clustering tree such that they are all between zero and one. This function takes no arguments.
+
+@subsection Cutting a hierarchical clustering tree: @code{@var{$tree}.cut}
+
+@noindent
+@code{@var{$clusterid} = @var{$tree}->cut(@var{$nclusters})} @*
+groups the items into @code{@var{$nclusters}} clusters based on the tree structure generated by the hierarchical clustering routine @code{treecluster}.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{@var{$tree}} @*
+The @code{Tree} object @code{@var{$tree}} contains the hierarchical clustering result generated by @code{treecluster}. Each node in this tree describes a pairwise linking event, where the node attributes @code{left} and @code{right} contain the number of the two items or subnodes. Items are numbered from 0 to (@code{@emph{number of elements}} - 1), while clusters are numbered -1 to -(@code{@emph{number of elements}}-1).
+
+@item @code{@var{$nclusters}} @*
+The desired number of clusters; @code{@var{$nclusters}} should be positive, and less than or equal to the number of elements.
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the anonymous array @code{@var{$clusterid}}.
+
+@itemize @bullet
+@item @code{@var{$clusterid}} @*
+An anonymous array containing the number of the cluster to which each gene/microarray is assigned.
+@end itemize
+
+
+@subheading Example
+
+@noindent
+@code{use Algorithm::Cluster; @*
+my $node1 = Algorithm::Cluster::Node->new(0,1,0.3); @*
+my $node2 = Algorithm::Cluster::Node->new(2,3,0.7); @*
+my $node3 = Algorithm::Cluster::Node->new(-1,-2,0.9); @*
+my $nodes = [$node1, $node2, $node3]; @*
+my $tree = Algorithm::Cluster::Tree->new($nodes); @*
+my $a = $tree->cut(3); @*
+my $i = 0; @*
+foreach (@@$a) @{ @*
+@ @ @ @ @ @ @ @ print "Element $i: Cluster $_\n"; @*
+@ @ @ @ @ @ @ @ $i++; @*
+@} @*
+}
+prints @*
+@noindent
+@code{Element 0: Cluster 2 @*
+Element 1: Cluster 2 @*
+Element 2: Cluster 0 @*
+Element 3: Cluster 1 @*
+}
+
+
 
 @section Self-Organizing Maps: @code{somcluster}
 
@@ -2921,7 +3103,35 @@ For other values of @code{dist}, the default (Euclidean distance) is used.
 
 This function returns the @var{$distancematrix}, an array of rows containing the distance matrix between the gene expression data. The number of columns in each row is equal to the row number. Hence, the first row has zero elements.
 
-@section Auxiliary routines
+@section Principal Component Analysis: @code{pca}
+
+@noindent
+@code{my ($columnmean, $coordinates, $components, $eigenvalues) = pca($data);} @*
+applies Principal Component Analysis to the rectangular matrix @code{data}.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{$data} @*
+A reference to a two-dimensional matrix containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+@end itemize
+
+@subsubheading Return values
+
+This function returns a list of four items: @code{@var{$columnmean}}, @code{@var{$coordinates}}, @code{@var{$components}}, @code{@var{$eigenvalues}}.
+
+@itemize @bullet
+@item @var{$columnmean} @*
+A reference to an array containing the mean over each column in @code{$data}.
+@item @var{$coordinates} @*
+A reference to an array containing the coordinates of each row in @code{$data} with respect to the principal components.
+@item @var{$components} @*
+A reference to an array containing the principal components.
+@item @var{$eigenvalues} @*
+A reference to an array containing the eigenvalues corresponding to each of the principal components.
+@end itemize
+
+@section Auxiliary functions
 
 @noindent
 @code{median($data)} @*
@@ -2937,14 +3147,14 @@ Returns the version number of the C Clustering Library as a string.
 
 @section Handling Cluster/TreeView-type files
 
-Cluster/TreeView are GUI-based codes for clustering gene expression data. They were originlly written by Michael Eisen (@url{http://rana.lbl.gov}) while at Stanford University. Algorithm::Cluster contains routines for reading and writing data files in the format specifies for Cluster/TreeView. In particular, by saving a clustering result in that format, we can use TreeView to visualize the clustering results. We recommend using Alok Saldanha's Java TreeView program (@url{http://jtreeview.sourceforget.net}), which can display hierarchical as well as @emph{k}-means clustering clustering results.
+Cluster/TreeView are GUI-based codes for clustering gene expression data. They were originlly written by Michael Eisen (@url{http://rana.lbl.gov}) while at Stanford University. Algorithm::Cluster contains functions for reading and writing data files in the format specifies for Cluster/TreeView. In particular, by saving a clustering result in that format, we can use TreeView to visualize the clustering results. We recommend using Alok Saldanha's Java TreeView program (@url{http://jtreeview.sourceforget.net}), which can display hierarchical as well as @emph{k}-means clustering clustering results.
 
 @subsection The @code{Record} class
 An object of the class @code{Record} contains all information stored in a Cluster/TreeView-type data file. To store the information contained in the data file in a @code{Record} object, we create a @code{Record} object, open the file, and then read the file contents into the @code{Record} object: @*
 
 @code{
 @noindent use Algorithm::Cluster::Record; @*
-my @var{$record} = Record->new(); @*
+my @var{$record} = Algorithm::Cluster::Record->new(); @*
 open @var{INPUT}, "mydatafile.txt"; @*
 @var{$record}->read(*@var{INPUT}); @*
 }
@@ -3036,8 +3246,7 @@ $\tau$;
 
 @subsubheading Return values
 @noindent
-This method returns an array of @code{@emph{number of items} - 1} rows and three columns, where the number of items is the number of genes if genes were clustered, or the number of microarrays if microarrays were clustered. Each row describes a pairwise linking event, where the first two columns show which genes/microarrays or subnodes are being joined, and the third column shows the distance between them.  Genes/microarrays are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
-
+This function returns a @code{Tree} object. This object contains @code{@emph{number of items} - 1} nodes, where the number of items is the number of genes if genes were clustered, or the number of microarrays if microarrays were clustered. Each node describes a pairwise linking event, where the node attributes @code{left} and @code{right} each contain the number of one gene/microarray or subnode, and @code{distance} the distance between them.  Genes/microarrays are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
 
 @subsection Performing @emph{k}-means or @emph{k}-medians clustering
 
@@ -3337,7 +3546,7 @@ This is an example of a hierarchical clustering calculation, using single linkag
 
 @noindent
 @code{use Algorithm::Cluster::Record; @*
-my $record = Record->new(); @*
+my $record = Algorithm::Cluster::Record->new(); @*
 open INPUT, "cyano.txt"; @*
 $record->read(*INPUT); @*
 my $genetree = $record->treecluster(method=>'s'); @*
@@ -3352,7 +3561,7 @@ Similarly, we can save a @emph{k}-means clustering solution:
 
 @noindent
 @code{use Algorithm::Cluster::Record; @*
-my $record = Record->new(); @*
+my $record = Algorithm::Cluster::Record->new(); @*
 open INPUT, "cyano.txt"; @*
 $record->read(*INPUT); @*
 my ($geneclusters, $error, $ifound) = $record->kcluster(nclusters=>5, npass=>1000); @*
@@ -3383,7 +3592,9 @@ Unpack this file: @*
 and change to the directory @code{Pycluster-@emph{<version>}}. Type @*
 @code{python setup.py install} @*
 from this directory. This will compile the library and install it for use with
-Python. If the installation was successful, you can remove the directory
+Python. To test your installation, you can run
+@code{python setup.py test} @*
+If the installation was successful, you can remove the directory
 @code{Pycluster-@emph{<version>}}.
 For Python on Windows (run from a DOS command window, or with a graphical user interface such as IDLE, PyCrust, PyShell, or PythonWin), a binary installer is available from @url{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}.
 

@@ -71,6 +71,8 @@
                 KMeansGeneMetric = id; 
                 KMeansGeneRuns = id; 
                 KMeansGeneXB = id; 
+                PCAArrayXB = id; 
+                PCAGeneXB = id; 
                 Rows = id; 
                 SOMArrayIters = id; 
                 SOMArrayMetric = id; 

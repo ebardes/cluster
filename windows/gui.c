@@ -1064,15 +1064,18 @@ PcaDialogProc (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
     { if (HIWORD(wParam)==BN_CLICKED)
       { switch ((int) LOWORD(wParam))
         { case ID_PCA_BUTTON:
-          { const int Rows = GetRows();
+          { const BOOL DoGenePCA = IsDlgButtonChecked(hWnd,ID_PCA_GENE_XB);
+            const BOOL DoArrayPCA = IsDlgButtonChecked(hWnd,ID_PCA_ARRAY_XB);
+
+            const char* error;
+            const int Rows = GetRows();
             const int Columns = GetColumns();
-            HWND hTabCtrl = GetParent(hWnd);
-            HWND hWndMain = GetParent(hTabCtrl);
             TCHAR* jobname;
             TCHAR filename[MAX_PATH];
-            FILE* genefile;
-            FILE* arrayfile;
-            const char* error;
+            HWND hTabCtrl = GetParent(hWnd);
+            HWND hWndMain = GetParent(hTabCtrl);
+            FILE* coordinatefile;
+            FILE* pcfile;
 
             if (Rows==0 || Columns==0)
             { SendMessage (hWndMain,
@@ -1083,48 +1086,95 @@ PcaDialogProc (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
             }
 
             SendMessage(hWndMain,IDM_GETJOBNAME,(WPARAM)&jobname,0);
-            wsprintf (filename, TEXT("%s_svv.txt"), jobname);
-            genefile = _tfopen(filename, TEXT("wt"));
-            wsprintf (filename, TEXT("%s_svu.txt"), jobname);
-            arrayfile = _tfopen(filename, TEXT("wt"));
-            free(jobname);
-            if(!genefile || !arrayfile)
-            { if(genefile) fclose(genefile);
-              if(arrayfile) fclose(genefile);
-              SendMessage(hWndMain,
-                          IDM_SETSTATUSBAR,
-                          (WPARAM)TEXT("Error: Unable to open output file"),
-                          0);
-              return TRUE;
-            }
-
+ 
             SendMessage(hWndMain,
                         IDM_SETSTATUSBAR,
-                        (WPARAM)TEXT("Calculating SVD"),
+                        (WPARAM)TEXT("Calculating PCA"),
                         0);
-	    error = PerformPCA(genefile, arrayfile);
-            fclose(genefile);
-            fclose(arrayfile);
-            if (error)
+
+            if (DoGenePCA)
+            {
+                wsprintf (filename, TEXT("%s_pca_gene.coords.txt"), jobname);
+                coordinatefile = _tfopen(filename, TEXT("wt"));
+                wsprintf (filename, TEXT("%s_pca_gene.pc.txt"), jobname);
+                pcfile = _tfopen(filename, TEXT("wt"));
+                if(!coordinatefile || !pcfile)
+                { if (coordinatefile) fclose(coordinatefile);
+                  if (pcfile) fclose(pcfile);
+                  SendMessage(hWndMain,
+                              IDM_SETSTATUSBAR,
+                              (WPARAM)TEXT("Error: Unable to open output file"),
+                              0);
+                  free(jobname);
+                  return TRUE;
+                }
+                error = PerformGenePCA(coordinatefile, pcfile);
+                fclose(coordinatefile);
+                fclose(pcfile);
+                if (error)
 #ifdef UNICODE
-            { TCHAR buffer[256];
-              MultiByteToWideChar(CP_ACP, 0, error, -1, buffer, 256);
-              MessageBox (NULL,
-                          buffer,
-                          TEXT("Error calculating PCA"),
-                          MB_OK);
-            }
+                { TCHAR buffer[256];
+                  MultiByteToWideChar(CP_ACP, 0, error, -1, buffer, 256);
+                  MessageBox (NULL,
+                              buffer,
+                              TEXT("Error calculating PCA"),
+                              MB_OK);
 #else
-            { MessageBox (NULL,
-                          error,
-                          TEXT("Error calculating PCA"),
-                          MB_OK);
-            }
+                { MessageBox (NULL,
+                              error,
+                              TEXT("Error calculating PCA"),
+                              MB_OK);
 #endif
+                  free(jobname);
+                  return TRUE;
+                }
+            }
+            if (DoArrayPCA)
+            {
+                SendMessage(hWndMain,
+                            IDM_SETSTATUSBAR,
+                            (WPARAM)TEXT("Calculating PCA"),
+                            0);
+                wsprintf (filename, TEXT("%s_pca_array.coords.txt"), jobname);
+                coordinatefile = _tfopen(filename, TEXT("wt"));
+                wsprintf (filename, TEXT("%s_pca_array.pc.txt"), jobname);
+                pcfile = _tfopen(filename, TEXT("wt"));
+                if(!coordinatefile || !pcfile)
+                { if (coordinatefile) fclose(coordinatefile);
+                  if (pcfile) fclose(pcfile);
+                  SendMessage(hWndMain,
+                              IDM_SETSTATUSBAR,
+                              (WPARAM)TEXT("Error: Unable to open output file"),
+                              0);
+                  free(jobname);
+                  return TRUE;
+                }
+                error = PerformArrayPCA(coordinatefile, pcfile);
+                fclose(coordinatefile);
+                fclose(pcfile);
+                if (error)
+#ifdef UNICODE
+                { TCHAR buffer[256];
+                  MultiByteToWideChar(CP_ACP, 0, error, -1, buffer, 256);
+                  MessageBox (NULL,
+                              buffer,
+                              TEXT("Error calculating PCA"),
+                              MB_OK);
+#else
+                { MessageBox (NULL,
+                              error,
+                              TEXT("Error calculating PCA"),
+                              MB_OK);
+#endif
+                  free(jobname);
+                  return TRUE;
+                }
+            }
             SendMessage(hWndMain,
                         IDM_SETSTATUSBAR,
                         (WPARAM)TEXT("Finished Principal Component Analysis"),
                         0);
+            free(jobname);
             return TRUE;
           }
         }
@@ -1295,13 +1345,13 @@ MainDialogProc (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
       SetWindowLong(hWndPages[5], GWL_USERDATA, (LONG)ID_PCA_TAB);
 
       /* Get directory information */
-      GetModuleFileName (NULL,buffer,MAX_PATH);
+      GetModuleFileName (NULL, buffer, MAX_PATH);
       *_tcsrchr(buffer,'\\') = '\0';
       n = lstrlen(buffer) + 1;
       szHomeDir = malloc(n*sizeof(TCHAR));
-      _tcscpy (szHomeDir,buffer);
+      _tcscpy(szHomeDir, buffer);
       /* Show the dialog */
-      ShowWindow (hWndPages[iCurrentPage],SW_SHOWNORMAL);
+      ShowWindow(hWndPages[iCurrentPage], SW_SHOWNORMAL);
       return TRUE;
     }
     case WM_NOTIFY:
@@ -1340,6 +1390,7 @@ MainDialogProc (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
           if (GetOpenFileName(&ofn))
           { char* error = NULL;
             TCHAR buffer[256];
+            TCHAR* extension;
             FILE* inputfile = _tfopen (ofn.lpstrFile, TEXT("rt"));
             /* Save the directory name based on the file name */
 	    SendMessage(hWnd,IDM_SAVEDIR,(WPARAM)ofn.lpstrFile,0);
@@ -1380,7 +1431,8 @@ MainDialogProc (HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
                         0);
 	    SendMessage(GetDlgItem(hWnd, ID_FILTER_TAB), IDM_RESET, 0, 0);
             SetDlgItemText (hWnd, ID_FILEMANAGER_FILEMEMO, lpstrFile);
-            *(_tcsrchr(lpstrFile,'.')) = '\0';
+            extension = _tcsrchr(lpstrFile,'.');
+            if (extension) *extension = '\0';
             SetDlgItemText (hWnd,
                             ID_FILEMANAGER_JOBNAME,
                             _tcsrchr(lpstrFile,'\\')+1);

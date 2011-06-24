@@ -1,6 +1,8 @@
 If you use Pycluster, you can test your installation by running
-  python test.py
+  python setup.py test
+from the top directory (the one containing setup.py).
 
 If, instead, you are using Bio.Cluster (the C Clustering Library as part of
 the Biopython distribution), use
   python test_Cluster.py
+from this directory.
