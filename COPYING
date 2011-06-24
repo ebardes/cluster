@@ -1,0 +1,19 @@
+License Information
+===================
+
+The Open Source Clustering Software consists of several packages, which have
+different licenses.
+
+* Cluster 3.0 is a GUI-based program for Windows, Mac OS X, Linux, and Unix.
+  It is based on Michael Eisen's Cluster/TreeView code. Cluster 3.0 is covered
+  by Michael Eisen's original license, available at
+  http://rana.lbl.gov/EisenSoftwareSource.htm. The command-line version of
+  Cluster 3.0 is also covered by this license.
+* Pycluster is an extension module to the scripting language Python. It is
+  covered by the Python License (same license as Python itself).
+* Algorithm::Cluster, the interface to the scripting language Perl. It was
+  released under the Artistic License (same license as Perl itself).
+* The routines in the C Clustering Library can also be used directly by calling
+  them from other C programs. In that case, the Python License applies.
+
+In all cases, copyright notices must be retained in their original form.

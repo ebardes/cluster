@@ -1,0 +1,2012 @@
+\input texinfo @c -*-texinfo-*-
+
+@c %**start of header
+@setfilename .
+@settitle Cluster 3.0 for Windows, Mac OS X, Linux, Unix
+@c %**end of header
+
+@titlepage
+@title{Cluster 3.0 Manual}
+@subtitle{for Windows, Mac OS X, Linux, Unix}
+@author{Michael Eisen; updated by Michiel de Hoon}
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+Software copyright @copyright{} Stanford University 1998-99
+This manual was originally written by Michael Eisen. It is only partially complete and is a work in progress.
+The manual was updated in 2002 by Michiel de Hoon, University of Tokyo, Human Genome Center.
+@end titlepage
+
+@node Top, Contents
+@comment node-name, next, previous, up
+@noindent This is the manual for Cluster 3.0. Cluster was originally written by Michael Eisen while at Stanford University. We have modified the
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering algorithm in Cluster, and extended the algorithm for Self-Organizing Maps to include two-dimensional rectangular grids. The Euclidean distance and the city-block distance were added as new distance measures between gene expression data. The proprietary Numerical Recipes routines, which were used in the original version of Cluster/TreeView, have been replaced by open source software.
+
+Cluster 3.0 is available for Windows, Mac OS X, Linux, and Unix.
+
+@*
+@*
+@noindent November 5, 2002.@*
+Michiel de Hoon@*
+Human Genome Center, University of Tokyo.
+
+@menu
+* Introduction:: The purpose of Cluster/TreeView.
+* Data:: Loading, filtering and adjusting data in Cluster.
+* Distance:: The distance/similarity measures that are available in Cluster.
+* Cluster:: The various clustering algorithms implemented in Cluster.
+* Command:: A command-line (non-GUI) version of Cluster 3.0 is now available.
+* TreeView:: Visualize hierarchical clustering results with Java TreeView.
+* Development:: Information on how to compile Cluster from the source code.
+* Bibliography:: The bibliography provides references to background information on clustering techniques, as well as some examples of recent biological research in which clustering techniques are applied.
+* Contents::
+@end menu
+
+@node Contents, Introduction, Top, Top
+@contents
+
+@node Introduction, Data, Contents, Top
+@chapter Introduction
+
+Cluster and TreeView are programs that provide a computational and graphical
+environment for analyzing data from DNA microarray experiments, or other genomic
+datasets. The program Cluster can organize and analyze the data in a number of
+different ways. TreeView allows the organized data to
+be visualized and browsed.
+
+This manual is intended as a reference for using the software, and not as a
+comprehensive introduction to the methods employed. Many of the methods are
+drawn from standard statistical cluster analysis. There are excellent textbooks
+available on cluster analysis which are listed in the bibliography at the end.
+The bibliography also contains citations for recent publications in the
+biological sciences, especially genomics, that employ
+methods similar to those used here.
+
+@node Data, Distance, Introduction, top
+@chapter Loading, filtering, and adjusting data
+
+@image{images/cluster}
+
+Data can be loaded into Cluster by choosing Load data file under the File menu.
+A number of options are provided for adjusting and
+filtering the data you have loaded. These functions are accessed via the Filter Data and
+Adjust Data tabs.
+
+@section Loading Data
+
+The first step in using Cluster is to import data. Currently, Cluster only
+reads tab-delimited text files in a particular format, described below. Such tab-delimited
+text files can be created and exported in any standard spreadsheet program, such as
+Microsoft Excel. An example datafile can be found under the File format help item in the Help menu.
+This contains all the information you need for
+making a Cluster input file.
+
+By convention, in Cluster input tables rows represent genes and columns represent
+samples or observations (e.g. a single microarray hybridization). For a simple timecourse,
+a minimal Cluster input file would look like this:@*
+
+@image{images/minifile}
+@*
+Each row (gene) has an identifier (in green) that always goes in the first column. Here we
+are using yeast open reading frame codes. Each column (sample) has a label (in blue)
+that is always in the first row; here the labels describe the time at which a sample was
+taken. The first column of the first row contains a special field (in red) that tells the
+program what kind of objects are in each row. In this case, YORF stands for yeast open
+reading frame. This field can be any alpha-numeric value. It is used in TreeView to
+specify how rows are linked to external websites.
+
+The remaining cells in the table contain data for the appropriate gene and sample. The
+5.8 in row 2 column 4 means that the observed data value for gene YAL001C at 2
+hours was 5.8. Missing values are acceptable and are designated by empty cells (e.g.
+YAL005C at 2 hours).
+
+It is possible to have additional information in the input file. A maximal Cluster input file
+would look like this:@*
+
+@image{images/maxifile}
+@*
+The yellow columns and rows are optional. By default, TreeView uses the ID in column
+1 as a label for each gene. The NAME column allows you to specify a label for each gene
+that is distinct from the ID in column 1. The other rows and columns will be described
+later in this text.
+
+When Cluster 3.0 opens the data file, the number of columns in each row is checked. If a given row contains less or more columns than needed, an error message is displayed.@*
+
+@image{images/fileerror}
+
+@heading Demo data
+
+A demo datafile, which will be used in all of the examples here, is available
+at @uref{http://rana.lbl.gov/downloads/data/demo.txt} and is mirrored at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/demo.txt}.
+
+The datafile contains yeast gene expression data
+described in Eisen @emph{et al.} (1998) [see references at end]. Download this data and load it
+into Cluster. Cluster will give you information about the loaded datafile. @*
+
+@image{images/filemanager}
+
+@section Filtering Data
+
+@image{images/filter}
+
+The Filter Data tab allows you to remove genes that do not have certain desired
+properties from your dataset. The currently available properties that can be used to filter
+data are
+@itemize @bullet
+@item @strong{% Present >= X}. This removes all genes that have missing values in greater than
+@tex
+$\left(100-X\right)$
+@end tex
+@html
+(100-<i>X</i>)
+@end html
+ percent of the columns.
+@item @strong{SD (Gene Vector) >= X}. This removes all genes that have standard deviations of
+observed values less than
+@tex
+$X$.
+@end tex
+@html
+<i>X</i>.
+@end html
+@item @strong{At least X Observations with abs(Val) >= Y}. This removes all genes that do not have at least
+@tex
+$X$
+@end tex
+@html
+<i>X</i>
+@end html
+ observations with absolute values greater than
+@tex
+$Y$.
+@end tex
+@html
+<i>Y</i>.
+@end html
+@item @strong{MaxVal-MinVal >= X}. This removes all genes whose maximum minus minimum values
+are less than
+@tex
+$X$.
+@end tex
+@html
+<i>X</i>.
+@end html
+@end itemize
+These are fairly self-explanatory. When you press filter, the filters are not immediately
+applied to the dataset. You are first told how many genes would have passed the filter. If
+you want to accept the filter, you press Accept, otherwise no changes are made.
+@*
+
+@image{images/accept}
+
+@section Adjusting Data
+
+@image{images/adjust}
+
+From the Adjust Data tab, you can perform a number of operations that alter the
+underlying data in the imported table. These operations are
+@itemize @bullet
+@item @strong{Log Transform Data}: replace all data values
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ by
+@tex
+$\log_2 \left(x\right)$.
+@end tex
+@html
+log<SUB>2</SUB> (<i>x</i>).
+@end html
+@item @strong{Center genes [mean or median]}: Subtract the row-wise mean or median from the values in each row of data, so that the mean or median value of each row is 0.
+@item @strong{Center arrays [mean or median]}: Subtract the column-wise mean or median from the values in each column of data, so that the mean or median value of each column is 0.
+@item @strong{Normalize genes}: Multiply all values in each row of data by a scale factor
+@tex
+$S$
+@end tex
+@html
+<i>S</i>
+@end html 
+ so that the sum of the squares of the values in each row is 1.0 (a separate
+@tex
+$S$
+@end tex
+@html
+<i>S</i>
+@end html 
+ is computed for each row).
+@item @strong{Normalize arrays}: Multiply all values in each column of data by a scale factor
+@tex
+$S$
+@end tex
+@html
+<i>S</i>
+@end html 
+ so that the sum of the squares of the values in each column is 1.0 (a separate
+@tex
+$S$
+@end tex
+@html
+<i>S</i>
+@end html 
+ is computed for each column).
+@end itemize
+These operations are not associative, so the order in which these operations is applied is
+very important, and you should consider it carefully before you apply these operations.
+The order of operations is (only checked operations are performed):
+@itemize @bullet
+@item Log transform all values.
+@item Center rows by subtracting the mean or median.
+@item Normalize rows.
+@item Center columns by subtracting the mean or median.
+@item Normalize columns.
+@end itemize
+
+@subsection Log transformation
+
+The results of many DNA microarray experiments are fluorescent
+ratios. Ratio measurements are most naturally processed in log space. Consider an
+experiment where you are looking at gene expression over time, and the results are
+relative expression levels compared to time 0. Assume at timepoint 1, a gene is
+unchanged, at timepoint 2 it is up 2-fold and at timepoint three is down 2-fold relative to
+time 0. The raw ratio values are 1.0, 2.0 and 0.5. In most applications, you want to think
+of 2-fold up and 2-fold down as being the same magnitude of change, but in an opposite
+direction. In raw ratio space, however, the difference between timepoint 1 and 2 is +1.0,
+while between timepoint 1 and 3 is -0.5. Thus mathematical operations that use the
+difference between values would think that the 2-fold up change was twice as significant
+as the 2-fold down change. Usually, you do not want this. In log space (we use log base 2
+for simplicity) the data points become 0,1.0,-1.0.With these values, 2-fold up and 2-fold
+down are symmetric about 0. For most applications, we recommend you work in log
+space.
+
+@subsection Mean/Median Centering
+
+Consider a now common experimental design where you are
+looking at a large number of tumor samples all compared to a common reference sample
+made from a collection of cell-lines. For each gene, you have a series of ratio values that
+are relative to the expression level of that gene in the reference sample. Since the
+reference sample really has nothing to do with your experiment, you want your analysis
+to be independent of the amount of a gene present in the reference sample. This is
+achieved by adjusting the values of each gene to reflect their variation from some
+property of the series of observed values such as the mean or median. This is what mean
+and/or median centering of genes does. Centering makes less sense in experiments where
+the reference sample is part of the experiment, as it is many timecourses.
+Centering the data for columns/arrays can also be used to remove certain types of biases.
+The results of many two-color fluorescent hybridization experiments are not corrected for
+systematic biases in ratios that are the result of differences in RNA amounts, labeling
+efficiency and image acquisition parameters. Such biases have the effect of multiplying
+ratios for all genes by a fixed scalar. Mean or median centering the data in log-space has
+the effect of correcting this bias, although it should be noted that an assumption is being
+made in correcting this bias, which is that the average gene in a given experiment is
+expected to have a ratio of 1.0 (or log-ratio of 0).
+
+In general, I recommend the use of median rather than mean centering, as it is more robust against outliers.
+
+@subsection Normalization
+
+Normalization sets the magnitude (sum of the squares of the values) of a row/column
+vector to 1.0. Most of the distance metrics used by Cluster work with internally
+normalized data vectors, but the data are output as they were originally entered. If you
+want to output normalized vectors, you should select this option.
+A sample series of operations for raw data would be:
+@itemize @bullet
+@item Adjust Cycle 1) log transform
+@item Adjust Cycle 2) median center genes and arrays
+@item repeat (2) five to ten times
+@item Adjust Cycle 3) normalize genes and arrays
+@item repeat (3) five to ten times
+@end itemize
+
+This results in a log-transformed, median polished (i.e. all row-wise and column-wise
+median values are close to zero) and normal (i.e. all row and column magnitudes are
+close to 1.0) dataset.
+After performing these operations you should save the dataset.
+
+@node Distance, Cluster, Data, top
+@chapter Distance/Similarity measures
+
+The first choice that must be made is how similarity (or alternatively, distance) between gene expression data is to be defined. There are many
+ways to compute how similar two series of numbers are. Cluster provides eight
+options.
+
+@section Distance measures based on the Pearson correlation
+
+The most commonly used similarity metrics are based on Pearson
+correlation.
+The Pearson correlation coefficient between any two series of numbers
+@tex
+$x = \left\{ x_1, x_2, \ldots, x_n \right\}$
+@end tex
+@html
+<i>x</i> = @{<i>x</i><SUB>1</SUB>, <i>x</i><SUB>2</SUB>, ..., <i>x<SUB>n</SUB></i>@}
+@end html
+ and
+@tex
+$y = \left\{y_1, y_2, \ldots, y_n \right\}$
+@end tex
+@html
+<i>y</i> = @{<i>y</i><SUB>1</SUB>, <i>y</i><SUB>2</SUB>, ..., <i>y<SUB>n</SUB></i>@}
+@end html
+ is defined as
+@tex
+$$r = {1 \over n} \sum_{i=1}^n \left(x_i- \overline x \over \sigma_x\right) \left(y_i- \overline y \over \sigma_y\right),$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>r</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>x<sub>i</sub></i> - <span style="text-decoration: overline;"><i>x</i> </span></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>x</sub></i></td></tr>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>y<sub>i</sub></i> - <span style="text-decoration: overline;"><i>y</i> </span></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>y</sub></i></td></tr>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr>
+</table>
+</div>
+@end html
+
+where
+@tex
+$\overline x$
+@end tex
+@html
+<span style="text-decoration: overline;"><i>x</i></span>
+@end html
+ is the average of values in
+@tex
+$x$,
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$\sigma_x$
+@end tex
+@html
+&sigma;<SUB><i>x</i></SUB>
+@end html
+ is the standard deviation of these values.
+
+There are many ways of conceptualizing the correlation coefficient. If you were to make
+a scatterplot of the values of
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ against
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ (pairing
+@tex
+$x_1$
+@end tex
+@html
+<i>x</i><SUB>1</SUB>
+@end html
+ with
+@tex
+$y_1$, $x_2$ 
+@end tex
+@html
+<i>y</i><SUB>1</SUB>, <i>x</i><SUB>2</SUB>
+@end html
+ with
+@tex
+$y_2$,
+@end tex
+@html
+<i>y</i><SUB>2</SUB>,
+@end html
+ etc), then
+@tex
+$r$
+@end tex
+@html
+<i>r</i>
+@end html
+ reports how well you can fit a line to the values.
+
+
+The simplest way to think about the correlation coefficient is to plot
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ as curves, with
+@tex
+$r$
+@end tex
+@html
+<i>r</i>
+@end html
+ telling you how similar the shapes of the two curves are.
+The Pearson correlation coefficient is always between -1 and 1, with 1 meaning that the two
+series are identical, 0 meaning they are completely uncorrelated, and -1 meaning they are
+perfect opposites. The correlation coefficient is invariant under linear transformation of
+the data. That is, if you multiply all the values in
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ by 2, or add 7 to all the values in
+@tex
+$y$,
+@end tex
+@html
+<i>y</i>,
+@end html
+ the correlation between
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ will be unchanged. Thus, two curves that have identical shape, but different
+magnitude, will still have a correlation of 1.
+
+Cluster actually uses four different flavors of the Pearson correlation. The textbook
+Pearson correlation coefficient, given by the formula above, is used if you select
+Correlation (centered) in the Similarity Metric dialog box.
+Correlation (uncentered) uses the following modified equations:@*
+@tex
+$$r = {1 \over n}\sum_{i=1}^{n} \left({x_i\over \sigma_x^{(0)}}\right)\left({y_i\over \sigma_y^{(0)}}\right),$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>r</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>x<sub>i</sub></i></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>x</sub></i><sup>(0)</sup></td></tr>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>y<sub>i</sub></i></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>y</sub></i><sup>(0)</sup></td></tr>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr>
+</table>
+</div>
+@end html
+@*
+in which@*
+@tex
+$$\sigma_x^{(0)} = \sqrt{{1\over n}\sum_{i=1}^{n}\left(x_i\right)^2};$$
+$$\sigma_y^{(0)} = \sqrt{{1\over n}\sum_{i=1}^{n}\left(y_i\right)^2}.$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>&sigma;<sub>x</sub></i><sup>(0)</sup> = </td>
+<td><big><big><big>&#8730; </big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><i>x<sub>i</sub></i><sup>2</sup></td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr>
+</table>
+</div>
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>&sigma;<sub>y</sub></i><sup>(0)</sup> = </td>
+<td><big><big><big>&#8730; </big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><i>y<sub>i</sub></i><sup>2</sup></td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr>
+</table>
+</div>
+@end html
+@*
+This is basically the same function, except that it assumes the mean is 0, even when it is not. The difference is that, if you have two vectors
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ with identical shape, but which are offset relative to each other by a fixed value, they will have a standard Pearson correlation (centered correlation) of 1 but will not have an uncentered correlation of 1.
+The uncentered correlation is equal to the cosine of the angle of two
+@tex
+$n$-dimensional
+@end tex
+@html
+<i>n</i>-dimensional
+@end html
+ vectors
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$,
+@end tex
+@html
+<i>y</i>,
+@end html
+ each representing a vector in
+@tex
+$n$-dimensional
+@end tex
+@html
+<i>n</i>-dimensional
+@end html
+ space that passes through the origin.
+Cluster provides two similarity metrics that are the absolute value of these two correlation functions, which consider two items to be similar if they have opposite expression patterns; the standard correlation coefficients consider opposite genes to be very distant.
+
+@section  Non-parametric distance measures
+
+The Spearman rank correlation and Kendall's
+@tex
+$\tau$
+@end tex
+@html
+&tau;
+@end html
+ are two additional metrics, which are non-parametric versions of the Pearson correlation coefficient. These methods are more robust against outliers.
+
+The Spearman rank correlation calculates the correlation between the ranks of the data values in the two vectors. For example, if we have two data vectors@*
+@tex
+$$x = \left\{2.3, 6.7, 4.5, 20.8\right\};$$
+$$y = \left\{2.1, 5.9, 4.4, 4.2\right\},$$
+@end tex
+@html
+<DIV align=center>
+<i>x</i> = @{2.3, 6.7, 4.5, 20.8@};<br>
+<i>y</i> = @{2.1, 5.9, 4.4, 4.2@},<br>
+</DIV>
+@end html
+then we first replace them by their ranks:@*
+@tex
+$$x = \left\{1, 3, 2, 4\right\};$$
+$$y = \left\{1, 4, 3, 2\right\}.$$
+@end tex
+@html
+<DIV align=center>
+<i>x</i> = @{1, 3, 2, 4@};<br>
+<i>y</i> = @{1, 4, 3, 2@}.<br>
+</DIV>
+@end html
+Now we calculate the correlation coefficient in their usual manner from these data vectors, resulting in@*
+@tex
+$$r_{\rm Spearman} = 0.4.$$
+@end tex
+@html
+<DIV align=center>
+<i>r</i><sub>Spearman</sub> = 0.4.
+</DIV>
+@end html
+In comparison, the regular Pearson correlation between these data is
+@tex
+$r = 0.2344$.
+@end tex
+@html
+<i>r</i> = 0.2344.
+@end html
+By replacing the data values by their ranks, we reduced the effect of the outlier 20.8 on the value of the correlation coefficient. The Spearman rank correlation can be used as a test statistic for independence between
+@tex
+$x$ and $y$.
+@end tex
+@html
+<i>x</i> and <i>y</i>.
+@end html
+For more information, see Conover (1980).
+
+Kendall's
+@tex
+$\tau$
+@end tex
+@html
+&tau;
+@end html
+ goes a step further by using only the relative ordering of
+@tex
+$x$ and $y$
+@end tex
+@html
+<i>x</i> and <i>y</i>
+@end html
+ to calculate the correlation (Snedecor & Cochran). To calculate Kendall's
+@tex
+$\tau$,
+@end tex
+@html
+&tau;,
+@end html
+ consider all pairs of data points
+@tex
+$\left(x_i, y_i\right)$ and $\left(x_j, y_j\right)$.
+@end tex
+@html
+(<i>x<sub>i</sub></i>, <i>y<sub>i</sub></i>) and (<i>x<sub>j</sub></i>, <i>y<sub>j</sub></i>).
+@end html
+We call a pair concordant if
+@itemize @bullet
+@item
+@tex
+$x_i < x_j$ and $y_i < y_j$; or
+@end tex
+@html
+<i>x<sub>i</sub></i> &lt; <i>x<sub>j</sub></i> and <i>y<sub>i</sub></i> &lt; <i>y<sub>j</sub></i>; or
+@end html
+@item 
+@tex
+$x_i > x_j$ and $y_i > y_j$,
+@end tex
+@html
+<i>x<sub>i</sub></i> &gt; <i>x<sub>j</sub></i> and <i>y<sub>i</sub></i> &gt; <i>y<sub>j</sub></i>,
+@end html
+@end itemize
+@noindent and discordant if
+@itemize @bullet
+@item
+@tex
+$x_i < x_j$ and $y_i > y_j$; or
+@end tex
+@html
+<i>x<sub>i</sub></i> &lt; <i>x<sub>j</sub></i> and <i>y<sub>i</sub></i> &gt; <i>y<sub>j</sub></i>; or
+@end html
+@item 
+@tex
+$x_i > x_j$ and $y_i < y_j$.
+@end tex
+@html
+<i>x<sub>i</sub></i> &gt; <i>x<sub>j</sub></i> and <i>y<sub>i</sub></i> &lt; <i>y<sub>j</sub></i>.
+@end html
+@end itemize
+@noindent We can represent this by a table:
+@tex
+$$\matrix{
+ - & \left(2.3, 2.1\right) & \left(6.7, 5.9\right) & \left(4.5, 4.4\right) & \left(20.8, 4.2\right) \cr
+ \left(2.3, 2.1\right) & - & << & << & << \cr
+ \left(6.7, 5.9\right) & >> & - & >> & <> \cr
+ \left(4.5, 4.4\right) & >> & << & - & <> \cr
+ \left(20.8, 4.2\right) & >> & >< & >< & - \cr
+}$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=10 cellspacing=0 border=1>
+<tr align=center>
+  <td>-</td>
+  <td>(2.3, 2.1)</td>
+  <td>(6.7, 5.9)</td>
+  <td>(4.5, 4.4)</td>
+  <td>(20.8, 4.2)</td>
+</tr>
+<tr align=center>
+  <td>(2.3, 2.1)</td>
+  <td>-</td>
+  <td>&lt;&lt;</td>
+  <td>&lt;&lt;</td>
+  <td>&lt;&lt;</td>
+</tr>
+<tr align=center>
+  <td>(6.7, 5.9)</td>
+  <td>&gt;&gt;</td>
+  <td>-</td>
+  <td>&gt;&gt;</td>
+  <td>&lt;&gt;</td>
+</tr>
+<tr align=center>
+  <td>(4.5, 4.4)</td>
+  <td>&gt;&gt;</td>
+  <td>&lt;&lt;</td>
+  <td>-</td>
+  <td>&lt;&gt;</td>
+</tr>
+<tr align=center>
+  <td>(20.8, 4.2)</td>
+  <td>&gt;&gt;</td>
+  <td>&gt;&lt</td>
+  <td>&gt;&lt</td>
+  <td>-</td>
+</tr>
+</table>
+</DIV>
+@end html
+From this table, we find that there are four concordant pairs and two discordant pairs:
+@tex
+$$n_{\rm c} = 4;$$
+$$n_{\rm d} = 2;$$
+@end tex
+@html
+<DIV align=center>
+<i>n</i><sub>c</sub> = 4;<br>
+<i>n</i><sub>d</sub> = 2.<br>
+</DIV>
+@end html
+Kendall's
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+ is calculated as@*
+@tex
+$$\tau = {N_{\rm c} - N_{\rm d}} \over {N\left(N-1\right)/2},$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellspacing=0 cellpadding=0>
+<tr>
+  <td><i>&tau;</i> = </td>
+  <td> </td>
+  <td>
+    <table cellspacing=0 cellpadding=0>
+      <tr>
+        <td nowrap align=CENTER>
+          <i>n</i><sub>c</sub>-<i>n</i><sub>d</sub>
+        </td>
+      </tr>
+      <tr>
+        <td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+      </tr>
+      <tr>
+        <td nowrap align=CENTER>
+          <i>n</i>(<i>n</i>-1)/2
+        </td>
+      </tr>
+    </table>
+  </td>
+  <td>,</td>
+</tr>
+</table>
+</DIV>
+@end html
+ which in this case evaluates as 0.33. In the C Clustering Library, the calculation of Kendall's
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+ is corrected for the possibility that two ranks are equal.
+As in case of the Spearman rank correlation, we may use Kendall's
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+ to test for independence between
+@tex
+$x$ and $y$.
+@end tex
+@html
+<i>x</i> and <i>y</i>.
+@end html
+
+@section Distance measures related to the Euclidean distance
+
+@subsection Euclidean distance
+
+A newly added distance function is the Euclidean distance, which is defined as
+@tex
+$$d\left(\underline{x},\underline{y}\right)= {1 \over n} \sum_{i=1}^n \left(x_i-y_i\right)^{2}.$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>d</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small>
+</td>
+<td><big>(</big></td>
+<td><i>x<sub>i</sub></i> - <i>y<sub>i</sub></i></td>
+<td><big>)</big><sup>2</sup></td>
+</tr>
+</table>
+</div>
+@end html
+The Euclidean distance takes the difference between two gene expression levels directly. It should therefore only be used for expression data that are suitably normalized, for example by converting the measured gene expression levels to log-ratios. In the sum, we only include terms for which both
+@tex
+$x_i$ and $y_i$
+@end tex
+@html
+<i>x<sub>i</sub></i> and <i>y<sub>i</sub></i>
+@end html
+ are present, and divide by
+@tex
+$n$
+@end tex
+@html
+<i>n</i>
+@end html
+ accordingly.
+
+Unlike the correlation-based distance measures, the Euclidean distance takes the magnitude of changes in the gene expression levels into account. An example of the Euclidean distance applied to 
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering can be found in De Hoon, Imoto, and Miyano (2002).
+
+@subsection City-block distance
+
+The city-block distance, alternatively known as the Manhattan distance, is related to the Euclidean distance. Whereas the Euclidean distance corresponds to the length of the shortest path between two points, the city-block distance is the sum of distances along each dimension:
+@tex
+$$d = \sum_{i=1}^n \left|x_i-y_i\right|.$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>d</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big>|</big></td>
+<td><i>x<sub>i</sub></i> - <i>y<sub>i</sub></i></td>
+<td><big>|</big></td>
+</tr>
+</table></div>
+@end html
+This is equal to the distance you would have to walk between two points in a city, where you have to walk along city blocks. The city-block distance is a metric, as it satisfies the triangle inequality. Again we only include terms for which both
+@tex
+$x_i$ and $y_i$
+@end tex
+@html
+<i>x<sub>i</sub></i> and <i>y<sub>i</sub></i>
+@end html
+ are present, and divide by
+@tex
+$n$
+@end tex
+@html
+<i>n</i>
+@end html
+ accordingly.
+
+As for the Euclidean distance, the expression data are subtracted directly from each other, and we should therefore make sure that they are properly normalized.
+
+
+@section Missing values
+
+When either
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ or
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ has missing values, only observations present for both
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ are used in computing similarities.
+
+@section Calculating the distance matrix
+
+With any specified metric, the first step in the hierarchical clustering routines described below is to compute the
+distance (the opposite of similarity; for all correlation metrics distance = 1.0 - correlation)
+between all pairs of items to be clustered (e.g. the set of genes in the current dataset).
+This can often be time consuming, and, except for pairwise single-linkage clustering,
+memory intensive (the maximum amount of memory required is
+@tex
+$4 \times N \times N$
+@end tex
+@html
+4 x <i>N</i> x <i>N</i>
+@end html
+ bytes, where
+@tex
+$N$
+@end tex
+@html
+<i>N</i>
+@end html
+ is the number of items being clustered). The algorithm for pairwise single-linkage hierarchical clustering is less memory-intensive (linear in
+@tex
+$N$).
+@end tex
+@html
+<i>N</i>).
+@end html
+
+@node Cluster, Command, Distance, top
+@chapter Clustering techniques
+
+The Cluster program provides several clustering algorithms. Hierarchical clustering methods organizes genes in a tree structure, based on their similarity. Four variants of hierarchical clustering are available in Cluster. In
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering, genes are organized into
+@tex
+$k$
+@end tex
+@html
+<i>k</i>
+@end html
+ clusters, where the number of clusters
+@tex
+$k$
+@end tex
+@html
+<i>k</i>
+@end html
+ needs to be chosen in advance.
+Self-Organizing Maps create clusters of genes on a two-dimensional rectangular grid, where neighboring clusters are similar. For each of these methods, one of the eight different distance meaures can be used. Finally, in Principal Component Analysis, clusters are organized based on the principal component axes of the distance matrix.
+
+@menu
+* Hierarchical:: Pairwise single-, maximum-, average-, and centroid-linkage hierarchical clustering
+@tex
+* KMeans:: $k$-means and $k$-medoids clustering
+@end tex
+@html
+* KMeans:: <i>k</i>-means and <i>k</i>-medoids clustering
+@end html
+clustering
+* SOM:: Self-Organizing Maps
+* PCA:: Principal Component Analysis
+@end menu
+
+@node Hierarchical, KMeans, , Cluster
+@section Hierarchical Clustering
+
+@image{images/hierarchical}
+
+The @dfn{Hierarchical Clustering} tab allows you to perform hierarchical clustering on your
+data. This is a powerful and useful method for analyzing all sorts of large
+genomic datasets. Many published applications of this analysis are given in the references
+section at the end.
+
+Cluster currently performs four types of binary, agglomerative, hierarchical clustering.
+The basic idea is to assemble a set of items (genes or arrays) into a tree, where items are
+joined by very short branches if they are very similar to each other, and by increasingly
+longer branches as their similarity decreases.
+
+The first step in hierarchical clustering is to calculate the distance matrix between the gene expression data. Once this matrix of distances is computed, the clustering begins.
+Agglomerative hierarchical processing consists of repeated cycles where
+the two closest remaining items (those with the smallest distance) are joined by a
+node/branch of a tree, with the length of the branch set to the distance between the joined
+items. The two joined items are removed from list of items being processed and replaced by a
+item that represents the new branch. The distances between this new item and all other
+remaining items are computed, and the process is repeated until only one item remains.
+
+Note that once clustering commences, we are working with items that are true items (e.g.
+a single gene) and items that are pseudo-items that contain a number of true items. There
+are a variety of ways to compute distances when we are dealing with pseudo-items, and
+Cluster currently provides four choices, which are called centroid linkage, single linkage, complete linkage, and average linkage.
+@strong{Note that in older versions of Cluster, centroid linkage was referred to as average linkage.}
+
+@subsection Centroid Linkage Clustering
+
+If you click Centroid Linkage Clustering, a vector is assigned to each pseudo-item, and this vector is used to compute the distances between this pseudo-item and all remaining items or pseudo-items using the same similarity metric as was used to calculate the initial similarity matrix. The vector is the average of the vectors of all actual items (e.g. genes) contained within the pseudo-item. Thus, when a new branch of the tree is formed joining together a branch with 5 items and an actual item, the new pseudo-item is assigned a vector that is the average of the 6 vectors it contains, and not the average of the two joined items (note that missing values are not used in the average, and a pseudo-item can have a missing value if all of the items it contains are missing values in the corresponding row/column).
+
+Note that from a theoretical perspective, Centroid Linkage Clustering is peculiar if it is used in combination with one of the distance measures that are based on the Pearson correlation. For these distance measures, the data vectors are implicitly normalized when calculating the distance (for example, by subtracting the mean and dividing by the standard deviation when calculating the Pearson correlation. However, when two genes are joined and their centroid is calculated by averaging their data vectors, no normalization is applied. This may lead to the surprising result that distances may decrease when we go up in the tree representing the hierarchical clustering result. For example, consider this data set:
+@tex
+$$\matrix{
+        & \rm Exp 1 & \rm Exp 2 & \rm Exp 3 & \rm Exp 4 \cr
+ \rm Gene 1 & 0.96 & 0.07 & 0.97 & 0.98 \cr
+ \rm Gene 2 & 0.50 & 0.28 & 0.29 & 0.77 \cr
+ \rm Gene 3 & 0.08 & 0.96 & 0.51 & 0.51 \cr
+ \rm Gene 4 & 0.14 & 0.19 & 0.41 & 0.51 \cr
+}$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=5 cellspacing=0 border=1>
+  <th>
+    <td>Exp 1</td>
+    <td>Exp 2</td>
+    <td>Exp 3</td>
+    <td>Exp 4</td>
+  </th>
+  <tr align=center>
+    <td>Gene 1</td>
+    <td>0.96</td>
+    <td>0.07</td>
+    <td>0.97</td>
+    <td>0.98</td>
+  </tr>
+  <tr align=center>
+    <td>Gene 2</td>
+    <td>0.50</td>
+    <td>0.28</td>
+    <td>0.29</td>
+    <td>0.77</td>
+  </tr>
+  <tr align=center>
+    <td>Gene 3</td>
+    <td>0.08</td>
+    <td>0.96</td>
+    <td>0.51</td>
+    <td>0.51</td>
+  </tr>
+  <tr align=center>
+    <td>Gene 4</td>
+    <td>0.14</td>
+    <td>0.19</td>
+    <td>0.41</td>
+    <td>0.51</td>
+  </tr>
+</table>
+</DIV>
+@end html
+Performing pairwise centroid-linkage hierarchical clustering on this data set, using the Pearson distance as the distance measure, produces the clustering result
+@itemize
+@item Gene 1 joins Gene 2 at distance 0.47
+@item (Gene 1, Gene 2) joins Gene 4 at distance 0.46
+@item (Gene 1, Gene 2, Gene 4) joins Gene 3 at distance 1.62
+@end itemize
+@noindent This may result in ill-formed dendrograms. For an example, see the Java TreeView manual. A solution is to use the Euclidean or the city-block distance, or to use one of the other hierarchical clustering routines, which don't suffer from this issue regardless of the distance measure being used.
+
+@subsection Single Linkage Clustering
+
+In Single Linkage Clustering the distance between two items
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ is the minimum of all pairwise distances between items contained in
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$.
+@end tex
+@html
+<i>y</i>.
+@end html
+Unlike centroid linkage clustering, in single linkage clustering no further distances need to be calculated once the distance matrix is known.
+
+In Cluster 3.0, as of version 1.29 the implementation of single linkage clustering is based on the SLINK algorithm (see Sibson, 1973). Whereas this algorithm yields the exact same clustering result as conventional single-linkage hierarchical clustering, it is much faster and more memory-efficient (being linear in the memory requirements, compared to quadratic for the conventional algorithm). Hence, single-linkage hierarchical clustering can be used to cluster large gene expression data sets, for which centroid-, complete-, and average-linkage fail due to lack of memory.
+
+@subsection Complete Linkage Clustering
+
+In Complete Linkage Clustering the distance between two items
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ is the maximum of all pairwise distances between items contained in
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$.
+@end tex
+@html
+<i>y</i>.
+@end html
+As in single linkage clustering, no other distances need to be calculated once the distance matrix is known.
+
+@subsection Average Linkage Clustering
+
+In average linkage clustering, the distance between two items
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$
+@end tex
+@html
+<i>y</i>
+@end html
+ is the mean of all pairwise distances between items contained in
+@tex
+$x$
+@end tex
+@html
+<i>x</i>
+@end html
+ and
+@tex
+$y$.
+@end tex
+@html
+<i>y</i>.
+@end html
+
+@subsection Weighting
+
+Weighting: By default, all of the observations for a given item are treated equally. In
+some cases you may want to give some observations more weight than others. For
+example, if you have duplicate copies of a gene on your array, you might want to
+downweight each individual copy when computing distances between arrays. You can
+specify weights using the @samp{GWEIGHT} (gene weight) and @samp{EWEIGHT} (experiment weight)
+parameters in the input file. By default all weights are set to 1.0. Thus, the actual formula,
+with weights included, for the Pearson correlation of
+@tex
+$x = \left\{ x_1, x_2, \ldots, x_n \right\}$
+@end tex
+@html
+<i>x</i> = @{<i>x</i><SUB>1</SUB>, <i>x</i><SUB>2</SUB>, ..., <i>x<SUB>n</SUB></i>@}
+@end html
+and
+@tex
+$y = \left\{ y_1, y_2, \ldots, y_n \right\}$
+@end tex
+@html
+<i>y</i> = @{<i>y</i><SUB>1</SUB>, <i>y</i><SUB>2</SUB>, ..., <i>y<SUB>n</SUB></i>@}
+@end html
+ with observation weights of
+@tex
+$w = \left\{ w_1, w_2, \ldots, w_n \right\}$
+@end tex
+@html
+<i>w</i> = @{<i>w</i><SUB>1</SUB>, <i>w</i><SUB>2</SUB>, ..., <i>w<SUB>n</SUB></i>@}
+@end html
+ is
+@tex
+$$r = {1\over\sum_{i=1}^{N} w_i} \sum_{i=1}^{N} w_i \left({X_i-\overline{X} \over \sigma_X}\right) \left(Y_i-\overline{Y}\over\sigma_Y\right)$$
+@end tex
+@html
+<DIV ALIGN=center><TABLE CELLSPACING=0 CELLPADDING=0>
+<TR VALIGN=middle><TD NOWRAP><I>r</I> = </TD>
+<TD NOWRAP><TABLE CELLSPACING=0 CELLPADDING=0>
+<TR>
+  <TD NOWRAP ALIGN=center><TABLE CELLSPACING=0 CELLPADDING=0>
+    <TR VALIGN=middle>
+      <td align="center"><i>n</i><br>
+        <big><big><big>&#8721;</big></big></big><small><br>
+        <i>i</i><small> </small>=<small> </small>1</small>
+      </td>
+      <TD NOWRAP> <I>w</I><SUB><I>i</I></SUB> </TD>
+      <TD NOWRAP><BIG><BIG><BIG><BIG><BIG>(</BIG></BIG></BIG></BIG></BIG></TD>
+      <TD NOWRAP>
+        <TABLE CELLSPACING=0 CELLPADDING=0>
+          <TR>
+            <TD NOWRAP ALIGN=center>
+              <I>x</I><SUB><I>i</I></SUB> - <span style="text-decoration: overline;"><i>x</i> </span>
+           </TD>
+          </TR>
+          <TR>
+            <TD BGCOLOR=black><TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=1><TR><TD></TD></TR></TABLE></TD>
+          </TR>
+          <TR>
+            <TD NOWRAP ALIGN=center>&sigma;<SUB><I>x</I></SUB></TD>
+          </TR>
+        </TABLE>
+      </TD>
+      <TD NOWRAP><BIG><BIG><BIG><BIG><BIG>)</BIG></BIG></BIG></BIG></BIG></TD>
+      <TD NOWRAP><BIG><BIG><BIG><BIG><BIG>(</BIG></BIG></BIG></BIG></BIG></TD>
+      <TD NOWRAP><TABLE CELLSPACING=0 CELLPADDING=0>
+        <TR>
+          <TD NOWRAP ALIGN=center>
+            <I>y</I><SUB><I>i</I></SUB> - <span style="text-decoration: overline;"><i>y</i> </span>
+          </TD>
+        </TR>
+        <TR>
+          <TD BGCOLOR=black><TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=1><TR><TD></TD></TR></TABLE></TD>
+        </TR>
+        <TR>
+          <TD NOWRAP ALIGN=center>&sigma;<SUB><I>y</I></SUB></TD>
+        </TR></TABLE>
+      </TD>
+      <TD NOWRAP><BIG><BIG><BIG><BIG><BIG>)</BIG></BIG></BIG></BIG></BIG></TD>
+    </TR>
+  </TABLE></TD>
+</TR>
+<TR><TD BGCOLOR=black><TABLE BORDER=0 WIDTH="100%" CELLSPACING=0 CELLPADDING=1><TR><TD></TD></TR></TABLE></TD>
+</TR>
+<TR>
+  <TD NOWRAP ALIGN=center><TABLE CELLSPACING=0 CELLPADDING=0>
+    <TR VALIGN=middle>
+      <td align="center"><i>n</i><br>
+        <big><big><big>&#8721;</big></big></big><small><br>
+        <i>i</i><small> </small>=<small> </small>1</small>
+      </td>
+      <TD NOWRAP> <I>w</I><SUB><I>i</I></SUB> </TD>
+    </TR>
+  </TABLE></TD>
+</TR></TABLE></TD>
+</TR></TABLE></DIV>
+@end html
+Note that when you are clustering rows (genes), you are using column (array) weights.
+It is possible to compute weights as well based on a not entirely well understood function.
+If you want to compute weights for clustering genes, select the check box in the Genes panel of the Hierarchical Clustering tab. @*
+
+@image{images/weight}
+
+This will expose a Weight Options dialog box in the Arrays panel (I realize this
+placement is a bit counterintuitive, but it makes sense as you will see below).
+The idea behind the Calculate Weights option is to weight each row (the same idea
+applies to columns as well) based on the local density of row vectors in its vicinity, with a
+high density vicinity resulting in a low weight and a low density vicinity resulting in a
+higher weight. This is implemented by assigning a local density score
+@tex
+$L\left(i\right)$
+@end tex
+@html
+<i>L</i>(<i>i</i>)
+@end html
+ to each row
+@tex
+$i$.
+@end tex
+@html
+<i>i</i>.
+@end html
+@*
+@tex
+$$L\left(i\right) = \sum_{j\ {\rm with}\ d\left(i,j\right) < k} \left(k - d\left(i,j\right) \over k\right)^n,$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>L</i>(<i>i</i>) = </td>
+<td></td>
+<td align="center"><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>j</i> with <i>d</i>(<i>i</i>,<i>j</i>) &le; <i>k</i></small></td>
+<td><big><big><big>(</big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>k</i> - <i>d</i>(<i>i</i>,<i>j</i>)
+</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>k</i></td></tr>
+  </table>
+</td>
+<td><big><big><big>)</big></big></big></td>
+<td align="center"><small><i>n</i><br><br><br></small></td>
+</tr>
+</table></div>
+@end html
+ where the cutoff
+@tex
+$k$
+@end tex
+@html
+<i>k</i>
+@end html
+ and the exponent
+@tex
+$n$
+@end tex
+@html
+<i>n</i>
+@end html
+ are user supplied parameters. The weight for each row is
+@tex
+$1/L$.
+@end tex
+@html
+1/<i>L</i>.
+@end html
+Note that
+@tex
+$L\left(i\right)$
+@end tex
+@html
+<i>L</i>(<i>i</i>)
+@end html
+ is always at least 1, since
+@tex
+$d\left(i,i\right) = 0$.
+@end tex
+@html
+<i>d</i>(<i>i</i>,<i>i</i>) = 0.
+@end html
+Each other row that is within the distance
+@tex
+$k$
+@end tex
+@html
+<i>k</i>
+@end html
+ of row
+@tex
+$i$
+@end tex
+@html
+<i>i</i>
+@end html
+ increases
+@tex
+$L\left(i\right)$
+@end tex
+@html
+<i>L</i>(<i>i</i>)
+@end html
+ and decreases the weight. The larger
+@tex
+$d\left(i,j\right)$,
+@end tex
+@html
+<i>d</i>(<i>i</i>,<i>j</i>),
+@end html
+ the less
+@tex
+$L\left(i\right)$
+@end tex
+@html
+<i>L</i>(<i>i</i>)
+@end html
+ is increased. Values of
+@tex
+$n$
+@end tex
+@html
+<i>n</i>
+@end html
+ greater than 1 mean that the contribution to
+@tex
+$L\left(i\right)$
+@end tex
+@html
+<i>L</i>(<i>i</i>)
+@end html
+ drops off rapidly as
+@tex
+$d\left(i,j\right)$
+@end tex
+@html
+<i>d</i>(<i>i</i>,<i>j</i>)
+@end html
+ increases.
+
+@subsection Ordering of Output File
+The result of a clustering run is a tree or pair of trees (one for genes one for arrays).
+However, to visualize the results in TreeView, it is necessary to use this tree to reorder the
+rows and/or columns in the initial datatable. Note that if you simply draw all of the node
+in the tree in the following manner, a natural ordering of items emerges:
+@*
+@image{images/order}
+
+Thus, any tree can be used to generate an ordering. However, the ordering for any given
+tree is not unique. There is a family of
+@tex
+$2^{N-1}$
+@end tex
+@html
+2<SUP><i>N</i>-1</SUP>
+@end html
+ordering consistent with any tree of
+@tex
+$N$
+@end tex
+@html
+<i>N</i>
+@end html
+items;
+you can flip any node on the tree (exchange the bottom and top branches) and you will
+get a new ordering that is equally consistent with the tree. By default, when Cluster joins
+two items, it randomly places one item on the top branch and the other on the bottom
+branch. It is possible to guide this process to generate the best ordering consistent with
+a given tree. This is done by using the @samp{GORDER} (gene order) and @samp{EORDER} (experiment
+order) parameters in the input file, or by running a self-organizing map (see section
+below) prior to clustering. By default, Cluster sets the order parameter for each
+row/column to 1. When a new node is created, Cluster compares the order parameters of
+the two joined items, and places the item with the smaller order value on the top branch.
+The order parameter for a node is the average of the order parameters of its members.
+Thus, if you want the gene order produced by Cluster to be as close as possible (without
+violating the structure of the tree) to the order in your input file, you use the @samp{GORDER}
+column, and assign a value that increases for each row. Note that order parameters do not
+have to be unique.
+
+@subsection Output Files
+Cluster writes up to three output files for each hierarchical clustering run. The root
+filename of each file is whatever text you enter into the Job Name dialog box. When you
+load a file, Job Name is set to the root filename of the input file. The three output files are
+@file{JobName.cdt}, @file{JobName.gtr}, @file{JobName.atr}
+The @file{.cdt} (for clustered data table) file contains the original data with the rows and
+columns reordered based on the clustering result. It is the same format as the input files,
+except that an additional column and/or row is added if clustering is performed on genes
+and/or arrays. This additional column/row contains a unique identifier for each
+row/column that is linked to the description of the tree structure in the @file{.gtr} and @file{.atr} files.
+The @file{.gtr} (gene tree) and @file{.atr} (array tree) files are tab-delimited text files that report on the
+history of node joining in the gene or array clustering (note that these files are produced
+only when clustering is performed on the corresponding axis). When clustering begins
+each item to be clustered is assigned a unique identifier (e.g. @samp{GENE1X} or @samp{ARRY42X} --- the
+@samp{X} is a relic from the days when this was written in Perl and substring searches were
+used). These identifiers are added to the .cdt file. As each node is generated, it receives a
+unique identifier as well, starting is @samp{NODE1X}, @samp{NODE2X}, etc. Each joining event is
+stored in the @file{.gtr} or @file{.atr} file as a row with the node identifier, the identifiers of the two
+joined elements, and the similarity score for the two joined elements. These files look
+like:@*
+@image{images/tree}
+@multitable {NODEXX} {GENEXX} {GENEXX} {0.XX}
+@item @code{NODE1X} @tab @code{GENE1X} @tab @code{GENE4X} @tab @code{0.98}
+@item @code{NODE2X} @tab @code{GENE5X} @tab @code{GENE2X} @tab @code{0.80}
+@item @code{NODE3X} @tab @code{NODE1X} @tab @code{GENE3X} @tab @code{0.72}
+@item @code{NODE4X} @tab @code{NODE2X} @tab @code{NODE3X} @tab @code{0.60}
+@end multitable
+@*
+The @file{.gtr} and/or @file{.atr} files are automatically read in TreeView when you open the
+corresponding @file{.cdt} file.
+@page
+
+@node KMeans, SOM, Hierarchical, Cluster
+
+@tex
+@section The \math{k}-means Clustering Algorithm
+@end tex
+@html
+@section The <i>k</i>-means Clustering Algorithm
+@end html
+
+@image{images/kmeans}
+
+The
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering algorithm is a simple, but popular, form of cluster analysis. The basic idea is that you start with a collection of items (e.g. genes) and some chosen number of clusters
+@tex
+($k$)
+@end tex
+@html
+(<i>k</i>)
+@end html
+ you want to find. The items are initially randomly assigned to a cluster. The
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering proceeds by repeated application of a two-step process where
+@enumerate
+@item the mean vector for all items in each cluster is computed;
+@item items are reassigned to the cluster whose center is closest to the item.
+@end enumerate
+
+Since the initial cluster assignment is random, different runs of the
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering algorithm may not give the same final clustering solution. To deal with this, the 
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering algorithms is repeated many times, each time starting from a different initial clustering. The sum of distances within the clusters is used to compare different clustering solutions. The clustering solution with the smallest sum of within-cluster distances is saved.
+
+The number of runs that should be done depends on how difficult it is to find the optimal solution, which in turn depends on the number of genes involved. Cluster therefore shows in the status bar how many times the optimal solution has been found. If this number is one, there may be a clustering solution with an even lower sum of within-cluster distances. The
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering algorithm should then be repeated with more trials. If the optimal solution is found many times, the solution that has been found is likely to have the lowest possible within-cluster sum of distances. We can then assume that the
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering procedure has then found the overall optimal clustering solution.
+
+It should be noted that generally, the
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering algorithm finds a clustering solution with a smaller within-cluster sum of distances than the hierarchical clustering techniques. 
+
+The parameters that control
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering are
+@itemize @bullet
+@item the number of clusters
+@tex
+($k$);
+@end tex
+@html
+(<i>k</i>);
+@end html
+@item the number of trials.
+@end itemize
+
+
+The output is simply an assignment of items to a cluster. The implementation here simply rearranges the rows and/or columns based on which cluster they were assigned to.
+The output data file is @file{JobName_K_GKg_AKa.cdt}, where @file{_GKg} is included if genes were organized, and @file{_AKa} is included if arrays were organized. Here, @file{Kg} and @file{Ka} represent the number of clusters for gene clustering and array clustering, respectively. This file contains the gene expression data, organized by cluster by rearranging the rows and columns. In addition, the files @file{JobName_K_GKg.kgg} and @file{JobName_K_AKa.kag} are created, containing a list of genes/arrays and the cluster they were assigned to.
+
+Whereas 
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering as implemented in Cluster 3.0 allows any of the eight distance measures to be used, we recommend using the Euclidean distance or city-block distance instead of the distance measures based on the Pearson correlation, for the same reason as in case of pairwise centroid-linkage hierarchical clustering. The distance measures based on the Pearson correlation effectively normalize the data vectors when calculating the distance, whereas no normalization is used when calculating the cluster centroid. To use
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering with a distance measure based on the Pearson correlation, it is better to first normalize the data appropriately (using the "Adjust Data" tab) before running the
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ algorithm.
+
+Cluster also implements a slight variation on
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ clustering, known as
+@tex
+$k$-medians
+@end tex
+@html
+<i>k</i>-medians
+@end html
+ clustering, in which the median instead of the mean of items in a node are used. In a theoretical sense, it is best to use
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+ with the Euclidean distance, and
+@tex
+$k$-medians
+@end tex
+@html
+<i>k</i>-medoids
+@end html
+ with the city-block distance.
+
+@node SOM, PCA, KMeans, Cluster
+@section Self-Organizing Maps
+
+@image{images/som}
+
+Self-Organizing Maps (SOMs) is a method of cluster analysis that are somewhat related to
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+clustering. SOMs were invented in by Teuvo Kohonen in the early 1980s, and
+have recently been used in genomic analysis (see Chu 1998, Tamayo 1999 and Golub
+1999 in references). The Tamayo paper contains a simple explanation of the methods. A
+more detailed description is available in the book by Kohonen, Self-Organizing Maps,
+1997.
+
+The current implementation varies slightly from that of Tamayo et al., in that it restricts
+the analysis one-dimensional SOMs along each axis, as opposed to a two-dimensional
+network. The one-dimensional SOM is used to reorder the elements on whichever axes
+are selected. The result is similar to the result of k-means clustering, except that, unlike kmeans,
+the nodes in a SOM are ordered. This tends to result in a relatively smooth
+transition between groups.
+
+The options for SOMs are
+@itemize @bullet
+@item whether or not you will organize each axis;
+@item the number of nodes for each axis (the default is
+@tex
+$n^{1/4}$,
+@end tex
+@html
+<i>n</i><SUP>1/4</SUP>,
+@end html
+where
+@tex
+$n$
+@end tex
+@html
+<i>n</i>
+@end html
+is the number of items. The total number of clusters is then equal to the square root of the number of items.
+@item the number of iterations to be run.
+@end itemize
+
+The output file is of the form @file{JobName_SOM_GXg-Yg_AXa-Ya.txt}, where @file{GXg-Yg} is
+included if genes were organized, and @file{AXg-Yg} is included if arrays were organized. @file{X} and
+@file{Y} represent the dimensions of the corresponding SOM.
+Up to two additional files (@file{.gnf} and @file{.anf}) are written containing the vectors for
+the SOM nodes.
+
+In previous versions of Cluster, only one-dimensional SOMs were supported.
+The current version of the Cluster introduces two-dimensional SOMs.
+
+SOMs and hierarchical clustering:
+Our original use of SOMs (see Chu et al., 1998) was
+motivated by the desire to take advantage of the properties of both SOMs and hierarchical
+clustering. This was accomplished by first computing a one dimensional SOM, and using
+the ordering from the SOM to guide the flipping of nodes in the hierarchical tree. In
+Cluster, after a SOM is run on a dataset, the GORDER and/or EORDER fields are set to
+the ordering from the SOM so that, for subsequent hierarchical clustering runs, the output
+ordering will come as close as possible to the ordering in the SOM without violating the
+structure of the tree.
+
+@node PCA, , SOM, Cluster
+@section Principal Component Analysis
+
+Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data.
+In PCA, the data vectors are written as a linear sum over principal components. The number of principal components is equal to the number of dimensions of the data vectors.
+
+The principal components are chosen such that they maximally explain the variance in the data vectors. For example, in case of 3D data vectors, the data can be represented as an ellipsoidal cloud of points in three dimensional space. The first principal component would be the longest axis of the ellipsoid, the second principal component would be the second longest axis of the ellipsoid, and the third principal component would be the shortest axis. In other words, the principal components are ordered by the amount of variance they explain.
+
+Each data point can be reconstructed by a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are used. The remaining variance present in the data is then regarded as unexplained variance.
+
+The principal components can be found by calculating the eigenvectors of the covariance matrix of the data. The corresponding eigenvalues determine how much of the variance present in the data is explained by each principal component.
+
+In Cluster, the eigenvectors are found by calculating the singular value decomposition of the data matrix.
+The output is very simple in
+this version and consists of two files: @file{JobName_svv.txt} that contains the principal
+components and @file{JobName_svu.txt} that contains the loadings of each gene on the principal
+components. By multiplying the principal components by the loadings and summing, the data vector of each gene can be recovered.
+
+A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
+
+@node Command, TreeView, Cluster, Top
+@chapter Running Cluster 3.0 as a command line program
+
+Cluster 3.0 can also be run as a command line program. This may be useful if you want to run Cluster 3.0 on a remote server, and also allows automatic processing a large number of data files by running a batch script. Note, however, that the Python and Perl interfaces to the C Clustering Library may be better suited for this task, as they are more powerful than the command line program (see the manual for the C Clustering Library at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster.pdf}).
+
+The GUI version of Cluster 3.0 can be used as a command line program by applying the appropriate command line parameters. You can also compile Cluster 3.0 without GUI support (if you will be using it from the command line only) by downloading the source code from @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}, and running @*
+@code{configure --without-x} @*
+@code{make} @*
+@code{make install} @*
+The executable is called @code{cluster}. To run this program, execute @*
+@code{cluster [options]} @*
+in which the options consist of the following command line parameters:
+@table @code
+@item -f @var{filename}
+File loading
+@item -l
+Specifies to log-transform the data before clustering (default is no log-transform)
+@item -cg a|m
+Specifies whether to center each row (gene) in the data set: @*
+@code{a}: Subtract the mean of each row @*
+@code{m}: Subtract the median of each row @*
+(default is no centering)
+@item -ng
+Specifies to normalize each row (gene) in the data set (default is no normalization)
+@item -ca a|m
+Specifies whether to center each column (microarray) in the data set: @*
+@code{a}: Subtract the mean of each column @*
+@code{m}: Subtract the median of each column @*
+(default is no centering)
+@item -na
+Specifies to normalize each column (microarray) in the data set (default is no normalization)
+@item -u @var{jobname}
+Allows you to specify a different name for the output files
+(default is derived from the input file name)
+@item -g [0..9]
+Specifies the distance measure for gene clustering. 0 means no gene clustering; for the values 1 through 9, see below (default: 0)
+@item -e [0..9]
+Specifies the distance measure for microarray clustering. 0 means no microarray clustering; for the values 1 through 9, see below (default: 0)
+@item -m [msca]
+Specifies which hierarchical clustering method to use: @*
+@code{m}: Pairwise complete- (maximum-) linkage (default) @*
+@code{s}: Pairwise single-linkage @*
+@code{c}: Pairwise centroid-linkage @*
+@code{a}: Pairwise average-linkage
+@item -k @var{number}
+Specifies whether to run
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+clustering instead of hierarchical clustering, and the number of clusters
+@tex
+$k$ to use (default: 0, no $k$-means clustering)
+@end tex
+@html
+<i>k</i> to use (default: 0, no <i>k</i>-means clustering)
+@end html
+@item -s
+Specifies to calculate an SOM instead of hierarchical clustering
+@item -x @var{number}
+Specifies the horizontal dimension of the SOM grid (default: 2)
+@item -y @var{number}
+Specifies the vertical dimension of the SOM grid (default: 1)
+@item -v, --version
+Display version information
+@item -h, --help
+Display help information
+@end table
+
+For the command line options @option{-g}, @option{-e}, the following integers can be used to specify the distance measure:
+@table @code
+@item 0
+No clustering
+@item 1
+Uncentered correlation
+@item 2
+Pearson correlation
+@item 3
+Uncentered correlation, absolute value
+@item 4
+Pearson correlation, absolute value
+@item 5
+Spearman's rank correlation
+@item 6
+Kendall's tau
+@item 7
+Euclidean distance
+@item 8
+City-block distance
+@end table
+
+By default, no clustering is done, allowing you to use @code{cluster} for normalizing a data set only.
+
+@node TreeView, Development, Command, Top
+@chapter TreeView
+
+TreeView is a program that allows interactive graphical analysis of the results from Cluster. TreeView reads in matching @file{*.cdt} and @file{*.gtr}, @file{*.atr}, @file{*.kgg}, or @file{*.kag} files produced by Cluster.
+We recommend using the Java program Java TreeView, which is based on the original TreeView. Java TreeView was written by Alok Saldanha at Stanford University; it can be downloaded from @uref{http://jtreeview.sourceforge.net/}. Java TreeView runs on Windows, Macintosh, Linux, and Unix computers, and can show both hierarchical and
+@tex
+$k$-means
+@end tex
+@html
+<i>k</i>-means
+@end html
+results.
+
+@node Development, Bibliography, TreeView, Top
+@chapter Code Development Information
+
+In previous versions of Cluster, the proprietary Numerical Recipes routines were heavily used. We have replaced these routines by the C clustering library, which was released under the Python License. Accordingly, the complete source code of Cluster is now open.
+It can be downloaded from @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}. We used the GNU C compiler in order to enable anybody to compile the code. No commercial compiler is required. The GNU C compiler is available at @uref{http://www.gnu.org}.
+There you can also find texinfo, which was used to generate the printed and the HTML documentation. To convert the picture files to EPS files for the printed documentation, we used @code{pngtopnm} and @code{pnmtops} of Netpbm, which can be found at @uref{http://netpbm.sourceforge.net}.
+The HTML Help file was generated using the HTML Help Workshop, which is freely available at @uref{http://msdn.microsoft.com, the Microsoft site}.
+The Windows Installer was created with the Inno Setup Compiler, which is available at @uref{http://www.innosetup.com}.
+
+For Mac OS X, we used the Project Builder and the Interface Builder, which are part of the Mac OS X Development Tools. The prebuilt package was created with PackageMaker, which is also part of Mac OS X. The project files needed to recompile Cluster 3.0 are included in the source code. From the command prompt, Cluster 3.0 can be recompiled by running @code{make} from the @code{mac} subdirectory; this produces a universal binary for PowerPC and Intel processors.
+
+For Cluster 3.0 on Linux/Unix, we used the Motif libraries that are installed on most Linux/Unix computers. The include files are typically located in @code{/usr/X11R6/include/Xm}. You will need a version of Motif that is compliant with Motif 2.1, such as Open Motif (@uref{http://www.opengroup.org}), which is available at @uref{http://www.motifzone.net}.
+
+To improve the portability of the code, we made use of GNU's automake and autoconf. The corresponding @code{Makefile.am} and @code{configure.ac} files are included in the source code distribution.
+
+@node Bibliography, , Development, Top
+@chapter Bibliography
+
+@noindent Brown, P. O., and Botstein, D. (1999). Exploring the new world of the genome with DNA microarrays. @emph{Nat Genet} @strong{21}, 33--37.
+
+@noindent Chu, S., DeRisi, J., Eisen, M., Mulholland, J., Botstein, D., Brown, P. O., and Herskowitz, I. (1998).
+The transcriptional program of sporulation in budding yeast
+[published erratum appears in @emph{Science} 1998 Nov 20; @strong{282} (5393):1421]. @emph{Science} @strong{282}, 699--705.
+
+@noindent Conover, W. J. (1980). @emph{Practical nonparametric statistics} (New York: Wiley).
+
+@noindent De Hoon, M., Imoto, S., and Miyano, S. (2002). Statistical analysis of a small set of time-ordered gene expression data using linear splines. @emph{Bioinformatics} @strong{18}, 1477--1485.
+
+@noindent De Hoon, M. J. L., Imoto, S., Nolan, J., and Miyano, S. (2004). Open source clustering software. @emph{Bioinformatics},  @strong{20} (9), 1453--1454.
+
+@noindent Eisen, M. B., Spellman, P. T., Brown, P. O., and Botstein, D. (1998). Cluster analysis and display of genome-wide expression patterns. @emph{Proc Natl Acad Sci USA} @strong{95}, 14863--14868.
+
+@noindent Hartigan, J. A. (1975). @emph{Clustering algorithms} (New York: Wiley).
+
+@noindent Jain, A. K., and Dubes, R. C. (1988). @emph{Algorithms for clustering data} (Englewood Cliffs, N.J.: Prentice Hall).
+
+@noindent Jardine, N., and Sibson, R. (1971). @emph{Mathematical taxonomy} (London, New York: Wiley).
+
+@noindent Kohonen, T. (1997). @emph{Self-organizing maps}, 2nd Edition (Berlin; New York: Springer).
+
+@noindent Sibson, R. (1973). SLINK: An optimally efficient algorithm for the single-link cluster method. @emph{The Computer Journal}, @strong{16} (1), 30--34.
+
+@noindent Sneath, P. H. A., and Sokal, R. R. (1973). @emph{Numerical taxonomy; the principles and practice of numerical classification} (San Francisco: W. H. Freeman).
+
+@noindent Snedecor, G. W. and Cochran, W. G. (1989). @emph{Statistical methods} (Ames: Iowa State University Press).
+
+@noindent Sokal, R. R., and Sneath, P. H. A. (1963). @emph{Principles of numerical taxonomy} (San Francisco: W. H. Freeman).
+
+@noindent Tamayo, P., Slonim, D., Mesirov, J., Zhu, Q., Kitareewan, S., Dmitrovsky, E., Lander, E., and Golub, T. (1999). Interpreting patterns of gene expression with self-organizing maps: Methods and application to hematopoietic differentiation. @emph{Proc. Natl. Acad. Sci. USA}, @strong{96}, 2907--2912.
+
+@noindent Tryon, R. C., and Bailey, D. E. (1970). @emph{Cluster analysis} (New York: McGraw-Hill).
+
+@noindent Tukey, J. W. (1977). @emph{Exploratory data analysis} (Reading, Mass.: Addison-Wesley Pub.
+Co.).
+
+@noindent Weinstein, J. N., Myers, T. G., OConnor, P. M., Friend, S. H., Fornace, A. J., Jr., Kohn, K. W., Fojo, T., Bates, S. E., Rubinstein, L. V., Anderson, N. L., Buolamwini, J. K., van Osdol, W. W., Monks, A. P., Scudiero, D. A., Sausville, E. A., Zaharevitz, D. W., Bunow, B., Viswanadhan, V. N., Johnson, G. S., Wittes, R. E., and Paull, K. D. (1997).
+An information-intensive approach to the molecular pharmacology of cancer.
+@emph{Science} @strong{275}, 343--349.
+
+@noindent Wen, X., Fuhrman, S., Michaels, G. S., Carr, D. B., Smith, S., Barker, J. L., and Somogyi, R. (1998).
+Large-scale temporal gene expression mapping of central nervous system development.
+@emph{Proc Natl Acad Sci USA} @strong{95}, 334--339.
+
+@noindent Yeung, K. Y., and Ruzzo, W. L. (2001). Principal Component Analysis for clustering gene expression data.
+@emph{Bioinformatics} @strong{17}, 763--774.
+
+@bye

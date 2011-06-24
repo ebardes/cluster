@@ -1,0 +1,392 @@
+<html lang="en">
+<head>
+<title>Distance - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Data.html#Data" title="Data">
+<link rel="next" href="Cluster.html#Cluster" title="Cluster">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Distance"></a>Next:&nbsp;<a rel="next" accesskey="n" href="Cluster.html#Cluster">Cluster</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Data.html#Data">Data</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<h2 class="chapter">3 Distance/Similarity measures</h2>
+
+<p>The first choice that must be made is how similarity (or alternatively, distance) between gene expression data is to be defined. There are many
+ways to compute how similar two series of numbers are. Cluster provides eight
+options.
+
+<h3 class="section">3.1 Distance measures based on the Pearson correlation</h3>
+
+<p>The most commonly used similarity metrics are based on Pearson
+correlation. 
+The Pearson correlation coefficient between any two series of numbers
+<i>x</i> = {<i>x</i><SUB>1</SUB>, <i>x</i><SUB>2</SUB>, ..., <i>x<SUB>n</SUB></i>} and
+<i>y</i> = {<i>y</i><SUB>1</SUB>, <i>y</i><SUB>2</SUB>, ..., <i>y<SUB>n</SUB></i>} is defined as
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>r</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>x<sub>i</sub></i> - <span style="text-decoration: overline;"><i>x</i> </span></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>x</sub></i></td></tr>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>y<sub>i</sub></i> - <span style="text-decoration: overline;"><i>y</i> </span></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>y</sub></i></td></tr>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr>
+</table>
+</div>
+
+   <p>where
+<span style="text-decoration: overline;"><i>x</i></span> is the average of values in
+<i>x</i> and
+&sigma;<SUB><i>x</i></SUB> is the standard deviation of these values.
+
+   <p>There are many ways of conceptualizing the correlation coefficient. If you were to make
+a scatterplot of the values of
+<i>x</i> against
+<i>y</i> (pairing
+<i>x</i><SUB>1</SUB> with
+<i>y</i><SUB>1</SUB>, <i>x</i><SUB>2</SUB> with
+<i>y</i><SUB>2</SUB>, etc), then
+<i>r</i> reports how well you can fit a line to the values.
+
+   <p>The simplest way to think about the correlation coefficient is to plot
+<i>x</i> and
+<i>y</i> as curves, with
+<i>r</i> telling you how similar the shapes of the two curves are. 
+The Pearson correlation coefficient is always between -1 and 1, with 1 meaning that the two
+series are identical, 0 meaning they are completely uncorrelated, and -1 meaning they are
+perfect opposites. The correlation coefficient is invariant under linear transformation of
+the data. That is, if you multiply all the values in
+<i>y</i> by 2, or add 7 to all the values in
+<i>y</i>, the correlation between
+<i>x</i> and
+<i>y</i> will be unchanged. Thus, two curves that have identical shape, but different
+magnitude, will still have a correlation of 1.
+
+   <p>Cluster actually uses four different flavors of the Pearson correlation. The textbook
+Pearson correlation coefficient, given by the formula above, is used if you select
+Correlation (centered) in the Similarity Metric dialog box. 
+Correlation (uncentered) uses the following modified equations:<br>
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>r</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>x<sub>i</sub></i></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>x</sub></i><sup>(0)</sup></td></tr>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>y<sub>i</sub></i></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>y</sub></i><sup>(0)</sup></td></tr>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr>
+</table>
+</div><br>
+in which<br>
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>&sigma;<sub>x</sub></i><sup>(0)</sup> = </td>
+<td><big><big><big>&#8730; </big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><i>x<sub>i</sub></i><sup>2</sup></td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr>
+</table>
+</div>
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>&sigma;<sub>y</sub></i><sup>(0)</sup> = </td>
+<td><big><big><big>&#8730; </big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><i>y<sub>i</sub></i><sup>2</sup></td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr>
+</table>
+</div><br>
+This is basically the same function, except that it assumes the mean is 0, even when it is not. The difference is that, if you have two vectors
+<i>x</i> and
+<i>y</i> with identical shape, but which are offset relative to each other by a fixed value, they will have a standard Pearson correlation (centered correlation) of 1 but will not have an uncentered correlation of 1. 
+The uncentered correlation is equal to the cosine of the angle of two
+<i>n</i>-dimensional vectors
+<i>x</i> and
+<i>y</i>, each representing a vector in
+<i>n</i>-dimensional space that passes through the origin. 
+Cluster provides two similarity metrics that are the absolute value of these two correlation functions, which consider two items to be similar if they have opposite expression patterns; the standard correlation coefficients consider opposite genes to be very distant.
+
+<h3 class="section">3.2 Non-parametric distance measures</h3>
+
+<p>The Spearman rank correlation and Kendall's
+&tau; are two additional metrics, which are non-parametric versions of the Pearson correlation coefficient. These methods are more robust against outliers.
+
+   <p>The Spearman rank correlation calculates the correlation between the ranks of the data values in the two vectors. For example, if we have two data vectors<br>
+<DIV align=center>
+<i>x</i> = {2.3, 6.7, 4.5, 20.8};<br>
+<i>y</i> = {2.1, 5.9, 4.4, 4.2},<br>
+</DIV>then we first replace them by their ranks:<br>
+<DIV align=center>
+<i>x</i> = {1, 3, 2, 4};<br>
+<i>y</i> = {1, 4, 3, 2}.<br>
+</DIV>Now we calculate the correlation coefficient in their usual manner from these data vectors, resulting in<br>
+<DIV align=center>
+<i>r</i><sub>Spearman</sub> = 0.4. 
+</DIV>In comparison, the regular Pearson correlation between these data is
+<i>r</i> = 0.2344. By replacing the data values by their ranks, we reduced the effect of the outlier 20.8 on the value of the correlation coefficient. The Spearman rank correlation can be used as a test statistic for independence between
+<i>x</i> and <i>y</i>. For more information, see Conover (1980).
+
+   <p>Kendall's
+&tau; goes a step further by using only the relative ordering of
+<i>x</i> and <i>y</i> to calculate the correlation (Snedecor &amp; Cochran). To calculate Kendall's
+&tau;, consider all pairs of data points
+(<i>x<sub>i</sub></i>, <i>y<sub>i</sub></i>) and (<i>x<sub>j</sub></i>, <i>y<sub>j</sub></i>). We call a pair concordant if
+     <ul>
+<li><i>x<sub>i</sub></i> &lt; <i>x<sub>j</sub></i> and <i>y<sub>i</sub></i> &lt; <i>y<sub>j</sub></i>; or<li><i>x<sub>i</sub></i> &gt; <i>x<sub>j</sub></i> and <i>y<sub>i</sub></i> &gt; <i>y<sub>j</sub></i>,</ul>
+   and discordant if
+     <ul>
+<li><i>x<sub>i</sub></i> &lt; <i>x<sub>j</sub></i> and <i>y<sub>i</sub></i> &gt; <i>y<sub>j</sub></i>; or<li><i>x<sub>i</sub></i> &gt; <i>x<sub>j</sub></i> and <i>y<sub>i</sub></i> &lt; <i>y<sub>j</sub></i>. </ul>
+   We can represent this by a table:
+<DIV ALIGN=center>
+<table cellpadding=10 cellspacing=0 border=1>
+<tr align=center>
+  <td>-</td>
+  <td>(2.3, 2.1)</td>
+  <td>(6.7, 5.9)</td>
+  <td>(4.5, 4.4)</td>
+  <td>(20.8, 4.2)</td>
+</tr>
+<tr align=center>
+  <td>(2.3, 2.1)</td>
+  <td>-</td>
+  <td>&lt;&lt;</td>
+  <td>&lt;&lt;</td>
+  <td>&lt;&lt;</td>
+</tr>
+<tr align=center>
+  <td>(6.7, 5.9)</td>
+  <td>&gt;&gt;</td>
+  <td>-</td>
+  <td>&gt;&gt;</td>
+  <td>&lt;&gt;</td>
+</tr>
+<tr align=center>
+  <td>(4.5, 4.4)</td>
+  <td>&gt;&gt;</td>
+  <td>&lt;&lt;</td>
+  <td>-</td>
+  <td>&lt;&gt;</td>
+</tr>
+<tr align=center>
+  <td>(20.8, 4.2)</td>
+  <td>&gt;&gt;</td>
+  <td>&gt;&lt</td>
+  <td>&gt;&lt</td>
+  <td>-</td>
+</tr>
+</table>
+</DIV>From this table, we find that there are four concordant pairs and two discordant pairs:
+<DIV align=center>
+<i>n</i><sub>c</sub> = 4;<br>
+<i>n</i><sub>d</sub> = 2.<br>
+</DIV>Kendall's
+<i>&tau;</i> is calculated as<br>
+<DIV ALIGN=center>
+<table cellspacing=0 cellpadding=0>
+<tr>
+  <td><i>&tau;</i> = </td>
+  <td> </td>
+  <td>
+    <table cellspacing=0 cellpadding=0>
+      <tr>
+        <td nowrap align=CENTER>
+          <i>n</i><sub>c</sub>-<i>n</i><sub>d</sub>
+        </td>
+      </tr>
+      <tr>
+        <td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+      </tr>
+      <tr>
+        <td nowrap align=CENTER>
+          <i>n</i>(<i>n</i>-1)/2
+        </td>
+      </tr>
+    </table>
+  </td>
+  <td>,</td>
+</tr>
+</table>
+</DIV> which in this case evaluates as 0.33. In the C Clustering Library, the calculation of Kendall's
+<i>&tau;</i> is corrected for the possibility that two ranks are equal. 
+As in case of the Spearman rank correlation, we may use Kendall's
+<i>&tau;</i> to test for independence between
+<i>x</i> and <i>y</i>.
+
+<h3 class="section">3.3 Distance measures related to the Euclidean distance</h3>
+
+<h4 class="subsection">3.3.1 Euclidean distance</h4>
+
+<p>A newly added distance function is the Euclidean distance, which is defined as
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>d</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small>
+</td>
+<td><big>(</big></td>
+<td><i>x<sub>i</sub></i> - <i>y<sub>i</sub></i></td>
+<td><big>)</big><sup>2</sup></td>
+</tr>
+</table>
+</div>The Euclidean distance takes the difference between two gene expression levels directly. It should therefore only be used for expression data that are suitably normalized, for example by converting the measured gene expression levels to log-ratios. In the sum, we only include terms for which both
+<i>x<sub>i</sub></i> and <i>y<sub>i</sub></i> are present, and divide by
+<i>n</i> accordingly.
+
+   <p>Unlike the correlation-based distance measures, the Euclidean distance takes the magnitude of changes in the gene expression levels into account. An example of the Euclidean distance applied to
+<i>k</i>-means clustering can be found in De Hoon, Imoto, and Miyano (2002).
+
+<h4 class="subsection">3.3.2 City-block distance</h4>
+
+<p>The city-block distance, alternatively known as the Manhattan distance, is related to the Euclidean distance. Whereas the Euclidean distance corresponds to the length of the shortest path between two points, the city-block distance is the sum of distances along each dimension:
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>d</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td></tr>
+  <tr><td nowrap align=CENTER><i>n</i></td></tr>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big>|</big></td>
+<td><i>x<sub>i</sub></i> - <i>y<sub>i</sub></i></td>
+<td><big>|</big></td>
+</tr>
+</table></div>This is equal to the distance you would have to walk between two points in a city, where you have to walk along city blocks. The city-block distance is a metric, as it satisfies the triangle inequality. Again we only include terms for which both
+<i>x<sub>i</sub></i> and <i>y<sub>i</sub></i> are present, and divide by
+<i>n</i> accordingly.
+
+   <p>As for the Euclidean distance, the expression data are subtracted directly from each other, and we should therefore make sure that they are properly normalized.
+
+<h3 class="section">3.4 Missing values</h3>
+
+<p>When either
+<i>x</i> or
+<i>y</i> has missing values, only observations present for both
+<i>x</i> and
+<i>y</i> are used in computing similarities.
+
+<h3 class="section">3.5 Calculating the distance matrix</h3>
+
+<p>With any specified metric, the first step in the hierarchical clustering routines described below is to compute the
+distance (the opposite of similarity; for all correlation metrics distance = 1.0 - correlation)
+between all pairs of items to be clustered (e.g. the set of genes in the current dataset). 
+This can often be time consuming, and, except for pairwise single-linkage clustering,
+memory intensive (the maximum amount of memory required is
+4 x <i>N</i> x <i>N</i> bytes, where
+<i>N</i> is the number of items being clustered). The algorithm for pairwise single-linkage hierarchical clustering is less memory-intensive (linear in
+<i>N</i>).
+
+   </body></html>
+

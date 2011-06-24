@@ -1,0 +1,79 @@
+<html lang="en">
+<head>
+<title>KMeans - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Cluster.html#Cluster" title="Cluster">
+<link rel="prev" href="Hierarchical.html#Hierarchical" title="Hierarchical">
+<link rel="next" href="SOM.html#SOM" title="SOM">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="KMeans"></a>Next:&nbsp;<a rel="next" accesskey="n" href="SOM.html#SOM">SOM</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Hierarchical.html#Hierarchical">Hierarchical</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
+<hr><br>
+</div>
+
+<h3 class="section">4.2 The <i>k</i>-means Clustering Algorithm</h3>
+
+   <div class="block-image"><img src="images/kmeans.png" alt="images/kmeans.png"></div>
+
+   <p>The
+<i>k</i>-means clustering algorithm is a simple, but popular, form of cluster analysis. The basic idea is that you start with a collection of items (e.g. genes) and some chosen number of clusters
+(<i>k</i>) you want to find. The items are initially randomly assigned to a cluster. The
+<i>k</i>-means clustering proceeds by repeated application of a two-step process where
+     <ol type=1 start=1>
+<li>the mean vector for all items in each cluster is computed;
+<li>items are reassigned to the cluster whose center is closest to the item.
+        </ol>
+
+   <p>Since the initial cluster assignment is random, different runs of the
+<i>k</i>-means clustering algorithm may not give the same final clustering solution. To deal with this, the
+<i>k</i>-means clustering algorithms is repeated many times, each time starting from a different initial clustering. The sum of distances within the clusters is used to compare different clustering solutions. The clustering solution with the smallest sum of within-cluster distances is saved.
+
+   <p>The number of runs that should be done depends on how difficult it is to find the optimal solution, which in turn depends on the number of genes involved. Cluster therefore shows in the status bar how many times the optimal solution has been found. If this number is one, there may be a clustering solution with an even lower sum of within-cluster distances. The
+<i>k</i>-means clustering algorithm should then be repeated with more trials. If the optimal solution is found many times, the solution that has been found is likely to have the lowest possible within-cluster sum of distances. We can then assume that the
+<i>k</i>-means clustering procedure has then found the overall optimal clustering solution.
+
+   <p>It should be noted that generally, the
+<i>k</i>-means clustering algorithm finds a clustering solution with a smaller within-cluster sum of distances than the hierarchical clustering techniques.
+
+   <p>The parameters that control
+<i>k</i>-means clustering are
+     <ul>
+<li>the number of clusters
+(<i>k</i>);<li>the number of trials. 
+</ul>
+
+   <p>The output is simply an assignment of items to a cluster. The implementation here simply rearranges the rows and/or columns based on which cluster they were assigned to. 
+The output data file is <span class="file">JobName_K_GKg_AKa.cdt</span>, where <span class="file">_GKg</span> is included if genes were organized, and <span class="file">_AKa</span> is included if arrays were organized. Here, <span class="file">Kg</span> and <span class="file">Ka</span> represent the number of clusters for gene clustering and array clustering, respectively. This file contains the gene expression data, organized by cluster by rearranging the rows and columns. In addition, the files <span class="file">JobName_K_GKg.kgg</span> and <span class="file">JobName_K_AKa.kag</span> are created, containing a list of genes/arrays and the cluster they were assigned to.
+
+   <p>Whereas
+<i>k</i>-means clustering as implemented in Cluster 3.0 allows any of the eight distance measures to be used, we recommend using the Euclidean distance or city-block distance instead of the distance measures based on the Pearson correlation, for the same reason as in case of pairwise centroid-linkage hierarchical clustering. The distance measures based on the Pearson correlation effectively normalize the data vectors when calculating the distance, whereas no normalization is used when calculating the cluster centroid. To use
+<i>k</i>-means clustering with a distance measure based on the Pearson correlation, it is better to first normalize the data appropriately (using the "Adjust Data" tab) before running the
+<i>k</i>-means algorithm.
+
+   <p>Cluster also implements a slight variation on
+<i>k</i>-means clustering, known as
+<i>k</i>-medians clustering, in which the median instead of the mean of items in a node are used. In a theoretical sense, it is best to use
+<i>k</i>-means with the Euclidean distance, and
+<i>k</i>-medoids with the city-block distance.
+
+   </body></html>
+

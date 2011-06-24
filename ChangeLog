@@ -1,0 +1,534 @@
+2008.10.01
+Removed the print_matrix_dbl function from perl/Cluster.xs, since it was not
+being used.
+Removed the deprecated PyArray_FromDims function from python/clustermodule.c.
+Check memory allocations rigorously in src/command.c.
+
+2008.09.12
+Fixed a memory leak in the spearman function in src/cluster.c.
+Converted python/__init__.py to the new NumPy; this should have been done
+in the previous release.
+
+2008.08.30
+The command-line version of Cluster 3.0 now allows it to be used without
+actually clustering, for example for normalization only (patch by Jeff Chang).
+Better handling of memory allocation failures in Algorithm::Cluster.
+Fixed a memory leak in clustercentroids in Algorithm::Cluster.
+Converted Pycluster to the new Numerical Python (NumPy 1.1.1).
+
+2008.07.29
+In the command-line version, missing breaks after each case in a switch caused
+median-centering to be applied when mean-centering was intended.
+Updated the documentation for Algorithm::Cluster, which was still showing the
+old output for Algorithm::Cluster::treecluster.
+The documentation is now distributed with the Algorithm::Cluster and Pycluster
+distributions.
+The DataFile class is now removed from python/__init__.py; replaced by the
+Record class.
+
+2008.07.05
+Fixed a bug in the pairwise single-linkage clustering algorithm.
+The size of the hierarchical tree is one less than the number of items to be
+clustered. However, one more node is used during the calculation of the
+hierarchical tree. Therefore, memory for one more node should be allocated.
+Used Python's unit test framework for the Pycluster tests.
+Added a version() function to Pycluster and Algorithm::Cluster.
+
+2008.03.08
+The executable for the Cluster 3.0 GUI can now also be used as a command-line
+program. Having separate executables is no longer necessary. It is still
+possible to compile Cluster 3.0 as a command-line only program, though.
+The Makefile.am and configure.ac files were updated accordingly.
+In Pycluster, the DataFile class was renamed Record. The recommended way to
+read a data file is now to use the Pycluster.read(handle) function, which
+returns a Record object.
+The clustercentroids function was added to Algorithm::Cluster. This module now
+also contains a Record class, which stores the data in a Cluster/TreeView-type
+expression data file. The appropriate functions in Algorithm::Cluster can now
+also be called as methods on a Record object.
+The treecluster function in Algorithm::Cluster now returns a single array with
+three columns. The last column returns the distances between items; this
+information was previously in a separate linkdist variable.
+
+2007.11.21
+Updated X11/gui.c to correctly deal with 64-bits architectures. This affects
+only the GUI, not the calculation itself.
+Replaced Netscape by Firefox as the default browser to read the help files
+on Unix/Linux.
+Updated the documentation.
+In Algorithm::Cluster, fixed the argument checking for the method argument in
+clusterdistance.
+In Pycluster, added argument checking for the arguments method and dist in
+clusterdistance.
+In src/data.c, replaced the use of strtok by a new tokenizer function to deal
+correctly with the case in which UNIQID is an empty string.
+
+2007.06.19
+Updated contact address to RIKEN.
+Rewrapped the docstrings in python/__init__.py and python/clustermodule.c to
+make each line fit.
+Removed a spurious return in python/clustermodule.c that prevented the distance
+matrix from being freed.
+In py_distancematrix in python/clustermodule.c, avoid the first row of the
+distance matrix from being freed, since this row is always NULL.
+Avoid this first row also in find_closest_pair in src/cluster.c.
+Rewrote the k-means algorithm in src/cluster.c. The previous version used a
+floating-point comparison that caused this routine to hang on some platforms.
+
+2007.02.28
+In src/cluster.c, let spearman return 1.0 if all ranks are equal.
+Fix casting of the result of floor.
+
+2007.02.26
+Allow a list of rows to represent the distance matrix in the Python functions
+kmedoids and treecluster. Make the docstrings for Pycluster more readable.
+Change i to l in the format string in PyArg_ParseTuple* functions for
+Pycluster to behave correctly on 64-bits machines. Updated standard exceptions
+in Pycluster. One minor change in src/cluster.c.
+
+2006.09.25
+Replaced calls to pow() by exp(log()) or sqrt(). The function pow() caused
+crashes on AIX (see Google for more information about the pow() bug on AIX).
+Check for sqrt, log, and exp presence in the math library; don't check pow.
+Replaced the ranlib random number generator by a random number generator
+written from scratch. Hence, ranlib is no longer needed, and was removed from
+the C Clustering Library. The examples were updated accordingly.
+
+2006.05.12
+Updated the website of Java TreeView in the documentation.
+Removed skipped lines in Makefile.PL.
+Updated Makefile.am to account for the new build process on Mac OS X
+(building a universal binary with XCode 2.2.1).
+Fixed the Makefile.am files such that configure looks for the Motif libraries
+and its dependencies. Also, check the math library only once for the sqrt and
+pow functions.
+The routine PerformPCA in src/data.c now returns an error message if a memory
+allocation error occurred (NULL otherwise).
+The routine randomassign was removed from src/cluster.h, and declared static
+in src/cluster.c, since no external code uses it.
+The functions getclustermean and getclustermedian were replaced by a single
+function getclustercentroids; the function getclustermedoid was renamed
+getclustermedoids.
+The functions kcluster and kmedoids now return if a memory allocation error
+occurs, and set *ifound equal to -1.
+Hierarchical clustering solutions are now represented as an array of Node
+structs, where each Node struct contains the numbers of the subnodes that were
+joined as well as the distance between them. The treecluster routine now
+returns a pointer to a newly allocated array of Node structs; cuttree accepts
+an array of Node structs as input. The cuttree no longer checks its input; if
+the array of Node structs is inconsistent, a segmentation fault may occur.
+However, cuttree is called only from python/clustermodule.c, which guarantees
+that the input to cuttree is consistent.
+In Python, hierarchical clustering solutions are implemented as a Tree class,
+a read-only list of Node objects. The cuttree function is now a method of the
+Tree class.
+Removed unneeded code from perl/Cluster.xs.
+Fixed the Perl test case in perl/t/14_medoids.t; previously, the clustering
+problem resulted in two nodes with an equal distance, making the solution
+depend on roundoff.
+The Python file reading routines were moved from python/data.py to
+python/__init__.py. Reading Cluster/TreeView-type files is now implemented as
+part of the DataFile class. In python/clustermodule.c, None arguments are
+interpreted as missing arguments. The clustercentroid function was renamed
+clustercentroids.
+Makefile.PL now checks for 64-bits architectures, and adds the -fPIC flag if
+needed.
+Simplified the quicksort calls in src/cluster.c and src/data.c. The function
+getrank now returns NULL if it fails due to a memory error.
+In the k-means/k-medians/k-medoids routines, previously the iteration stopped
+if no item reassignments were made, or if a periodic loop was detected in the
+EM algorithm. Instead, we now monitor the within-cluster sum of distances, and
+stop the iteration if no further improvement is obtained.
+In the k-means/k-medians/k-medoids routines, previously the iteration stopped
+if no item reassignments were made, or if a periodic loop was detected in the
+EM algorithm. Instead, we now monitor the within-cluster sum of distances, and
+stop the iteration if no further improvement is obtained.
+The routine svd sets ierr to an error flag if a memory allocation error occurs.
+Rewrote the initial random cluster assignment in kcluster, requiring no extra
+memory to be allocated.
+
+2006.02.26
+In the Perl module Algorithm::Cluster, allow hierarchical clustering to be
+applied to a user-defined distance matrix.
+In the Python extension module Pycluster / Bio.Cluster: fix the glue code in
+python/clustermodule.c in order for the extension module to work correctly on
+64-bits machines.
+
+2005.10.15
+The k-means clustering routine accepts all eight distance functions available
+in the C Clustering Library. However, using distance functions other than the
+Euclidean distance and the city-block distance is discouraged. The reason is
+that other distance functions (such as the Pearson distance) calculate
+distances between data vectors that are effectively scaled (by subtracting the
+mean and dividing by the standard deviation for the Pearson distance), whereas
+the centroid calculation is performed by averaging the data vectors without
+normalization. A more correct way to use these normalized distance functions
+is to normalize the data (using the "Adjust data" tab in the GUI program)
+before starting the k-means clustering calculation. To discourage the use of
+distance functions other than the Euclidean distance and the city-block
+distance, in the GUI-version the distance defaults to the Euclidean distance
+for k-means and SOM calculations SOM (other distances can still be chosen,
+though).
+A similar argument can be made against the use of distance functions other than
+the Euclidean distance and the city-block distance in pairwise centroid-linkage
+hierarchical clustering.
+Fixed a bug in the command-line version of the code that caused the -ng and
+-na flags to have an effect only if the -cg and -ca flags were also specified.
+Fixed the Load routine in src/data.c so that it doesn't crash if the users
+attempts to read an empty file.
+Fixed the reading of empty lines in the data file in the Load routine in
+src/data.c.
+Removed the AlwaysCreateUninstallIcon option from the Inno Setup configuration
+file, as it is no longer supported by Inno Setup.
+Fixed a bug in windows/gui.c that caused arrays to be centered if the "Center
+genes" checkbox is checked.
+Simplified the way in which the bitmap is displayed in the "File format" help
+window, and fixed its position (previously, it was partly covered by the text
+on Windows XP).
+Fixed a bug in FilterDialogProc in windows/gui.c that caused a NULL pointer to
+be freed the first time the filter is applied.
+Gave ID_KMEANS_ARRAY_METRIC and ID_KMEANS_BUTTON different identifier numbers
+in windows/resources.rc.
+Updated windows/resources.rc to comply with the latest version of windres.
+Modified somworker in src/cluster.c to take the mask into account.
+Changed my email address, as I'm now at Columbia University.
+
+2005.04.27
+Bug fix in py_treecluster in python/clustermodule.c: the variable nnodes was
+not set if the distance matrix is specified instead of the data matrix.
+Bug fix in py_treecluster in python/clustermodule.c: the routine returns if the
+linkdist array cannot be allocated.
+Further cleanup of perl/Cluster.xs. Input data are now checked more strictly;
+any error will cause the calculation to abort. Previously, some errors were
+ignored, for example rows of unequal size in the data matrix.
+The algorithm for pairwise single-linkage hierarchical clustering was replaced
+by the SLINK algorithm:
+Sibson, R. (1973). SLINK: An optimally efficient algorithm for the
+single-link cluster method. The Computer Journal, 16(1): 30-34.
+The clustering result produced by this algorithm is identical to the single-
+linkage hierarchical clustering result, but the SLINK algorithm is much faster
+and uses much less memory. Hence, it can be used for large data sets.
+Removed the alternative implementation (using a cache) of pairwise
+centroid-linkage hierarchical clustering, as the new single-linkage routine
+looks more useful.
+
+2005.02.23
+Removed the harmonically summed Euclidean distance from the set of available
+distance metrics.
+For the Euclidean distance and the city-block distance, the sum is now divided
+by the number of observations present. Previously, the sum was divided by the
+number of observations present and multiplied by the total number of present
+and missing observations.
+In k-means clustering, when calculating the centroid of a cluster, the
+normalized expression profiles of the elements are summed. Previously, the
+unnormalized profiles were summed. Normalization depends on the distance
+metric. For the Euclidean distance and city-block distance, no normalization is
+used. For the Pearson correlation and the absolute Pearson correlation, the
+mean is subtracted from each expression profile, and the expression profile is
+divided by its standard deviation. For the uncentered Pearson correlation and
+the absolute uncentered Pearson correlation, each expression profile is divided
+by its standard deviation. For the Spearman rank correlation and Kendall's tau,
+the expression profiles are replaced by the ranks.
+In k-means clustering, previously the order in which genes/microarrays are
+reassigned was randomized. Since all genes/microarrays are reassigned before
+the cluster centroids are recalculated, the effect of the randomization is
+minimal. The order has an effect only if the last remaining gene is to be
+reassigned to a different cluster, as those reassignments are prevented in our
+implementation of k-means clustering. In the present algorithm, the order in
+which genes/microarrays are reassigned is no longer randomized.
+Previously, the k-means clustering algorithm returned the expression profiles
+of the centroids of the k clusters. Some applications of the k-means algorithm
+simply discard these (e.g. the Cluster 3.0 program). Since the centroids can be
+recalculated trivially, the current implementation of k-means clustering does
+not return the centroid profiles.
+The hierarchical clustering routine treecluster previously sets the first two
+elements of the clustering result to (0,0) if the available memory was
+insufficient. In the present implementation, treecluster is a function that
+returns 0 if not enough memory was available, and 1 if the calculation was
+successful.
+Previously, the treecluster algorithm took an argument applyscale to indicate
+if the link distances should be scaled by usage by Java TreeView. Since such
+scaling can be applied trivially after the treecluster routine, this argument
+was removed.
+Added a memory-efficient implementation of pairwise centroid-linkage
+hierarchical clustering (currently accessible from Python only).
+Cluster 3.0 GUI, all platforms:
+o) Changed the layout of the "Adjust" tab page, such that users cannot choose
+   both mean and median centering at the same time.
+o) For hierarchical clustering, if the user specifies to calculate the weights,
+   then for the first calculation of the distance matrix the weights as stored
+   in the data file are used. For the actual clustering, the distance matrix is
+   recalculated using the calculated weights. Previously, a distance matrix
+   calculated as part of the weights calculation was reused for the clustering
+   calculation, leading to inconsistencies.
+o) Calculation of the weights for hierarchical clustering is now implemented as
+   a separate function in src/cluster.c.
+Cluster 3.0 for Mac OS X:
+o) Send the retain message to the directory variable after setting it by
+   calling  NSHomeDirectory(); otherwise the directory is autoreleased.
+Cluster 3.0 for Unix/Linux:
+o) In the routine MenuFile, a pointer to the static variable directory is
+   passed to the OpenFile and SaveFile routines via the client_data pointer.
+   The OpenFile and SaveFile take care of saving the last accessed directory
+   in this variable. This avoids a call back to MenuFile.
+o) The routine Cleanup was removed. Previously, the WM_DELETE_WINDOW message
+   caused the callback function Cleanup to be called, which in turn called
+   Free, Filter, and MenuFile to free allocated memory. The CMD_FILE_EXIT
+   command in MenuFile called Cleanup. Now, the WM_DELETE_WINDOW message has
+   MenuFile as the callback function, passing CMD_FILE_EXIT as the
+   client_data argument. The CMD_FILE_EXIT case in MenuFile takes care of
+   freeing allocated memory. Hence, exiting the program via the menu or by
+   closing the window becomes equivalent.
+o) The routine InitFilemanager is replaced by the case ID_FILEMANAGER_INIT in
+   the routine FileManager.
+o) Setting the FileMemo and Jobname is is now done by the case
+   ID_FILEMANAGER_SET_FILEMEMO and ID_FILEMANAGER_SET_JOBNAME in the routine
+   FileManager. Previously, the corresponding code was located in OpenFile.
+o) Updating the rows and columns in the file manager is done by the case
+   ID_FILEMANAGER_UPDATE_ROWS_COLUMNS in the routine FileManager. Previously,
+   this was done by the case ID_SOM_UPDATE in the routine SOM by calling the
+   routines SetRows and SetColumns. These two have been removed.
+o) In the routine Filter, freeing the static pointer "use" is achieved via the
+   ID_FILTER_FREE message. Previously, the Filter routine checked if the
+   Widget pointer is NULL. When freeing "use", we now check it to make sure it
+   is not NULL.
+o) All routines except main() are now declared static.
+o) To create the pull down menu, the defined values CMD_FILE_OPEN and
+   CMD_FILE_SAVE are used instead of the hard-coded 0 and 1.
+Cluster 3.0, command-line version:
+o) Changed the definition of the command-line option -l (previously -l 0|1)
+   and -s (previously -s 0|1). Added the command-line options -cg a|m (center
+   each row in the data set by subtracting the row mean or median), -ng
+   (normalize each row in the data set), -ca a|m (center each column in the
+   data set by subtracting the column mean or median), -na (normalize each
+   column in the data set).
+o) Allow the user to choose the number of repetitions for k-means clustering.
+Perl interface Algorithm::Cluster:
+o) Added the kmedoids function.
+o) Added the distancematrix function.
+o) Allow the initial cluster assignments to be specified by the user in the
+   kcluster and kmedoids functions.
+o) Allow the parameters cluster1 and cluster2 in clusterdistance to be a single
+   integer instead of an integer array.
+o) When converting Perl arrays to C arrays, function will return NULL if an
+   error is detected (previously only a warning was raised). This has not yet
+   been implemented for all conversion functions.
+Documentation:
+o) Equations (before shown as PNGs) replaced by HTML code.
+
+2004.06.09
+Replaced 1.e99 by DBL_MAX in src/cluster.c.
+Rewrote the Makefile and the Inno Setup Compiler script for the Windows version
+of Cluster 3.0 such that both an ANSI (Windows 95, 98, Me) and a UNICODE
+(Windows NT, 2000, XP) version is included. The installer determines on which
+version of Windows it is being run, and installs the appropriate version. Some
+minor changes were needed in windows/gui.c for it to compile correctly for both
+ANSI and UNICODE.
+The routine distancematrix in src/cluster.c now returns NULL if not enough
+memory can be allocated to store the distance matrix.
+In src/data.c, the function ClearDistanceMatrix now does not take any arguments.
+Previously, an argument specifying the size of the distance matrix was needed to
+free the matrix appropriately. As this is error-prone, the size of the distance
+matrix is now stored as part of the _distancematrix struct.
+The routines that make sure that genes and arrays are saved in the correct order
+in the .cdt output file are now static routines in src/data.c, except for the
+new routine ResetIndex.
+Added a routine GetWidgetItemInt to X11/gui.c to make reading integer values
+from edit boxes easier, as well as a routine ShowError to display error
+messages.
+Code cleanup in src/data.c in the PerformSOM routine. The calling code in
+src/command.c, windows/gui.c, mac/Controller.m, X11/gui.c was updated
+accordingly. In the new version, the SOM calculation is started after opening
+all output files, and no calculation is performed if the function fails to open
+any of the files.
+Code cleanup in the hierarchical clustering section of windows/gui.c,
+mac/Controller.m, X11/gui.c. Previously, some unnecessary steps in the
+calculation were performed.
+The treecluster routine now returns (0,0) as the first linking event if the
+routine fails due to lack of memory. This may occur if the treecluster needs
+to calculated the distance matrix but cannot allocate enough memory to store
+it. Added the code to check if the first clustering event is (0,0) to
+python/clustermodule.c and perl/Cluster.xs. 
+In src/command.c, routines that are only used locally are now defined static.
+In mac/Controller.m, added a struct FileHandle and the routines OpenFile and
+CloseFile for file access management.
+In src/data.c, local variables are now defined static.
+In src/data.c, SetIndex, SetClusterIndex, SetOrderIndex were rewritten as
+ResetIndex, SetClusterIndex.
+Replaced empty argument lists by "void" in function declarations.
+
+2004.05.09
+Bug fix in python/clustermodule.c: In clusterdistance and clustercentroid, the
+TRANSPOSE variable was not initialized to 0.
+Check for missing gene names in the Load function in src/data.c. The function
+returns an error message if the gene name is missing in a data row.
+The Windows and Mac OS X versions of Cluster 3.0 can now handle UNICODE file
+names.
+Fixed a bug with the City Block distance measure. Previously, distances were
+not scaled correctly, causing errors with Java TreeView.
+
+2004.04.02
+Cleaned up python/clustermodule.c.
+Fixed an error in the test routine test_Cluster.py, which caused an incorrect
+result to be displayed in the results file test_Cluster.
+The kcluster routine in the Perl interface Algorithm::Cluster now includes the
+residual within-cluster sum of distances in the returned output. Updated the
+Perl example scripts accordingly, and added tests for this output variable to
+t/10_kcluster.t.
+Added the city-block distance to the Unix/Linux version of Cluster 3.0.
+In Pycluster, for the routines "treecluster" and "clusterdistance" the order of
+the arguments "method" and "dist" were interchanged for consistency with
+kcluster.
+Generalized the usage of clusterdistance in Pycluster such that clusters
+containing only one item can be represented as a list containing one item (e.g.
+index1==[17]) or as the item number itself (index1=17).
+Removed the Windows Registry keys that are specific to TreeView from the
+installer program for Windows.
+Removed the "Launch Java TreeView" button from Cluster 3.0. With the improved
+installers for Java TreeView, this button is no longer needed.
+Minor cleanup of the automake/autoconf files. This affects the configure script.
+Fixed the version number in the command-line version of Cluster 3.0.
+In the Perl interface Algorithm::Cluster, fixed a memory allocation error that
+caused core dumps when clustering microarrays (transpose==1).
+Code cleanup: removed casts in front of malloc.
+Updated the automake/autoconf files. For the GUI-version of Cluster 3.0 on
+Unix/Linux, use
+  configure
+or
+  configure --with-x
+For the command-line version of Cluster 3.0, use
+  configure --without-x
+(so the --with-motif is no longer used).
+Added the -lXt and -lX11 libraries to the link command.
+
+2004.01.27
+Cleaned up the examples in the perl/examples subdirectory. Renamed the
+installer program for Cluster 3.0 for Windows from ctvsetup.exe to
+clustersetup.exe. Changed the file name of the Cluster 3.0 manual from ctv.pdf
+to cluster3.pdf (the name of the manual for the C Clustering Library is
+cluster.pdf as before). Updated the Makefile in the examples subdirectory.
+Added the cuttree routine to the C Clustering Library. This routine takes the
+tree structure generated by the hierarchical clustering routines, and groups
+the elements in the tree into a given number of clusters.
+Generalized the kcluster routine so that it can start from an initial
+clustering specified by the user. This is also available from Python, but not
+(yet) from Perl.
+Updated the manual.
+Added the city-block distance to the Perl interface.
+Fixed a bug in the Macintosh-version of Cluster 3.0, which prevented the arrays
+from being adjusted in the Adjust tab.
+Added the k-medoids algorithm the the C Clustering Library, and added the
+corresponding Python interface to the k-medoids routine.
+Rewrote the Python interface to the kcluster routine.
+Added a Python interface to the distancematrix routine.
+Added tests to Bio.Python / Pycluster.
+Modified the command-line version of Cluster 3.0 to enable users to specify
+which kind of hierarchical clustering is used (pairwise complete-, single-,
+centroid-, or average-linkage).
+
+2003.09.07
+Bug fix in the pairwise average-linkage hierachical clustering algorithm
+(palcluster in src/cluster.c). The last row in the distance matrix was not
+being copied properly. Thanks to Chris Torrence of Research Systems, Inc. for
+noticing this bug.
+For the Mac OS X version, the close button in the main window was disabled.
+
+2003.07.17
+Bug fix in the GUI for Cluster 3.0 on Linux/Unix. The bug led to a crash when
+users try to use the help window for the file format.
+The hierarchical clustering routine in Pycluster can now cluster a data set if
+only the distance matrix is available, and the original gene expression data are
+not available. This is also useful in cases where the distance is defined but
+the original data are not well defined, for example when clustering proteins
+based on the similarity of their shape. Clustering using the distance matrix
+only is not possible for centroid linkage clustering, which always needs the
+original data.
+The INSTALL file was added to MANIFEST for the Perl package Algorithm::Cluster.
+A command line version of Cluster 3.0 was written, with the command line options
+consistent with Gavin Sherlock's xcluster program, following a suggestion by
+QuangQiu Wang of Stanford University. For the compilation, "configure" now
+writes the Makefile for the command line program, while "configure --with-motif"
+generates the Makefile for the GUI program. There is no longer the option to
+compile the library by itself, as it is easier to do this by simply collecting
+the appropriate source files.
+
+2003.06.13
+The city-block distance was added as one of the measures of similarity in gene
+expression data. The manual was updated on how to use the clustering routines
+from Biopython.
+
+2003.05.28
+The license was changed to the Python License instead of the GNU Lesser General
+Public License for the C Clustering Library and Pycluster. Algorithm::Cluster is
+covered by the Artistic License (same license as Perl itself). Replaced the
+routine for the Singular Value Decomposition with a routine that is compatible
+with the Python License.
+Cleaned up the file reading routine in src/data.c. 
+Bug fix in the PCA routine in src/data.c; the data matrix was not being scaled
+correctly.
+In the Perl test script 01_mean_median.t, write out floating point values with
+a limited number of decimals. Previously, the comparison of floating point
+values led to spurious errors when running this test script.
+
+2003.05.06
+Fix for a bug in GeneKCluster, where the temporary array cdata was not allocated
+enough space, leading to crashes. Also a speed improvement in the kcluster
+routine (thanks to Minkov Minsky).
+
+2003.04.25
+Several changes in version 1.17, including a fix for a bug in kcluster that
+significantly increased the running time, and a fix for a file reading error
+in data.c, affecting Cluster 3.0. The file reading error caused missing values
+to be interpreted as a zero. Thanks to Justin Klekota of Harvard University
+for noticing the bug in kcluster.
+Cleaned up the API for hierarchical clustering and self-organizing maps.
+This version also includes the updated documentation for the Perl interface.
+
+2003.04.04
+Fixed some memory leakage problems in somassign in cluster.c.
+
+2003.03.30
+Fixed a file reading problem in Cluster 3.0 due to the different end of line
+character on Macintosh computers. Files edited on Macs (e.g. with Excel) can now
+be read by Cluster 3.0. Thanks to Ivan Baxter of the Scripps Research Institute
+for noticing this error.
+Some cleanup in the perl interface (e.g., removing unused variables).
+
+2003.03.22
+Added the perl interface to the C Clustering Library. The perl interface was
+written by John Nolan.
+
+2003.02.21
+Updated the manual (Thanks to Timothy Chklovski of the MIT for pointing out an
+error in the description of pairwise complete-linkage clustering in the manual
+for Cluster 3.0).
+Fixed a typing error in the Python interface to the SOM routine.
+
+2003.02.01
+Cleaned up palworker (improved speed and memory requirements).
+
+2003.01.20
+Bugfix in palworker. Thanks to Jin Hu Huang, Flinders University, Australia, for
+noticing this bug. 
+
+2003.01.07
+Change in the onepass routine in src/cluster.c. The number of elements in each
+cluster is tracked during the iteration. If a certain cluster has only one element left, no reassignment takes place in order to avoid empty clusters.
+
+2003.01.03
+Change in the onepass routine in src/cluster.c. Checking for periodic solutions
+is interrupted as soon as a different cluster id is found.
+
+2002.12.12
+Bug fix in src/data.c (gene weights and array weights were switched).
+
+2002.12.05
+Bug fix in X11/gui.c (unallocated string problem).
+Some changes in the documentation to refer to OpenMotif.
+
+2002.11.05
+Cluster 3.0 was ported to Unix/Linux using Motif.
+Some functions were added to Pycluster, mainly to read and write Cluster/
+TreeView style files.
+The Java/C hybrid JavaCluster will no longer be maintained because of
+portability problems.

@@ -1,0 +1,26 @@
+[OPTIONS]
+Auto TOC=9
+Compatibility=1.1 or later
+Compiled file=cluster.chm
+Default Window=Default
+Default topic=..\html\index.html
+Display compile progress=No
+Full-text search=Yes
+Language=0x409 English (United States)
+Title=Cluster 3.0 Help
+
+[WINDOWS]
+Default="Cluster 3.0 Help",,,"..\html\index.html","..\html\index.html",,,,,0x62420,,0x3046,[271,372,593,566],0x30000,0x20200,,,,,0
+
+
+[FILES]
+..\html\Bibliography.html
+..\html\Cluster.html
+..\html\Contents.html
+..\html\index.html
+..\html\Introduction.html
+..\html\Development.html
+..\html\TreeView.html
+
+[INFOTYPES]
+

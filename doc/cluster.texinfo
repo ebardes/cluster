@@ -1,0 +1,3520 @@
+\input texinfo @c -*-texinfo-*-
+
+@c %**start of header
+@setfilename .
+@settitle The C Clustering Library
+@c %**end of header
+
+@ifinfo
+This is the manual for the C Clustering Library.
+Copyright 2002-2006 Michiel Jan Laurens de Hoon.
+@end ifinfo
+
+@titlepage
+@title{The C Clustering Library}
+@subtitle{The University of Tokyo, Institute of Medical Science, Human Genome Center}
+@author{Michiel de Hoon, Seiya Imoto, Satoru Miyano}
+
+@c The following two commands start the copyright page.
+@page
+@vskip 0pt plus 1filll
+@today @*
+The C Clustering Library for cDNA microarray data.
+
+Copyright @copyright{} 2002-2005 Michiel Jan Laurens de Hoon
+@*
+This library was written at the Laboratory of DNA Information Analysis,
+Human Genome Center, Institute of Medical Science, University of Tokyo,
+4-6-1 Shirokanedai, Minato-ku, Tokyo 108-8639, Japan.@*
+Contact: @email{mdehoon "AT" gsc.riken.jp}@*
+
+Permission to use, copy, modify, and distribute this software and its
+documentation with or without modifications and for any purpose and
+without fee is hereby granted, provided that any copyright notices
+appear in all copies and that both those copyright notices and this
+permission notice appear in supporting documentation, and that the
+names of the contributors or copyright holders not be used in
+advertising or publicity pertaining to distribution of the software
+without specific prior permission.
+
+THE CONTRIBUTORS AND COPYRIGHT HOLDERS OF THIS SOFTWARE DISCLAIM ALL
+WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL THE
+CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT
+OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
+OR PERFORMANCE OF THIS SOFTWARE.
+
+
+@end titlepage
+
+@contents
+
+@node Introduction, Distance, , 
+@chapter Introduction
+
+Clustering is widely used in gene expression data analysis. By grouping genes together based on the similarity between their gene expression profiles, functionally related genes may be found. Such a grouping suggests the function of presently unknown genes.
+
+The C Clustering Library is a collection of numerical routines that implement the clustering algorithms that are most commonly used.
+The routines can be applied both to genes and to arrays. The clustering algorithms are:
+@itemize @bullet
+@item
+Hierarchical clustering (pairwise centroid-, single-, complete-, and average-linkage);
+@item
+@emph{k}-means clustering;
+@item
+Self-Organizing Maps;
+@item
+Principal Component Analysis.
+@end itemize
+
+To measure the similarity or distance between gene expression data, eight distance measures are available:
+
+@itemize @bullet
+@item Pearson correlation;
+@item Absolute value of the Pearson correlation;
+@item Uncentered Pearson correlation (equivalent to the cosine of the angle between two data vectors);
+@item Absolute uncentered Pearson correlation (equivalent to the cosine of the smallest angle between two data vectors);
+@item Spearman's rank correlation;
+@item Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item Euclidean distance;
+@item City-block distance.
+@end itemize
+
+This library was written in ANSI C and can therefore be easily linked to other C/C++ programs. @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster,Cluster 3.0} is an example of such a program. This library may be particularly useful when called from a scripting language such as @uref{http://www.python.org,Python}, @uref{http://www.perl.org,Perl}, or @uref{http://www.ruby.org,Ruby}. The C Clustering Library contains wrappers for Python and Perl; interfaces to other scripting languages may be generated using @uref{http://www.swig.org,SWIG}.
+
+This manual contains a description of clustering techniques, their implementation in the C Clustering Library, the Python and Perl modules that give access to the C Clustering Library, and information on how to use the routines in the library from other C or C++ programs.
+
+@*
+The C Clustering Library was released under the Python License.
+
+@*
+@noindent
+@email{mdehoon "AT" gsc.riken.jp; mdehoon "AT" cal.berkeley.edu, Michiel de Hoon}, Seiya Imoto, Satoru Miyano@*
+Laboratory of DNA Information Analysis, 
+Human Genome Center,
+Institute of Medical Science,
+University of Tokyo.
+
+@node Distance, Partitioning, Introduction,
+@chapter Distance functions
+
+In order to cluster gene expression data into groups with similar genes or microarrays, we should first define what exactly we mean by @dfn{similar}. In the C Clustering Library,
+eight distance functions are available to measure similarity, or conversely, distance:
+@table @samp
+@item c
+Pearson correlation coefficient;
+@item a
+Absolute value of the Pearson correlation coefficient;
+@item u
+Uncentered Pearson correlation (equivalent to the cosine of the angle between two data vectors);
+@item x
+Absolute uncentered Pearson correlation;
+@item s
+Spearman's rank correlation;
+@item k
+Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item e
+Euclidean distance;
+@item b
+City-block distance.
+@end table
+The first six of these distance measures are related to the correlation coefficient, while the remaining three are related to the Euclidean distance. The characters in front of the distance measures are used as mnemonics to be passed to various routines in the C Clustering Library.
+
+One of the properties one would like to see in a distance function is that it satisfies the triangle inequality:
+@tex
+$$d\left(\underline{u},\underline{v}\right) \leq d\left(\underline{u},\underline{w}\right) + d\left(\underline{w},\underline{v}\right) \rm{\ for\ all\ } \underline{u}, \underline{v}, \underline{w}.$$
+@end tex
+@html
+</p>
+<center>
+<i>d</i>(<i><u>u</u></i>, <i><u>v</u></i>) <= <i>d</i>(<i><u>u</u></i>, <i><u>w</u></i>) + <i>d</i>(<i><u>u</u></i>, <i><u>w</u></i>) for all <i><u>u</i></u>, <i><u>v</i></u>, <i><u>w</i></u>.
+</center>
+</p>
+@end html
+In everyday language, this equation means that the shortest distance between two points is a straight line.
+
+Correlation-based distance functions usually define the distance @emph{d} in terms of the correlation @emph{r} as
+@tex
+$$d=1-r.$$
+@end tex
+@html
+<p>
+<center>
+<i>d</i> = 1 - <i>r</i>.
+</center>
+<p>
+@end html
+All correlation-based similarity measures are converted to a distance using this definition.
+Note that this distance function does not satisfy the triangle inequality. As an example, try
+@tex
+$$\underline{u}=\left(1,0,-1\right);$$
+$$\underline{v}=\left(1,1,0\right).$$
+$$\underline{w}=\left(0,1,1\right);$$
+@end tex
+@html
+<p><center>
+<i><u>u</u></i>=(1,0,-1);<br>
+<i><u>v</u></i>=(1,1,0).<br>
+<i><u>w</u></i>=(0,1,1);<br>
+</center></p>
+@end html
+Using the Pearson correlation, we find
+@tex
+$d\left(\underline{u},\underline{w}\right)$
+@end tex
+@html
+<i>d</i>(<i><u>u</u></i>,<i><u>w</u></i>)
+@end html
+= 1.8660, while
+@tex
+$d\left(\underline{u},\underline{v}\right)+d\left(\underline{v},\underline{w}\right)$
+@end tex
+@html
+<i>d</i>(<i><u>u</u></i>,<i><u>v</u></i>)+<i>d</i>(<i><u>v</u></i>,<i><u>w</u></i>)
+@end html
+= 1.6340. None of the distance functions based on the correlation coefficient satisfy the triangle inequality; this is a general characteristic of the correlation coefficient. The Euclidean distance and the city-block distance, which are @dfn{metrics}, do satisfy the triangle inequality. The correlation-based distance functions are sometimes called @dfn{semi-metric}.
+
+@section Data handling
+
+The input to the distance functions contains two arrays and two row or column indices, instead of two data vectors. This makes it easier to calculate the distance between two columns in the gene expression data matrix. If the distance functions would require two vectors, we would have to extract two columns from the matrix and save them in two vectors to be passed to the distance function. In order to specify if the distance between rows or between columns is to be calculated, each distance function has a flag @var{transpose}. If @code{@var{transpose}==0}, then the distance between two rows is calculated. Otherwise, the distance between two columns is calculated.
+
+@section Weighting
+
+For most of the distance functions available in the C Clustering Library, a weight vector can be applied. The weight vector contains weights for the elements in the data vector. If the weight for element @emph{i} is
+@tex
+$w_i$,
+@end tex
+@html
+<i>w<SUB>i</SUB></i>,
+@end html
+then that element is treated as if it occurred
+@tex
+$w_i$
+@end tex
+@html
+<i>w<SUB>i</SUB></i>
+@end html
+times in the data. The weight do not have to be integers.
+For the Spearman rank correlation and Kendall's
+@tex
+$\tau$,
+@end tex
+@html
+<i>&tau;</i>,
+@end html
+discussed below, the weights do not have a well-defined meaning and are therefore not implemented.
+
+@section Missing Values
+
+Often in microarray experiments, some of the data values are missing. In the distance functions, we therefore use an additional matrix @var{mask} which shows which data values are missing. If @code{@var{mask}[i][j]==0}, then @code{@var{data}[i][j]} is missing, and is not included in the distance calculation.
+
+@section The Pearson correlation coefficient
+
+The Pearson correlation coefficient is defined as
+@tex
+$$r = {1 \over n} \sum_{i=1}^n \left( x_i -\bar{x} \over \sigma_x \right) \left( y_i -\bar{y} \over \sigma_y \right)$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>r</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>n</i></td>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>x<sub>i</sub></i> - <span style="text-decoration: overline;"><i>x</i> </span>
+</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>x</sub></i></td>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>y<sub>i</sub></i> - <span style="text-decoration: overline;"><i>y</i> </span>
+</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>y</sub></i></td>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr></td>
+</tr>
+</table>
+</tr></table></div>
+@end html
+in which
+@tex
+$\bar{x}, \bar{y}$
+@end tex
+@html
+<span style="text-decoration: overline;"><i>x</i></span>, <span style="text-decoration: overline;"><i>y</i></span>
+@end html
+are the sample mean of @emph{x} and @emph{y} respectively, and
+@tex
+$\sigma_x, \sigma_y$
+@end tex
+@html
+<i>&sigma;<sub>x</sub></i>, <i>&sigma;<sub>y</sub></i>
+@end html
+are the sample standard deviation of @emph{x} and @emph{y}.
+The Pearson correlation coefficient is a measure for how well a straight line can be fitted to a scatterplot of @emph{x} and @emph{y}.
+If all the points in the scatterplot lie on a straight line, the Pearson correlation coefficient is either @math{+1} or @math{-1}, depending on whether the slope of line is positive or negative. If the Pearson correlation coefficient is equal to zero, there is no correlation between @emph{x} and @emph{y}.
+
+The @dfn{Pearson distance} is then defined as 
+@tex
+$$d_{\rm{P}} \equiv 1 - r.$$
+@end tex
+@html
+<br><center><i>d</i><SUB>P</SUB> &equiv; 1 - <i>r</i>.<br></center>
+@end html
+As the Pearson correlation coefficient lies between @math{-1} and @math{1}, the Pearson distance lies between @math{0} and @math{2}.
+
+Note that the Pearson correlation automatically centers the data by subtracting the mean, and normalizes them by dividing by the standard deviation. While such normalization may be useful in some situations (e.g., when clustering gene expression levels directly instead of gene expression ratios), information is being lost in this step. In particular, the magnitude of changes in gene expression is being ignored. This is in fact the reason that the Pearson distance does not satisfy the triangle inequality.
+
+@section Absolute Pearson correlation
+
+By taking the absolute value of the Pearson correlation, we find a number between zero and one. If the absolute value is one, all the points in the scatter plot lie on a straight line with either a positive or a negative slope. If the absolute value is equal to zero, there is no correlation between @emph{x} and @emph{y}.
+
+The distance is defined as usual as
+@tex
+$$d_{\rm{A}} \equiv 1 - \left|r\right|,$$
+@end tex
+@html
+<br><center><i>d</i><SUB>A</SUB> &equiv; 1 - |<i>r</i>|,</center><br>
+@end html
+where @emph{r} is the Pearson correlation coefficient. As the absolute value of the Pearson correlation coefficient lies between @math{0} @w{and @math{1}}, the corresponding distance lies between @math{0} and @math{1} as well.
+
+In the context of gene expression experiments, note that the absolute correlation is equal to one if the gene expression data of two genes/microarrays have a shape that is either exactly the same or exactly opposite. The absolute correlation coefficient should therefore be used with care.
+
+@section Uncentered correlation (cosine of the angle)
+
+In some cases, it may be preferable to use the @dfn{uncentered correlation} instead of the regular Pearson correlation coefficient. The uncentered correlation is defined as
+@tex
+$$r_{\rm{U}} = {1 \over n} \sum_{i=1}^{n} \left(x_i \over \sigma_x^{(0)} \right) \left(y_i \over \sigma_y^{(0)} \right),$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>r</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>n</i></td>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>x<sub>i</sub></i></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>x</sub></i><sup>(0)</sup></td>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=center><i>y<sub>i</sub></i></td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>&sigma;<sub>y</sub></i><sup>(0)</sup></td>
+  </table>
+</td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr></td>
+</tr>
+</table>
+</tr></table></div>
+@end html
+where
+@tex
+$$\sigma_x^{(0)} = \sqrt{{1\over n} \sum_{i=1}^{n}x_i^2};$$
+$$\sigma_y^{(0)} = \sqrt{{1\over n} \sum_{i=1}^{n}y_i^2}.$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>&sigma;<sub>x</sub></i><sup>(0)</sup> = </td>
+<td><big><big><big>&#8730; </big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>n</i></td>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><i>x<sub>i</sub></i><sup>2</sup></td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr></td>
+</tr>
+</table>
+</tr></table></div>
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>&sigma;<sub>y</sub></i><sup>(0)</sup> = </td>
+<td><big><big><big>&#8730; </big></big></big></td>
+<td><big><big><big><big><big>(</big></big></big></big></big></td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>n</i></td>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><i>y<sub>i</sub></i><sup>2</sup></td>
+<td><big><big><big><big><big>)</big></big></big></big></big></td>
+</tr></td>
+</tr>
+</table>
+</tr></table></div>
+@end html
+This is the same expression as for the regular Pearson correlation coefficient, except that the sample means
+@tex
+$\bar{x}, \bar{y}$
+@end tex
+@html
+<span style="text-decoration: overline;"><i>x</i></span>, <span style="text-decoration: overline;"><i>y</i></span>
+@end html
+are set equal to zero. The uncentered correlation may be appropriate if there is a zero reference state. For instance, in the case of gene expression data given in terms of log-ratios, a log-ratio equal to zero corresponds to the green and red signal being equal, which means that the experimental manipulation did not affect the gene expression.
+
+The distance corresponding to the uncentered correlation coefficient is defined as 
+@tex
+$$d_{\rm{U}} \equiv 1 - r_{\rm{U}},$$
+@end tex
+@html
+<br><center><i>d</i><SUB>P</SUB> &equiv; 1 - <i>r</i>,<br></center>
+@end html
+where
+@tex
+$r_{\rm{U}}$
+@end tex
+@html
+<i>r</i><SUB>U</SUB>
+@end html
+is the uncentered correlation.
+As the uncentered correlation coefficient lies between @math{-1} and @math{1}, the corresponding distance lies between @math{0} and @math{2}.
+
+The uncentered correlation is equal to the cosine of the angle of the two data vectors in @emph{n}-dimensional space, and is often referred to as such. (From this viewpoint, it would make more sense to define the distance as the arc cosine of the uncentered correlation coefficient).
+
+@section Absolute uncentered correlation
+
+As for the regular Pearson correlation, we can define a distance measure using the absolute value of the uncentered correlation:
+@tex
+$$d_{\rm{AU}} \equiv 1 - \left|r_{@rm{U}}\right|,$$
+@end tex
+@html
+<br><center><i>d</i><SUB>AU</SUB> &equiv; 1 - |<i>r</i><SUB>U</SUB>|,</center><br>
+@end html
+where
+@tex
+$r_{@rm{U}}$
+@end tex
+@html
+<i>r</i><SUB>U</SUB>
+@end html
+is the uncentered correlation coefficient. As the absolute value of the uncentered correlation coefficient lies between @math{0} @w{and @math{1}}, the corresponding distance lies between @math{0} and @math{1} as well.
+
+Geometrically, the absolute value of the uncentered correlation is equal to the cosine between the supporting lines of the two data vectors (i.e., the angle without taking the direction of the vectors into consideration).
+
+@section Spearman rank correlation
+
+The Spearman rank correlation is an example of a non-parametric similarity measure. It is useful because it is more robust against outliers than the Pearson correlation.
+
+To calculate the Spearman rank correlation, we replace each data value by their rank if we would order the data in each vector by their value. We then calculate the Pearson correlation between the two rank vectors instead of the data vectors.
+
+Weights cannot be suitably applied to the data if the Spearman rank correlation is used, especially since the weights are not necessarily integers. The calculation of the Spearman rank correlation in the C Clustering Library therefore does not take any weights into consideration.
+
+As in the case of the Pearson correlation, we can define a distance measure corresponding to the Spearman rank correlation as
+@tex
+$$d_{\rm{S}} \equiv 1 - r_{@rm{S}},$$
+@end tex
+@html
+<br><center>
+<i>d</i><SUB>S</SUB> &equiv; 1 - <i>r</i><SUB>S</SUB>,</center><br>
+@end html
+where
+@tex
+$r_{@rm{S}}$
+@end tex
+@html
+<i>r</i><SUB>S</SUB>
+@end html
+is the Spearman rank correlation.
+
+@tex
+@section Kendall's @math{\tau}
+@end tex
+@html
+@section Kendall's <i>&tau;</i>
+@end html
+
+@tex
+Kendall's @math{\tau}
+@end tex
+@html
+Kendall's <i>&tau;</i>
+@end html
+is another example of a non-parametric similarity measure. It is similar to the Spearman rank correlation, but instead of the ranks themselves only the relative ranks are used to calculate
+@tex
+@math{\tau}
+@end tex
+@html
+<i>&tau;</i>
+@end html
+ (see Snedecor & Cochran).
+As in the case of the Spearman rank correlation, the weights are ignored in the calculation.
+
+We can define a distance measure corresponding to Kendall's
+@tex
+@math{\tau}
+@end tex
+@html
+<i>&tau;</i>
+@end html
+as
+@tex
+$$d_{\rm{K}} \equiv 1 - \tau.$$
+@end tex
+@html
+<br><center>
+<i>d</i><SUB>K</SUB> &equiv; 1 - <i>&tau;</i>.</center><br>
+@end html
+As Kendall's
+@tex
+@math{\tau}
+@end tex
+@html
+<i>&tau;</i>
+@end html
+is defined such that it will lie between @math{-1} and @math{1}, the corresponding distance will be between @math{0} and @math{2}.
+
+@section Euclidean distance
+
+The Euclidean distance is a true metric, as it satisfies the triangle inequality. In this software package, we define the Euclidean distance as
+@tex
+$$d = {1 \over n} \sum_{i=1}^{n} \left(x_i-y_i\right)^{2}.$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>d</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>n</i></td>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small>
+</td>
+<td><big>(</big></td>
+<td><i>x<sub>i</sub></i> - <i>y<sub>i</sub></i></td>
+<td><big>)</big><sup>2</sup></td>
+</tr></td>
+</tr>
+</table>
+</tr></table></div>
+@end html
+Only those terms are included in the summation for which both
+@tex
+$x_i$ and $y_i$
+@end tex
+@html
+<i>x<SUB>i</SUB></i> and <i>y<SUB>i</SUB></i>
+@end html
+are present. The denominator
+@tex
+$n$
+@end tex
+@html
+<i>n</i>
+@end html
+is chosen accordingly.
+
+In this formula, the expression data
+@tex
+$x_i$ and $y_i$
+@end tex
+@html
+<i>x<SUB>i</SUB></i> and <i>y<SUB>i</SUB></i>
+@end html
+are subtracted directly from each other. We should therefore make sure that the expression data are properly normalized when using the Euclidean distance, for example by converting the measured gene expression levels to log-ratios.
+
+Unlike the correlation-based distance functions, the Euclidean distance takes the magnitude of the expression data into account. It therefore preserves more information about the data and may be preferable. De Hoon, Imoto, Miyano (2002) give an example of the use of the Euclidean distance for @emph{k}-means clustering.
+
+@section City-block distance
+
+The city-block distance, alternatively known as the Manhattan distance, is related to the Euclidean distance. Whereas the Euclidean distance corresponds to the length of the shortest path between two points, the city-block distance is the sum of distances along each dimension. As gene expression data tend to have missing values, in the C Clustering Library we define the city-block distance as the sum of distances divided by the number of dimensions:
+@tex
+$$d = {1 \over n} \sum_{i=1}^n \left|x_i-y_i\right|.$$
+@end tex
+@html
+<DIV ALIGN=center>
+<table cellpadding=0 cellspacing=0>
+<tr>
+<td nowrap><i>d</i> = </td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>n</i></td>
+  </table>
+</td>
+<td nowrap>
+  <table cellspacing=0 cellpadding=0>
+  <tr><td nowrap align=CENTER>1</td></tr>
+  <tr><td bgcolor=BLACK><table border=0 width="100%" cellspacing=0 cellpadding=1><tr><td></td></tr></table></td>
+  </tr>
+  <tr><td nowrap align=CENTER><i>n</i></td>
+  </table>
+</td>
+<td></td>
+<td align="center"><i>n</i><br>
+  <big><big><big>&#8721;</big></big></big><small><br>
+  <i>i</i><small> </small>=<small> </small>1</small></td>
+<td><big>|</big></td>
+<td><i>x<sub>i</sub></i> - <i>y<sub>i</sub></i></td>
+<td><big>|</big></td>
+</tr></td>
+</tr>
+</table>
+</tr></table></div>
+@end html
+This is equal to the distance you would have to walk between two points in a city, where you have to walk along city blocks. The city-block distance is a metric, as it satisfies the triangle inequality. As for the Euclidean distance,
+the expression data are subtracted directly from each other, and we should therefore make sure that they are properly normalized.
+
+@section Calculating the distance between clusters
+
+In the hierarchical clustering methods, the distance matrix between all genes/microarrays is first calculated, and at successive steps of the algorithm the new distance matrix is calculated from the previous distance matrix. In some cases, however, we would like to calculate the distance between clusters directly, given their members. For this purpose, the function @code{clusterdistance} can be used. This function can also be used to calculate the distance between two genes/microarrays by defining two clusters consisting of one gene/microarray each. While this function is not used internally in the C Clustering Library, it may be used by other C applications, and can also be called from Python (@xref{Using the C Clustering Library with Python: Pycluster and Bio.Cluster}) and Perl (@xref{Using the C Clustering Library with Perl: Algorithm::Cluster}).
+
+The distance between two clusters can be defined in several ways. The distance between the arithmetic means of the two clusters is used in pairwise centroid-linkage clustering and in @emph{k}-means clustering. For the latter, the distance between the medians of the two clusters can be used alternatively. The shortest pairwise distance between elements of the two clusters is used in pairwise single-linkage clustering, while the longest pairwise distance is used in pairwise maximum-linkage clustering. In pairwise average-linkage clustering, the distance between two clusters is defined as the average over the pairwise distances.
+
+@subsubheading Prototype
+@noindent
+@code{double clusterdistance (int @var{nrows}, int @var{ncolumns}, double** @var{data}, int** @var{mask}, double @var{weight}[], int @var{n1}, int @var{n2}, int @var{index1}[], int @var{index2}[], char @var{dist}, char @var{method}, int @var{transpose});}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nrows};} @*
+The number of rows in the @var{data} matrix, equal to the number of genes in the gene expression experiment.
+
+@item @code{int @var{ncolumns};} @*
+The number of columns in the @var{data} matrix, equal to the number of microarrays in the gene expression experiment.
+
+@item @code{double** @var{data};} @*
+The data array containing the gene expression data. Genes are stored row-wise, while microarrays are stored column-wise. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{int** @var{mask};} @*
+This array shows which elements in the @var{data} array, if any, are missing. If @code{@var{mask}[i][j]==0}, then @code{@var{data}[i][j]} is missing. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{double @var{weight}[];} @*
+The weights that are used to calculate the distance. Dimension: @code{[@var{ncolumns}]} if @code{@var{transpose}==0}; @code{[@var{nrows}]} if @code{@var{transpose}==1}.
+
+@item @code{int @var{n1};} @*
+The number of elements in the first cluster.
+
+@item @code{int @var{n2};} @*
+The number of elements in the second cluster.
+
+@item @code{int @var{index1}[];} @*
+Contains the indices of the elements belonging to the first cluster. Dimension: @code{[@var{n1}]}.
+
+@item @code{int @var{index2}[];} @*
+Contains the indices of the elements belonging to the second cluster. Dimension: @code{[@var{n2}]}.
+
+@item @code{char @var{dist};} @*
+Specifies which distance measure is used. @xref{Distance functions}.
+
+@item @code{char @var{method};} @*
+Specifies how the distance between clusters is defined:
+@table @samp
+@item a
+Distance between the two cluster centroids (arithmetic mean);
+@item m
+Distance between the two cluster centroids (median);
+@item s
+Shortest pairwise distance between elements in the two clusters;
+@item x
+Longest pairwise distance between elements in the two clusters;
+@item v
+Average over the pairwise distances between elements in the two clusters.
+@end table
+
+@item @code{int @var{transpose};} @*
+If @code{@var{transpose}==0}, the distances between rows in the data matrix are calculated. Otherwise, the distances between columns are calculated.
+@end itemize
+
+@subsubheading Return value
+@noindent
+The distance between two clusters (@code{double}).
+
+@section The distance matrix
+
+The first step in clustering problems is usually to calculate the distance matrix. This matrix contains all the distances between the items that are being clustered. As the distance functions are symmetric, the distance matrix is also symmetric. Furthermore, the elements on the diagonal are zero, as the distance of an item to itself is zero. The distance matrix can therefore be stored as a ragged array, with the number of columns in each row equal to the (zero-offset) row number. The distance between items @emph{i} and @emph{j} is stored in location @code{[i][j]} if
+@tex
+$j < i$,
+@end tex
+@html
+<i>j</i> &le; <i>i<i>,
+@end html
+in @code{[j][i]} if
+@tex
+$j > i$,
+@end tex
+@html
+<i>j</i> > <i>i<i>,
+@end html
+while it is zero if
+@tex
+$j = i$.
+@end tex
+@html
+<i>j</i> = <i>i</i>.
+@end html
+Note that the first row of the distance matrix is empty. It is included for computational convenience, as including an empty row requires minimal storage.
+
+@subsubheading Prototype
+@noindent
+@code{double** distancematrix (int @var{nrows}, int @var{ncolumns}, double** @var{data}, int** @var{mask}, double @var{weight}[], char @var{dist}, int @var{transpose});}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nrows};} @*
+The number of rows in the data matrix, equal to the number of genes in the gene expression experiment.
+
+@item @code{int @var{ncolumns};} @*
+The number of columns in the data matrix, equal to the number of microarrays in the gene expression experiment.
+
+@item @code{double** @var{data};} @*
+The data array containing the gene expression data. Genes are stored row-wise, while microarrays are stored column-wise. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{int** @var{mask};} @*
+This array shows which elements in the @var{data} array, if any, are missing. If @code{@var{mask}[i][j]==0}, then @code{@var{data}[i][j]} is missing. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{double @var{weight}[];} @*
+The weights that are used to calculate the distance. Dimension: @code{[@var{ncolumns}]} if @code{@var{transpose}==0}; @code{[@var{nrows}]} if @code{@var{transpose}==1}.
+
+@item @code{char @var{dist};} @*
+Specifies which distance measure is used. @xref{Distance functions}.
+
+@item @code{int @var{transpose};} @*
+If @code{@var{transpose}==0}, the distances between the rows in the data matrix are calculated. Otherwise, the distances between the columns are calculated.
+@end itemize
+
+@subsubheading Return value
+@noindent
+A pointer to the distance matrix stored as a newly allocated ragged array. If insufficient memory is available to store the distance matrix, a NULL pointer is returned, and all memory allocated thus far is freed.
+
+@node Partitioning, Hierarchical, Distance, 
+@chapter Partitioning algorithms
+
+Partitioning algorithms divide items into @emph{k} clusters such that the sum of distances over the items to their cluster centers is minimal.
+The number of clusters @emph{k} is specified by the user.
+In the C Clustering Library, three partitioning algorithms are available:
+@itemize @bullet
+@item @emph{k}-means clustering
+@item @emph{k}-medians clustering
+@item @emph{k}-medoids clustering
+@end itemize
+@noindent
+These algorithms differ in how the cluster center is defined. In @emph{k}-means clustering, the cluster center is defined as the mean data vector averaged over all items in the cluster. Instead of the mean, in @emph{k}-medians clustering the median is calculated for each dimension in the data vector. Finally, in @emph{k}-medoids clustering the cluster center is defined as the item which has the smallest sum of distances to the other items in the cluster. This clustering algorithm is suitable for cases in which the distance matrix is known but the original data matrix is not available, for example when clustering proteins based on their structural similarity.
+
+The expectation-maximization (EM) algorithm is commonly used to find the partitioning into @emph{k} groups.
+The first step in the EM algorithm is to create @emph{k} clusters and randomly assign items (genes or microarrays) to them. We then iterate:
+@itemize @bullet
+@item Calculate the centroid of each cluster;
+@item For each item, determine which cluster centroid is closest;
+@item Reassign the item to that cluster.
+@end itemize
+@noindent
+The iteration is stopped if no further item reassignments take place.
+
+As the initial assignment of items to clusters is done randomly, usually a different clustering solution is found each time the EM algorithm is executed.
+To find the optimal clustering solution, the @emph{k}-means algorithm is repeated many times, each time starting from a different initial random clustering. The sum of distances of the items to their cluster center is saved for each run, and the solution with the smallest value of this sum will be returned as the overall clustering solution.
+
+How often the EM algorithm should be run depends on the number of items being clustered.
+As a rule of thumb, we can consider how often the optimal solution was found.
+This number is returned by the partitioning algorithms as implemented in this library.
+If the optimal solution was found many times, it is unlikely that better solutions exist than the one that was found. However, if the optimal solution was found only once, there may well be other solutions with a smaller within-cluster sum of distances.
+
+@section Initialization
+
+The @emph{k}-means algorithm is initialized by randomly assigning items (genes or microarrays) to clusters. To ensure that no empty clusters are produced, we use the binomial distribution to randomly choose the number of items in each cluster to be one or more. We then randomly permute the cluster assignments to items such that each item has an equal probability to be in any cluster. Each cluster is thus guaranteed to contain at least one item.
+
+@section Finding the cluster centroid
+
+The centroid of a cluster can be defined in different ways.
+For @emph{k}-means clustering, the centroid of a cluster is defined as the mean over all items in a cluster for each dimension separately.
+For robustness against outliers, in @emph{k}-medians clustering the median is used instead of the mean.
+In @emph{k}-medoids clustering, the cluster centroid is the item with the smallest sum of distances to the other items in the cluster.
+The C Clustering Library provides routines to calculate the cluster mean, the cluster median, and the cluster medoid.
+
+@subsection Finding the cluster mean or median
+
+The routine @code{getclustercentroids} calculates the centroids of the clusters by calculating the mean or median for each dimension separately over all items in a cluster. Missing data values are not included in the calculation of the mean or median. Missing values in the cluster centroids are indicated in the array @var{cmask}. If for cluster @emph{i} the data values for dimension @emph{j} are missing for all items, then @code{@var{cmask}[i][j]} (or @code{@var{cmask}[j][i]} if @code{@var{transpose}==1}) is set equal to zero. Otherwise, it is set equal to one. The argument @var{method} determines if the means or medians are calculated. If a memory allocation error occurred, @code{getclustercentroids} returns 0; this can happen only if the cluster medians are being calculated. If no errors occur, @code{getclustercentroids} returns 1;
+
+@subsubheading Prototype
+@noindent
+@code{int getclustercentroids(int @var{nclusters}, int @var{nrows}, int @var{ncolumns}, double** @var{data}, int** @var{mask}, int @var{clusterid}[], double** @var{cdata}, int** @var{cmask}, int @var{transpose}, char @var{method});}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nclusters};} @*
+The number of clusters.
+
+@item @code{int @var{nrows};} @*
+The number of rows in the data matrix, equal to the number of genes in the gene expression experiment.
+
+@item @code{int @var{ncolumns};} @*
+The number of columns in the data matrix, equal to the number of microarrays in the gene expression experiment.
+
+@item @code{double** @var{data};} @*
+The data array containing the gene expression data. Genes are stored row-wise, while microarrays are stored column-wise. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{int** @var{mask};} @*
+This array shows which elements in the @var{data} array, if any, are missing. If @code{@var{mask}[i][j]==0}, then @code{@var{data}[i][j]} is missing. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{int @var{clusterid}[];} @*
+The cluster number to which each item belongs. Each element in this array should be between 0 and @code{@var{nclusters}-1} inclusive. Dimension: @code{[@var{nrows}]} if @code{@var{transpose}==0}, or @code{[@var{ncolumns}]} if @code{@var{transpose}==1}.
+
+@item @code{double** @var{cdata};} @*
+This matrix stores the centroid information. Space for this matrix should be allocated before calling @code{getclustercentroids}. Dimension: @code{[@var{nclusters}][@var{ncolumns}]} if @code{@var{transpose}==0} (row-wise clustering), or @code{[@var{nrows}][@var{nclusters}]} if @code{@var{transpose}==1} (column-wise clustering).
+
+@item @code{int** @var{cmask};} @*
+This matrix stores which values in @var{cdata} are missing. If @code{@var{cmask}[i][j]==0}, then @code{@var{cdata}[i][j]} is missing. Space for @var{cmask} should be allocated before calling @code{getclustercentroids}. Dimension: @code{[@var{nclusters}][@var{ncolumns}]} if @code{@var{transpose}==0} (row-wise clustering), or @code{[@var{nrows}][@var{nclusters}]} if @code{@var{transpose}==1} (column-wise clustering).
+
+@item @code{int @var{transpose};} @*
+This flag indicates whether row-wise (gene) or column-wise (microarray) clustering is being performed. If @code{@var{transpose}==0}, rows (genes) are being clustered. Otherwise, columns (microarrays) are being clustered.
+
+@item @code{char @var{method};} @*
+If @code{@var{method}=='a'}, the cluster centroids are calculated as the arithmetic mean over each dimension. For @code{@var{method}=='m'}, the cluster centroids are calculated as the median over each dimension.
+@end itemize
+
+@subsubheading Return value
+This routine returns 1 if successful, and 0 in case of a memory allocation error.
+
+@subsection Finding the cluster medoid
+
+The cluster medoid is defined as the item which has the smallest sum of distances to the other items in the cluster. 
+The @code{getclustermedoids} routine calculates the cluster medoids, given to which cluster each item belongs.
+
+@subsubheading Prototype
+@noindent
+@code{void getclustermedoids(int @var{nclusters}, int @var{nelements}, double** @var{distance}, int @var{clusterid}[], int @var{centroids}[], double @var{errors}[]);}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nclusters};} @*
+The number of clusters.
+
+@item @code{int @var{nelements};} @*
+The total number of elements that are being clustered.
+
+@item @code{double** @var{distmatrix};} @*
+The distance matrix. The distance matrix is symmetric and has zeros on the diagonal. To save space, the distance matrix is stored as a ragged array.
+Dimension: @code{[@var{nelements}][]} as a ragged array. The number of columns in each row is equal to the row number (starting from zero). Accordingly, the first row always has zero columns.
+
+@item @code{int @var{clusterid}[];} @*
+The cluster number to which each element belongs. Dimension: [@var{nelements}].
+
+@item @code{int @var{centroid}[];} @*
+For each cluster, the element of the item that was determined to be its centroid. Dimension: [@var{nclusters}].
+
+@item @code{double @var{errors}[];} @*
+For each cluster, the sum of distances between the items belonging to the cluster and the cluster centroid. Dimension: [@var{nclusters}].
+@end itemize
+
+@section The EM algorithm
+
+The EM algorithm as implemented in the C Clustering Library first randomly assigns items to clusters, followed by iterating to find a clustering solution with a smaller within-cluster sum of distances. During the iteration, first we find the centroids of all clusters, where the centroids are defined in terms of the mean, the median, or the medoid. The distances of each item to the cluster centers are calculated, and we determine for each item which cluster is closest. We then reassign the items to their closest clusters, and recalculate the cluster centers.
+
+All items are first reassigned before recalculating the cluster centroids. If unchecked, clusters may become empty if all their items are reassigned.
+For @emph{k}-means and @emph{k}-medians clustering, the EM routine therefore keeps track of the number of items in each cluster at all times, and prohibits the last remaining item in a cluster from being reassigned to a different cluster. For @emph{k}-medoids clustering, such a check is not needed, as the item that functions as the cluster centroid has a zero distance to itself, and will therefore not be reassigned to a different cluster.
+
+The EM algorithm terminates when no further reassignments take place.
+We noticed, however, that for some sets of initial cluster assignments, the
+EM algorithm fails to converge due to the same clustering solution reappearing periodically after a small number of iteration steps.
+In the EM algorithm as implemented in the C Clustering Library, the occurrence of such periodic solutions is checked for. After a given number of iteration steps, the current clustering result is saved as a reference. By comparing the clustering result after each subsequent iteration step to the reference state, we can determine if a previously encountered clustering result is found. In such a case, the iteration is halted. If after a given number of iterations the reference state has not yet been encountered, the current clustering solution is saved to be used as the new reference state. Initially, ten iteration steps are executed before resaving the reference state. This number of iteration steps is doubled each time, to ensure that periodic behavior with longer periods can also be detected.
+
+@section Finding the optimal solution
+
+@subsection @emph{k}-means and @emph{k}-medians
+
+The optimal solution is found by executing the EM algorithm repeatedly and saving the best clustering solution that was returned by it. This can be done automatically by calling the routine @code{kcluster}. The routine to calculate the cluster centroid and the distance function are selected based on the arguments passed to @code{kcluster}.
+
+The EM algorithm is then executed repeatedly, saving the best clustering solution that was returned by these routines. In addition, @code{kcluster} counts how often the EM algorithm found this solution. If it was found many times, we can assume that there are no other solutions possible with a smaller within-cluster sum of distances. If, however, the solution was found only once, it may well be that better clustering solutions exist.
+
+@subsubheading Prototype
+@noindent
+@code{void kcluster (int @var{nclusters}, int @var{nrows}, int @var{ncolumns}, double** @var{data}, int** @var{mask}, double @var{weight}[], int @var{transpose}, int @var{npass}, char @var{method}, char @var{dist}, int @var{clusterid}[], double* @var{error}, int* @var{ifound});}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nclusters};} @*
+The number of clusters @emph{k}.
+
+@item @code{int @var{nrows};} @*
+The number of rows in the data matrix, equal to the number of genes in the gene expression experiment.
+
+@item @code{int @var{ncolumns};} @*
+The number of columns in the data matrix, equal to the number of microarrays in the gene expression experiment.
+
+@item @code{double** @var{data};} @*
+The data array containing the gene expression data. Genes are stored row-wise, while microarrays are stored column-wise. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{int** @var{mask};} @*
+This array shows which elements in the @var{data} array, if any, are missing. If @code{@var{mask}[i][j]==0}, then @code{@var{data}[i][j]} is missing. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{double @var{weight}[];} @*
+The weights that are used to calculate the distance. Dimension: @code{[@var{ncolumns}]} if @code{@var{transpose}==0}; @code{[@var{nrows}]} if @code{@var{transpose}==1}.
+
+@item @code{int @var{transpose};} @*
+This flag indicates whether row-wise (gene) or column-wise (microarray) clustering is being performed. If @code{@var{transpose}==0}, rows (genes) are being clustered. Otherwise, columns (microarrays) are being clustered.
+
+@item @code{int @var{npass};} @*
+The number of times the EM algorithm should be run. If @code{@var{npass} > 0}, each run of the EM algorithm uses a different (random) initial clustering. If @code{@var{npass} == 0}, then the EM algorithm is run with an initial clustering specified by @var{clusterid}. Reassignment to a different cluster is prevented for the last remaining item in the cluster in order to prevent empty clusters.
+For @code{@var{npass}==0}, the EM algorithm is run only once, using the initial clustering as specified by @var{clusterid}.
+
+@item @code{char @var{method};} @*
+Specifies whether the arithmetic mean (@code{@var{method}=='a'}) or the median (@code{@var{method}=='m'}) should be used to calculate the cluster center.
+
+@item @code{char @var{dist};} @*
+Specifies which distance function should be used. The character should correspond to one of the distance functions that are available in the C Clustering Library. @xref{Distance functions}.
+
+@item @code{int @var{clusterid}[];} @*
+This array will be used to store the cluster number to which each item was assigned by the clustering algorithm. Space for @code{clusterid} should be allocated before calling @code{kcluster}. If @code{@var{npass}==0}, then the contents of @var{clusterid} on input is used as the initial assignment of items to clusters; on output, @var{clusterid} contains the optimal clustering solution found by the EM algorithm. Dimension: @code{[@var{nrows}]} if @code{@var{transpose}==0}, or @code{[@var{ncolumns}]} if @code{@var{transpose}==1}.
+
+@item @code{double* @var{error};} @*
+The sum of distances of the items to their cluster center after @emph{k}-means clustering, which can be used as a criterion to compare clustering solutions produced in different calls to @code{kcluster}.
+
+@item @code{int* @var{ifound};} @*
+Returns how often the optimal clustering solution was found.  In case of an inconsistency in the input arguments (specifically, if @var{nclusters} is larger than the number of elements to be clustered), @code{*@var{ifound}} is set to 0. If a memory allocation error occurred, @code{*@var{ifound}} is set to -1.
+@end itemize
+
+@subsection @emph{k}-medoids
+
+The kmedoids routine performs k-medoids clustering on a given set of elements,
+using the distance matrix and the number of clusters passed by the user.
+Multiple passes are being made to find the optimal clustering solution, each
+time starting from a different initial clustering.
+
+@subsubheading Prototype
+@noindent
+@code{void kmedoids (int @var{nclusters}, int @var{nelements}, double** @var{distance}, int @var{npass}, int @var{clusterid}[], double* @var{error}, int* @var{ifound});}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nclusters};} @*
+The number of clusters to be found.
+
+@item @code{int @var{nelements};} @*
+The number of elements to be clustered.
+
+@item @code{double** @var{distmatrix};} @*
+The distance matrix. The distance matrix is symmetric and has zeros on the diagonal. To save space, the distance matrix is stored as a ragged array.
+Dimension: @code{[@var{nelements}][]} as a ragged array. The number of columns in each row is equal to the row number (starting from zero). Accordingly, the first row always has zero columns.
+
+@item @code{int @var{npass};} @*
+The number of times the EM algorithm should be run. If @code{@var{npass} > 0}, each run of the EM algorithm uses a different (random) initial clustering. If @code{@var{npass} == 0}, then the EM algorithm is run with an initial clustering specified by @var{clusterid}.
+
+@item @code{int @var{clusterid}[];} @*
+This array will be used to store the cluster number to which each item was assigned by the clustering algorithm. Space for @code{clusterid} should be allocated before calling @code{kcluster}.
+On input, if @code{@var{npass}==0}, then @var{clusterid} contains the initial clustering assignment
+from which the clustering algorithm starts; all numbers in @var{clusterid} should be
+between @code{0} and @code{@var{nelements}-1} inclusive. If @code{@var{npass}!=0}, @var{clusterid} is ignored on
+input.
+On output, @var{clusterid} contains the number of the cluster to which each item was assigned in the optimal clustering solution.
+The number of a cluster is defined as the item number of the centroid of the cluster.
+Dimension: @code{[@var{nelements}]}.
+
+@item @code{double* @var{error};} @*
+The sum of distances of the items to their cluster center after @emph{k}-means clustering, which can be used as a criterion to compare clustering solutions produced in different calls to @code{kmedoids}.
+
+@item @code{int* @var{ifound};} @*
+Returns how often the optimal clustering solution was found. In case of an inconsistency in the input arguments (specifically, if @var{nclusters} is larger than @var{nelements}), @var{ifound} is set to 0. If a memory allocation error occurred, @var{ifound} is set to -1.
+@end itemize
+
+@section Choosing the distance measure
+
+Whereas all eight distance measures are accepted for @emph{k}-means, @emph{k}-medians, and @emph{k}-medoids clustering, using a distance measure other than the Euclidean distance or city-block distance  with @emph{k}-means or @emph{k}-medians is in a sense inconsistent. When using the distance measures based on the Pearson correlation, the data are effectively normalized when calculating the distance. However, no normalization is applied when calculating the centroid in the @emph{k}-means or @emph{k}-medians algorithm. From a theoretical viewpoint, it is best to use the Euclidean distance for the @emph{k}-means algorithm, and the city-block distance for @emph{k}-medians.
+
+@node Hierarchical, SOM, Partitioning, 
+@chapter Hierarchical clustering
+
+Hierarchical clustering methods are inherently different from the @emph{k}-means clustering method. In hierarchical clustering, the similarity in the expression profile between genes or experimental conditions are represented in the form of a tree structure. This tree structure can be shown graphically by programs such as TreeView and Java TreeView, which has contributed to the popularity of hierarchical clustering in the analysis of gene expression data.
+
+The first step in hierarchical clustering is to calculate the distance matrix, specifying all the distances between the items to be clustered. Next, we create a node by joining the two closest items. Subsequent nodes are created by pairwise joining of items or nodes based on the distance between them, until all items belong to the same node. A tree structure can then be created by retracing which items and nodes were merged. Unlike the EM algorithm, which is used in @emph{k}-means clustering, the complete process of hierarchical clustering is deterministic.
+
+Several flavors of hierarchical clustering exist, which differ in how the distance between subnodes is defined in terms of their members. In the C Clustering Library, pairwise single, maximum, average, and centroid linkage are available.
+
+@itemize @bullet
+@item
+In pairwise single-linkage clustering, the distance between two nodes is defined as the shortest distance among the pairwise distances between the members of the two nodes.
+@item
+In pairwise maximum-linkage clustering, alternatively known as pairwise complete-linkage clustering, the distance between two nodes is defined as the longest distance among the pairwise distances between the members of the two nodes.
+@item
+In pairwise average-linkage clustering, the distance between two nodes is defined as the average over all pairwise distances between the elements of the two nodes.
+@item
+In pairwise centroid-linkage clustering, the distance between two nodes is defined as the distance between their centroids. The centroids are calculated by taking the mean over all the elements in a cluster. As the distance from each newly formed node to existing nodes and items need to be calculated at each step, the computing time of pairwise centroid-linkage clustering may be significantly longer than for the other hierarchical clustering methods. Another peculiarity is that (for a distance measure based on the Pearson correlation), the distances do not necessarily increase when going up in the clustering tree, and may even decrease. This is caused by an inconsistency between the centroid calculation and the distance calculation when using the Pearson correlation: Whereas the Pearson correlation effectively normalizes the data for the distance calculation, no such normalization occurs for the centroid calculation.
+@end itemize
+
+For pairwise single-, complete-, and average-linkage clustering, the distance between two nodes can be found directly from the distances between the individual items. Therefore, the clustering algorithm does not need access to the original gene expression data, once the distance matrix is known. For pairwise centroid-linkage clustering, however, the centroids of newly formed subnodes can only be calculated from the original data and not from the distance matrix.
+
+The implementation of pairwise single-linkage hierarchical clustering is based on the SLINK algorithm (R. Sibson, 1973), which is much faster and more memory-efficient than a straightforward implementation of pairwise single-linkage clustering. The clustering result produced by this algorithm is identical to the clustering solution found by the conventional single-linkage algorithm. The single-linkage hierarchical clustering algorithm implemented in this library can be used to cluster large gene expression data sets, for which conventional hierarchical clustering algorithms fail due to excessive memory requirements and running time.
+
+@section Representing a hierarchical clustering solution
+
+The result of hierarchical clustering consists of a tree of nodes, in which each node joins two items or subnodes. Usually, we are not only interested in which items or subnodes are joined at each node, but also in their similarity (or distance) as they are joined. To store one node in the hierarchical clustering tree, we make use of a struct @code{Node}, which has the following members:
+@itemize @bullet
+@item @code{int left;} @*
+First item or subnode.
+@item @code{int right;} @*
+Second item or subnode.
+@item @code{double distance;} @*
+The distance between the two items or subnodes that were joined.
+@end itemize
+@noindent
+Each item and subnode is represented by an integer. For hierarchical clustering of @math{n} items, we number the original items @math{@{0, @dots{}, n-1@}}, nodes are numbered @math{@{-1, @dots{}, -(n-1)@}}. Note that the number of nodes is one less than the number of items.
+
+A hierarchical clustering tree can now be written as an array of @code{Node} structs. The @code{treecluster} routine allocates this array, and returns a @code{Node*} pointer to the first element. The calling function is responsible for deallocating the @code{Node*} array.
+
+@section Performing hierarchical clustering: @code{treecluster}
+
+The @code{treecluster} routine implements pairwise single-, complete, average-, and centroid-linkage clustering. A pointer @var{distmatrix} to the distance matrix can be passed as one of the arguments to @code{treecluster}; if this pointer is @code{NULL}, the @code{treecluster} routine will calculate the distance matrix from the gene expression data using the arguments @var{data}, @var{mask}, @var{weight}, and @var{dist}. For pairwise single-, complete-, and average-linkage clustering, the @code{treecluster} routine ignores these four arguments if @var{distmatrix} is given, as the distance matrix by itself is sufficient for the clustering calculation. For pairwise centroid-linkage clustering, on the other hand, the arguments @var{data}, @var{mask}, @var{weight}, and @var{dist} are always needed, even if @var{distmatrix} is available.
+
+The @code{treecluster} routine will complete faster if it can make use of a previously calculated distance matrix passed as the @var{distmatrix} argument.  Note, however, that newly calculated distances are stored in the distance matrix, and its elements may be rearranged during the clustering calculation. Therefore, in order to save the original distance matrix, it should be copied before @code{treecluster} is called. The memory that was allocated by the calling routine for the distance matrix will not be deallocated by @code{treecluster}, and should be deallocated by the calling routine after @code{treecluster} returns. If @var{distmatrix} is @code{NULL}, however, @code{treecluster} takes care both of the allocation and the deallocation of memory for the distance matrix. In that case, @code{treecluster} may fail if not enough memory can be allocated for the distance matrix, in which case @code{treecluster} returns @code{NULL}.
+
+@subsubheading Prototype
+@noindent
+@code{tree* treecluster (int @var{nrows}, int @var{ncolumns}, double** @var{data}, int** @var{mask}, double @var{weight}[], int @var{transpose}, char @var{dist}, char @var{method}, double** @var{distmatrix});}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nrows};} @*
+The number of rows in the @var{data} matrix, equal to the number of genes in the gene expression experiment.
+
+@item @code{int @var{ncolumns};} @*
+The number of columns in the @var{data} matrix, equal to the number of microarrays in the gene expression experiment.
+
+@item @code{double** @var{data};} @*
+The data array containing the gene expression data. Genes are stored row-wise, while microarrays are stored column-wise. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{int** @var{mask};} @*
+This array shows which elements in the @var{data} array, if any, are missing. If @code{@var{mask}[i][j]==0}, then @code{@var{data}[i][j]} is missing. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{double @var{weight}[];} @*
+The weights that are used to calculate the distance. Dimension: @code{[@var{ncolumns}]} if @code{@var{transpose}==0}; @code{[@var{nrows}]} if @code{@var{transpose}==1}.
+
+@item @code{int @var{transpose};} @*
+This flag indicates whether row-wise (gene) or column-wise (microarray) clustering is being performed. If @code{@var{transpose}==0}, rows (genes) are being clustered. Otherwise, columns (microarrays) are being clustered.
+
+@item @code{char @var{dist};} @*
+Specifies which distance measure is used. @xref{Distance functions}.
+
+@item @code{char @var{method};} @*
+Specifies which type of hierarchical clustering is used:
+@itemize
+@item @code{'s'}: pairwise single-linkage clustering
+@item @code{'m'}: pairwise maximum- (or complete-) linkage clustering
+@item @code{'a'}: pairwise average-linkage clustering
+@item @code{'c'}: pairwise centroid-linkage clustering
+@end itemize
+
+@item @code{double** distmatrix;} @*
+The distance matrix, stored as a ragged array. This argument is optional; if
+the distance matrix is not available, it can be passed as @code{NULL}. In that case, @code{treecluster} will allocate memory space for the distance matrix, calculate it from the gene expression data, and deallocate the memory space before returning. If the distance matrix happens to be available, the hierarchical clustering calculation can be completed faster by passing it as the @var{distmatrix} argument. Note that the contents of the distance matrix will be modified by the clustering algorithm in @code{treecluster}. The memory that was allocated for the distance matrix should be deallocated by the calling routine after @code{treecluster} returns. Dimension: Ragged array, @code{[@var{nrows}][]} if @code{@var{transpose}==0}, or @code{[@var{ncolumns}][]} if @code{@var{transpose}==1}. In both cases, the number of columns in each row is equal to the row number (starting from zero). Accordingly, the first row always has zero columns.
+@end itemize
+
+@subsubheading Return value
+A pointer to a newly allocated @code{tree} structure that describes the calculated hierarchical clustering solution. If @code{treecluster} fails due to a memory allocation error, it returns @code{NULL}.
+
+@section Cutting a hierarchical clustering tree: @code{cuttree}
+
+The tree structure generated by the hierachical clustering routine @code{treecluster} can be further analyzed by dividing the genes or microarrays into @emph{n} clusters, where @emph{n} is some positive integer less than or equal to the number of items that were clustered. This can be achieved by ignoring the top
+@tex
+$n-1$
+@end tex
+@html
+<i>n</i>-1
+@end html
+linking events in the tree structure, resulting in @emph{n} separated subnodes. The items in each subnode are then assigned to the same cluster.
+The routine @code{cuttree} determines to which cluster each item is assigned, based on the hierarchical clustering result stored in the tree structure.
+
+@subsubheading Prototype
+@noindent
+@code{void cuttree (int @var{nelements}, Node* @var{tree}, int @var{nclusters}, int @var{clusterid}[]);}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nelements};} @*
+The number of elements whose clustering results are stored in the hierarchical clustering result @var{tree}.
+
+@item @code{Node* @var{tree};} @*
+The hierarchical clustering solution. Each node @code{@var{tree}[@var{i}]} in the array describes one linking event, with @code{@var{tree}[@var{i}].left} and @code{@var{tree}[@var{i}].right} containing the numbers of the nodes that were joined. The original elements are numbered @{@code{0}, @dots{}, @code{@var{nelements}-1}@}, nodes are numbered @{@code{-1}, @dots{}, @code{-(@var{nelements}-1)}@}. Note that the number of nodes is one less than the number of elements. The @code{cuttree} function performs no error checking of the @var{tree} structure. Dimension: @code{[@var{nelements}-1]}.
+
+@item @code{int @var{nclusters};} @*
+The desired number of clusters. The number of clusters should be positive, and less than or equal to @var{nelements}.
+
+@item @code{int @var{clusterid}[];} @*
+The cluster number to which each element is assigned. Memory space for @var{clusterid} should be allocated before @code{cuttree} is called. Dimension: @code{[@var{nelements}]}.
+@end itemize
+
+@node SOM, PCA, Hierarchical, ,
+@chapter Self-Organizing Maps
+
+Self-Organizing Maps (SOMs) were invented by Kohonen to describe neural networks (see for instance Kohonen, 1997). Tamayo (1999) first applied Self-Organizing Maps to gene expression data.
+
+SOMs organize items into clusters that are situated in some topology. Usually a rectangular topology is chosen. The clusters generated by SOMs are such that neighboring clusters in the topology are more similar to each other than clusters far from each other in the topology.
+
+The first step to calculate a SOM is to randomly assign a data vector to each cluster in the topology. If genes are being clustered, then the number of elements in each data vector is equal to the number of microarrays in the experiment.
+
+An SOM is then generated by taking genes one at a time, and finding which cluster in the topology has the closest data vector. The data vector of that cluster, as well as those of the neighboring clusters, are adjusted using the data vector of the gene under consideration. The adjustment is given by
+@tex
+$$\Delta \underline{x}_{\rm{cell}} = \tau \cdot \left(\underline{x}_{\rm{gene}} - \underline{x}_{\rm{cell}} \right).$$
+@end tex
+@html
+<p><center>
+<i>&Delta;<u>x</u></i><SUB>cell</SUB> = <i>&tau;</i> (<u><i>x</i></u><SUB>gene</SUB> - <u><i>x</i></u><SUB>cell</SUB>). 
+<p></center>
+@end html
+The parameter
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+is a parameter that decreases at each iteration step. We have used a simple linear function of the iteration step:
+@tex
+$$\tau = \tau_{\rm{init}} \cdot \left(1 - {i \over n}\right),$$
+@end tex
+@html
+<p><center>
+<i>&tau;</i> = <i>&tau;</i><SUB>init</SUB> (1 - <i>i</i> / <i>n</i> ),
+<p></center>
+@end html
+in which
+@tex
+$\tau_{\rm{init}}$
+@end tex
+@html
+<i>&tau;</i><SUB>init</SUB>
+@end html
+is the initial value of
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+as specified by the user, @emph{i} is the number of the current iteration step, and @emph{n} is the total number of iteration steps to be performed. While changes are made rapidly in the beginning of the iteration, at the end of iteration only small changes are made.
+
+All clusters within a radius @emph{R} are adjusted to the gene under consideration. This radius decreases as the calculation progresses as
+@tex
+$$R = R_{\rm{max}} \cdot \left(1 - {i \over n}\right),$$
+@end tex
+@html
+<p><center>
+<i>R</i> = <i>R</i><SUB>max</SUB> (1 - <i>i</i> / <i>n</i> ),
+<p></center>
+@end html
+in which the maximum radius is defined as
+@tex
+$$R_{\rm{max}} = \sqrt{N_x^2 + N_y^2},$$
+@end tex
+@html
+<p><center>
+<i>R</i><SUP>max</SUP> = &sqrt; (<i>N<SUB>x</SUB></i><SUP>2</SUP> + <i>N<SUB>y</SUB></i><SUP>2</SUP>),
+<p></center>
+@end html
+where
+@tex
+$\left(N_x, N_y\right)$
+@end tex
+@html
+<p><center>
+(<i>N<SUB>x</SUB></i>, <i>N<SUB>y</SUB></i>)
+<p></center>
+@end html
+are the dimensions of the rectangle defining the topology.
+
+The routine @code{somcluster} carries out the complete SOM algorithm. First it initializes the random number generator. The distance function to be used is specified by @var{dist}. The node data are then initialized using the random number generator. The order in which genes or microarrays are used to modify the SOM is also randomized. The total number of iterations is specified by @var{niter}, given by the user.
+
+@subsubheading Prototype
+@noindent
+@code{void somcluster (int @var{nrows}, int @var{ncolumns}, double** @var{data}, int** @var{mask}, double @var{weight}[], int @var{transpose}, int @var{nxgrid}, int @var{nygrid}, double @var{inittau}, int @var{niter}, char @var{dist}, double*** @var{celldata}, int @var{clusterid}[][2]);}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nrows};} @*
+The number of rows in the data matrix, equal to the number of genes in the gene expression experiment.
+
+@item @code{int @var{ncolumns};} @*
+The number of columns in the data matrix, equal to the number of microarrays in the gene expression experiment.
+
+@item @code{double** @var{data};} @*
+The data array containing the gene expression data. Genes are stored row-wise, while microarrays are stored column-wise. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{int** @var{mask};} @*
+This array shows which elements in the @var{data} array, if any, are missing. If @code{@var{mask}[i][j]==0}, then @code{@var{data}[i][j]} is missing. Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{double @var{weight}[];} @*
+The weights that are used to calculate the distance. Dimension: @code{[@var{ncolumns}]} if @code{@var{transpose}==0}; @code{[@var{nrows}]} if @code{@var{transpose}==1}.
+
+@item @code{int @var{transpose};} @*
+This flag indicates whether row-wise (gene) or column-wise (microarray) clustering is being performed. If @code{@var{transpose}==0}, rows (genes) are being clustered. Otherwise, columns (microarrays) are being clustered.
+
+@item @code{int @var{nxgrid};} @*
+The number of cells horizontally in the rectangular topology containing the clusters.
+
+@item @code{int @var{nygrid};} @*
+The number of cells vertically in the rectangular topology containing the clusters.
+
+@item @code{double @var{inittau};} @*
+The initial value for the parameter
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+that is used in the SOM algorithm. A typical value for @var{inittau} is 0.02, which was used in Michael Eisen's Cluster/TreeView program.
+
+@item @code{int @var{niter};} @*
+The total number of iterations.
+
+@item @code{char @var{dist};} @*
+Specifies which distance measure is used. @xref{Distance functions}.
+
+@item @code{double*** @var{celldata};} @*
+The data vectors of the clusters in the rectangular topology that were found by the SOM algorithm. These correspond to the cluster centroids. The first dimension is the horizontal position of the cluster in the rectangle, the second dimension is the vertical position of the cluster in the rectangle, while the third dimension is the dimension along the data vector. 
+The @code{somcluster} routine does not allocate storage space for the @var{celldata} array. Space should be allocated before calling @code{somcluster}.
+Alternatively, if @var{celldata} is equal to @code{NULL}, the @code{somcluster} routine allocates space for @var{celldata} and frees it before returning. In that case, @code{somcluster} does not return the data vectors of the clusters that were found. Dimension: @code{[@var{nxgrid}][@var{nygrid}][@var{ncolumns}]} if @code{@var{transpose}==0}, or @code{[@var{nxgrid}][@var{nygrid}][@var{nrows}]} if @code{@var{transpose}==1}.
+              
+@item @code{int @var{clusterid}[][2];} @*
+Specifies the cluster to which a gene or microarray was assigned, using two integers to identify the horizontal and vertical position of a cell in the grid for each gene or microarray.
+Gene or microarrays are assigned to clusters in the rectangular grid by determining which cluster in the rectangular topology has the closest data vector.
+Space for the @var{clusterid} argument should be allocated before calling @code{somcluster}.
+If @var{clusterid} is @code{NULL}, the @code{somcluster} routine ignores this argument and does not return the cluster assignments. Dimension: @code{[@var{nrows}][2]} if @code{@var{transpose}==0}; @code{[@var{ncolumns}][2]} if @code{@var{transpose}==1}.
+@end itemize
+
+@node PCA, RNG, SOM, 
+@chapter Principal Component Analysis
+
+Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data. In PCA, the data vectors are written as a linear sum over principal components. The number of principal components is equal to the number of dimensions of the data vectors.
+
+The principal components are chosen such that they maximally explain the variance in the data vectors. For example, in case of 3D data vectors, the data can be represented as an ellipsoidal cloud of points in three dimensional space. The first principal component would be the longest axis of the ellipsoid, the second principal component would be the second longest axis of the ellipsoid, and the third principal component would be the shortest axis. In other words, the principal components are ordered by the amount of variance they explain.
+
+Each data point can be reconstructed by a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are used. The remaining variance present in the data is then regarded as unexplained variance.
+
+The principal components can be found by calculating the eigenvectors of the covariance matrix of the data. The corresponding eigenvalues determine how much of the variance present in the data is explained by each principal component.
+
+The eigenvectors are found by calculating the singular value decomposition of the data matrix. For this purpose, we have included a routine to calculate the singular value decomposition of a matrix.
+This subroutine is a translation in C of the Algol procedure @code{svd} (Golub and Reinsch, 1970).
+Python users can instead use the @code{svd} routine in the @code{linalg} package of Numerical Python.
+
+A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
+
+@subsubheading Prototype
+@noindent
+@code{void svd (int @var{nrows}, int @var{ncolumns}, double** @var{U}, double @var{S}[], double** @var{V}, int* @var{ierror});} @*
+calculates the singular value decomposition
+@tex
+@var{U}$_{\rm input}$ = @var{U}$_{\rm output} \cdot$ @var{S} $\cdot$ @var{V}$^{\rm T}$.
+@end tex
+@html
+<i>U</i> &middot; <i>S</i> &middot; <i>V</i><SUP>T</SUP>.
+@end html 
+Householder bidiagonalization and a variant of the QR algorithm are used.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nrows}} @*
+The number of rows in @var{U}. The number of rows should be greater than or
+equal to the number of columns.
+
+@item @code{int @var{ncolumns}} @*
+The number of columns in @var{U} and the order of @var{V}.
+
+@item @code{double** @var{U};} @*
+On input: @var{U} is the rectangular matrix to be decomposed.
+On output: The contents of @var{U} is replaced such that
+@tex
+@var{U}$_{\rm{input}}$ = @var{U}$_{\rm output} \cdot$ @var{S} $\cdot$ @var{V}$^{\rm T}$.
+@end tex
+@html
+@var{U} <SUB>initial</SUB> = @code{@var{U} * @var{S} * @var{V}<SUP>T</SUP>}.
+@end html
+Dimension: @code{[@var{nrows}][@var{ncolumns}]}.
+
+@item @code{double* @var{S};} @*
+The @var{ncolumns} non-negative singular values of the matrix @var{U}, unordered.
+If an error exit is made, the singular values should be correct for indices
+@{ @code{*@var{ierror}}, @code{*@var{ierror}+1}, @dots{}, @code{@var{ncolumns}-1}@}.
+Dimension: @code{[@var{ncolumns}]}.
+
+@item @code{double** @var{V};} @*
+The orthogonal matrix @var{V} of the decomposition.
+If an error exit is made, the columns of @var{V} corresponding
+to indices of correct singular values should be correct.
+Dimension: @code{[@var{ncolumns}][@var{ncolumns}]}.
+
+@item @code{int* @var{ierror};} @*
+Error exit:
+@itemize
+@item @code{*@var{ierror}==0} for normal return;
+@item @code{*@var{ierror}==@var{k}} if the
+@tex
+$k^{\rm th}$
+@end tex
+@html
+<i>k</i><SUP>th</SUP>
+@end html
+singular value has not been determined after 30 iterations;
+@item @code{*@var{ierror}==-1} if svd fails to allocate sufficient memory to complete.
+@end itemize
+
+@end itemize
+
+@node RNG, Python, PCA,
+@chapter The random number generator
+
+The random number generator in the C Clustering Library is used to initialize the @emph{k}-means/medians/medoids clustering algorithm and Self-Organizing Maps (SOMs), as well as to randomly select a gene or microarray in the calculation of a SOM.
+
+We need both a generator of uniform random deviates, and a generator whose deviates follow the binomial distribution. The latter can be built, given a uniform random number generator, using the BTPE algorithm by Kachitvichyanukul and Schmeiser (1988).
+
+The uniform random number generator in the C Clustering Library is described by L'Ecuyer (1988). The random number generator is initialized automatically during its first call. As the random number generator by L'Ecuyer uses a combination of two multiplicative linear congruential generators, two (integer) seeds are needed for initialization, for which we use the system-supplied random number generator @code{rand} (in the C standard library). We initialize this generator by calling @code{srand} with the epoch time in seconds, and use the first two random numbers generated by @code{rand} as seeds for the uniform random number generator in the C Clustering Library.
+
+@node Python, Perl, RNG,
+@chapter Using the C Clustering Library with Python: Pycluster and Bio.Cluster
+
+The C Clustering Library is particularly useful when used as a module to a scripting language. This chapter describes the routines in the C Clustering Library as seen from Python.
+
+To make the routines available to Python, install Pycluster (@pxref{Installing the C Clustering Library for Python}). From Python, then type @*
+@code{>>> from Pycluster import *} @*
+Pycluster is also available as part of @uref{http://www.biopython.org, Biopython}, in which case you should use @*
+@code{>>> from Bio.Cluster import *} @*
+This will give you access to the clustering routines in the C Clustering Library directly from Python.
+
+@section Partitioning algorithms
+
+@subsection @emph{k}-means and @emph{k}-medians clustering: @code{kcluster}
+
+@noindent
+@code{@var{clusterid}, @var{error}, @var{nfound} = kcluster (data, nclusters=2, mask=None, weight=None, transpose=0, npass=1, method='a', dist='e', initialid=None)} @*
+implements the @emph{k}-means and @emph{k}-medians clustering algorithms.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+Array containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{nclusters} @*
+The number of clusters @emph{k}.
+
+@item @code{mask} @*
+Array of integers showing which data are missing. If @code{mask[i][j]==0}, then @code{data[i][j]} is missing. If @code{mask==None}, then there are no missing data.
+
+@item @code{weight} @*
+contains the weights to be used when calculating distances. If @code{weight==None}, then equal weights are assumed.
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{npass} @*
+The number of times the @emph{k}-means clustering algorithm is performed, each time with a different (random) initial condition. If @code{initialid} is given, the value of @code{npass} is ignored and the clustering algorithm is run only once, as it behaves deterministically in that case.
+
+@item @code{method} @*
+describes how the center of a cluster is found:
+@itemize 
+@item @code{method=='a'}: arithmetic mean;
+@item @code{method=='m'}: median.
+@end itemize
+@noindent
+For other values of @code{method}, the arithmetic mean is used.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@noindent
+@item @code{initialid} @*
+Specifies the initial clustering to be used for the EM algorithm. If @code{initialid==None}, then a different random initial clustering is used for each of the @code{npass} runs of the EM algorithm. If @code{initialid} is not @code{None}, then it should be equal to a 1D array containing the cluster number (between @code{0} and @code{nclusters-1}) for each item. Each cluster should contain at least one item. With the initial clustering specified, the EM algorithm is deterministic.
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns a tuple @code{(@var{clusterid}, @var{error}, @var{nfound})}.
+
+@itemize @bullet
+@item @code{@var{clusterid}} @*
+An array containing the number of the cluster to which each gene/microarray was assigned.
+@item @code{@var{error}} @*
+The within-cluster sum of distances for the optimal clustering solution.
+@item @code{@var{nfound}} @*
+The number of times the optimal solution was found.
+@end itemize
+
+@subsection @emph{k}-medoids clustering: @code{kmedoids}
+
+@noindent
+@code{@var{clusterid}, @var{error}, @var{nfound} = kmedoids (distance, nclusters=2, npass=1, initialid=None)} @*
+implements the @emph{k}-medoids clustering algorithm.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{distance} @*
+The matrix containing the distances between the elements.
+You can specify the distance matrix in three ways:
+@itemize
+@item as a 2D Numerical Python array (in which only the left-lower part of the array will be accessed): @*
+@code{distance = array([[0.0, 1.1, 2.3], @* 
+@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ [1.1, 0.0, 4.5], @*
+@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ [2.3, 4.5, 0.0]])}
+@item as a 1D Numerical Python array containing consecutively the distances in the left-lower part of the distance matrix: @*
+@code{distance = array([1.1, 2.3, 4.5])}
+@item as a list containing the rows of the left-lower part of the distance matrix: @*
+@code{distance = [array([]), @*
+@ @ @ @ @ @ @ @ @ @ @ array([1.1]), @*
+@ @ @ @ @ @ @ @ @ @ @ array([2.3, 4.5]) @*
+@ @ @ @ @ @ @ @ @ @ ]}
+@end itemize
+These three expressions correspond to the same distance matrix.
+@item @code{nclusters} @*
+The number of clusters @emph{k}.
+@item @code{npass} @*
+The number of times the @emph{k}-medoids clustering algorithm is performed, each time with a different (random) initial condition. If @code{initialid} is given, the value of @code{npass} is ignored, as the clustering algorithm behaves deterministically in that case.
+@item @code{initialid} @*
+Specifies the initial clustering to be used for the EM algorithm. If @code{initialid==None}, then a different random initial clustering is used for each of the @code{npass} runs of the EM algorithm. If @code{initialid} is not @code{None}, then it should be equal to a 1D array containing the cluster number (between @code{0} and @code{nclusters-1}) for each item. Each cluster should contain at least one item. With the initial clustering specified, the EM algorithm is deterministic.
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns a tuple @code{(@var{clusterid}, @var{error}, @var{nfound})}.
+
+@itemize @bullet
+@item @code{@var{clusterid}} @*
+An array containing the number of the cluster to which each item was assigned, where the cluster number is defined as the item number of the item representing the cluster centroid.
+@item @code{@var{error}} @*
+The within-cluster sum of distances for the optimal @emph{k}-medoids clustering solution.
+@item @code{@var{nfound}} @*
+The number of times the optimal solution was found.
+@end itemize
+
+@section Hierarchical clustering
+
+The pairwise single-, maximum-, average-, and centroid-linkage clustering methods are accessible through the function @code{treecluster}. The hierarchical clustering routines can be applied either on the original gene expression data, or (except for centroid-linkage clustering) on the distance matrix directly. The tree structure generated by @code{treecluster} can be cut in order to separate the elements into a given number of clusters.
+
+@subsection Representing a hierarchical clustering solution
+
+A hierarchical clustering solution is represented using two Python classes: @code{Node} and @code{Tree}.
+
+@subheading The class @code{Node}
+
+The Python class @code{Node} corresponds to the C struct @code{Node} described above. A @code{Node} object has three attributes:
+
+@itemize @bullet
+@item left
+@item right
+@item distance
+@end itemize
+
+@noindent
+Here, @code{left} and @code{right} are integers referring to the two items or subnodes that are joined at this node, and @code{distance} is the distance between them. The items being clustered are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
+
+To create a new @code{Node} object, we need to specify @code{left} and @code{right}; @code{distance} is optional.
+
+@noindent
+@code{>>> from Pycluster import * @*
+>>> Node(2,3) @*
+(2, 3): 0 @*
+>>> Node(2,3,0.91) @*
+(2, 3): 0.91
+}
+
+The attributes @code{left}, @code{right}, and @code{distance} of an existing @code{Node} object can be modified directly:
+
+@noindent
+@code{>>> node = Node(4,5) @*
+>>> node.left = 6 @*
+>>> node.right = 2 @*
+>>> node.distance = 0.73 @*
+>>> node @*
+(6, 2): 0.73 @*
+}
+@noindent
+An error is raised if @code{left} and @code{right} are not integers, or if @code{distance} cannot be converted to a floating-point value.
+
+@subheading The class @code{Tree}
+
+The Python class @code{Tree} represents a full hierarchical clustering solution. A @code{Tree} object can be created from a list of @code{Node} objects:
+
+@noindent
+@code{>>> nodes = [Node(1,2,0.2), Node(0,3,0.5), Node(-2,4,0.6), Node(-1,-3,0.9)] @*
+>>> tree = Tree(nodes) @*
+>>> print tree @*
+(1, 2): 0.2 @*
+(0, 3): 0.5 @*
+(-2, 4): 0.6 @*
+(-1, -3): 0.9}
+
+The @code{Tree} initializer checks if the list of nodes is a valid hierarchical clustering result:
+
+@noindent
+@code{>>> nodes = [Node(1,2,0.2), Node(0,2,0.5)] @*
+>>> Tree(nodes) @*
+Traceback (most recent call last): @*
+  File "<stdin>", line 1, in ? @*
+cluster.error: Inconsistent tree}
+
+Individual nodes in a @code{Tree} object can be accessed using square brackets:
+
+@noindent
+@code{>>> nodes = [Node(1,2,0.2), Node(0,-1,0.5)] @*
+>>> tree = Tree(nodes) @*
+>>> tree[0] @*
+(1, 2): 0.2 @*
+>>> tree[1] @*
+(0, -1): 0.5 @*
+>>> tree[-1] @*
+(0, -1): 0.5}
+
+@noindent
+As a @code{Tree} object is read-only, we cannot change individual nodes in a @code{Tree} object. However, we can convert the tree to a list of nodes, modify this list, and create a new tree from this list:
+
+@noindent
+@code{>>> tree = Tree([Node(1,2,0.1), Node(0,-1,0.5), Node(-2,3,0.9)]) @*
+>>> print tree @*
+(1, 2): 0.1 @*
+(0, -1): 0.5 @*
+(-2, 3): 0.9 @*
+>>> nodes = tree[:] @*
+>>> nodes[0] = Node(0,1,0.2) @*
+>>> nodes[1].left = 2 @*
+>>> tree = Tree(nodes) @*
+>>> print tree @*
+(0, 1): 0.2 @*
+(2, -1): 0.5 @*
+(-2, 3): 0.9}
+
+@noindent
+This guarantees that any @code{Tree} object is always well-formed. 
+
+A @code{Tree} object has two methods (@code{scale} and @code{cut}, described below). @code{Tree} objects are generated by the @code{treecluster} function.
+
+@subsection Performing hierarchical clustering: @code{treecluster}
+
+@noindent
+@code{@var{tree} = treecluster(data=None, mask=None, weight=None, transpose=0, method='m', dist='e', distancematrix=None)} @*
+implements the hierachical clustering methods.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+Array containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise. Either @code{data} or @code{distancematrix} should be @code{None}.
+
+@item @code{mask} @*
+Array of integers showing which data are missing. If @code{mask[i][j]==0}, then @code{data[i][j]} is missing. If @code{mask==None}, then there are no missing data.
+
+@item @code{weight} @*
+contains the weights to be used when calculating distances. If @code{weight==None}, then equal weights are assumed.
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{method} @*
+defines the linkage method to be used:
+@itemize
+@item @code{method=='s'}: pairwise single-linkage clustering
+@item @code{method=='m'}: pairwise maximum- (or complete-) linkage clustering
+@item @code{method=='c'}: pairwise centroid-linkage clustering
+@item @code{method=='a'}: pairwise average-linkage clustering
+@end itemize
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+
+@item @code{distancematrix} @*
+The distance matrix. Either @code{data} or @code{distancematrix} should be @code{None}. If @code{data} is @code{None} and @code{distancematrix} is given, the arguments @code{mask}, @code{weights}, @code{transpose}, and @code{dist} are ignored. Note that pairwise single-, maximum-, and average-linkage clustering can be calculated from the distance matrix, but pairwise centroid-linkage cannot.
+
+If not @code{None}, @code{distancematrix} should correspond to a distance matrix, which can be specified in three ways:
+@itemize
+@item as a 2D Numerical Python array (in which only the left-lower part of the array will be accessed): @*
+@code{distance = array([[0.0, 1.1, 2.3], @* 
+@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ [1.1, 0.0, 4.5], @*
+@ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ [2.3, 4.5, 0.0]])}
+@item as a 1D Numerical Python array containing consecutively the distances in the left-lower part of the distance matrix: @*
+@code{distance = array([1.1, 2.3, 4.5])}
+@item as a list containing the rows of the left-lower part of the distance matrix: @*
+@code{distance = [array([]), @*
+@ @ @ @ @ @ @ @ @ @ @ array([1.1]), @*
+@ @ @ @ @ @ @ @ @ @ @ array([2.3, 4.5]) @*
+@ @ @ @ @ @ @ @ @ @ ]}
+@end itemize
+These three expressions correspond to the same distance matrix.
+As @code{treecluster} may shuffle the values in the distance matrix as part of the clustering algorithm, be sure to save this array in a different variable before calling @code{treecluster} if you need it later.
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns a @code{Tree} object. This object contains @code{@emph{number of items} - 1} nodes, where the number of items is the number of genes if genes were clustered, or the number of microarrays if microarrays were clustered. Each node describes a pairwise linking event, where the node attributes @code{left} and @code{right} each contain the number of one gene/microarray or subnode, and @code{distance} the distance between them.  Genes/microarrays are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
+
+@subsection Scaling a hierarchical clustering tree: @code{@var{tree}.scale}
+
+To display a hierarchical clustering solution with Java TreeView, it is better to scale all node distances such that they are between zero and one. This can be accomplished by calling the @code{scale} method on an existing @code{Tree} object.
+
+@noindent
+@code{@var{tree}.scale()} @*
+scales the distances in the hierarchical clustering tree such that they are all between zero and one. This function takes no arguments, and returns @code{None}.
+
+@subsection Cutting a hierarchical clustering tree: @code{@var{tree}.cut}
+
+@noindent
+@code{@var{clusterid} = @var{tree}.cut(nclusters=1)} @*
+groups the items into @code{@var{nclusters}} clusters based on the tree structure generated by the hierarchical clustering routine @code{treecluster}.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{@var{tree}} @*
+The @code{Tree} object @code{@var{tree}} contains the hierarchical clustering result generated by @code{treecluster}. Each node in this tree describes a pairwise linking event, where the node attributes @code{left} and @code{right} contain the number of the two items or subnodes. Items are numbered from 0 to (@code{@emph{number of elements}} - 1), while clusters are numbered -1 to -(@code{@emph{number of elements}}-1).
+
+@item @code{nclusters} @*
+The desired number of clusters; @code{nclusters} should be positive, and less than or equal to the number of elements.
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the array @code{@var{clusterid}}.
+
+@itemize @bullet
+@item @code{@var{clusterid}} @*
+An array containing the number of the cluster to which each gene/microarray is assigned.
+@end itemize
+
+@section Self-Organizing Maps: @code{somcluster}
+
+@noindent
+@code{@var{clusterid}, @var{celldata} = somcluster(data, mask=None, weight=None, transpose=0, nxgrid=2, nygrid=1, inittau=0.02, niter=1, dist='e')} @*
+implements a Self-Organizing Map on a rectangular grid.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+Array containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{mask} @*
+Array of integers showing which data are missing. If @code{mask[i][j]==0}, then @code{data[i][j]} is missing. If @code{mask==None}, then there are no missing data.
+
+@item @code{weight} @*
+contains the weights to be used when calculating distances. If @code{weight==None}, then equal weights are assumed.
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{nxgrid, nygrid} @*
+The number of cells horizontally and vertically in the rectangular grid, on which the Self-Organizing Map is calculated.
+
+@item @code{inittau} @*
+The initial value for the parameter
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+that is used in the SOM algorithm. The default value for @code{inittau} is 0.02, which was used in Michael Eisen's Cluster/TreeView program.
+
+@item @code{niter} @*
+The number of iterations to be performed.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the tuple @code{@var{clusterid}, @var{celldata}}.
+
+@itemize @bullet
+@item @code{@var{clusterid}} @*
+An array with two columns, where the number of rows is equal to the number of genes or the number of microarrays depending on whether genes or microarrays are being clustered. Each row contains the @emph{x} and @emph{y} coordinates of the cell in the rectangular SOM grid to which the gene or microarray was assigned.
+@item  @code{@var{celldata}} @*
+An array with dimensions (@code{nxgrid}, @code{nygrid}, @code{@emph{number of microarrays}}) if genes are being clustered, or (@code{nxgrid}, @code{nygrid}, @code{@emph{number of genes}}) if microarrays are being clustered. Each element @code{[ix][iy]} of this array is a 1D vector containing the gene expression data for the centroid of the cluster in the grid cell with coordinates (@var{ix,iy}).
+@end itemize
+
+@section Finding the cluster centroids: @code{clustercentroids}
+
+@noindent
+@code{cdata, cmask = clustercentroids(data, mask=None, clusterid=None, method='a', transpose=0)} @*
+calculates the cluster centroids.
+
+@subsubheading Arguments
+
+@itemize @bullet @*
+@item @code{data} @*
+Array containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{mask} @*
+Array of integers showing which data are missing. If @code{mask[i][j]==0}, then @code{data[i][j]} is missing. If @code{mask==None}, then there are no missing data.
+
+@item @code{clusterid} @*
+Vector of integers showing to which cluster each element belongs. If @code{clusterid} is not given, then all elements are assumed to belong to the same cluster.
+
+@item @code{method} @*
+Specifies whether the arithmetic mean (@code{method=='a'}) or the median (@code{method=='m'}) is used to calculate the cluster center.
+
+@item @code{transpose} @*
+Determines if gene or microarray clusters are being considered. If @code{transpose==0}, then we are considering clusters of genes (rows). If @code{transpose==1}, then we are considering clusters of microarrays (columns).
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the tuple @code{@var{cdata}, @var{cmask}}.
+
+@itemize @bullet
+@item @code{@var{cdata}} @*
+A 2D array containing the centroid data. The dimensions of this array are @code{(@emph{number of clusters}, @emph{number of microarrays})} if genes were clustered, or @code{(@emph{number of genes}, @emph{number of clusters})} if microarrays were clustered. Each row (if genes were clustered) or column (if microarrays were clustered) contains the averaged gene expression data for corresponding to the centroid of one cluster that was found.
+@item @code{@var{cmask}} @*
+This matrix stores which values in @code{@var{cdata}} are missing. If @code{@var{cmask}[i][j]==0}, then @code{@var{cdata}[i][j]} is missing. The dimensions of this array are @code{(@emph{number of clusters}, @var{number of microarrays})} if genes were clustered, or @code{(@var{number of genes}, @var{number of clusters})} if microarrays were clustered.
+@end itemize
+
+@section The distance between two clusters: @code{clusterdistance}
+
+@noindent
+@code{@var{distance} = clusterdistance(data, mask=None, weight=None, index1=[0], index2=[0], method='a', dist='e', transpose=0)} @*
+calculates the distance between two clusters.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+Array containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{mask} @*
+Array of integers showing which data are missing. If @code{mask[i][j]==0}, then @code{data[i][j]} is missing. If @code{mask==None}, then there are no missing data.
+
+@item @code{weight} @* contains the weights to be used when calculating distances. If @code{weight==None}, then equal weights are assumed.
+
+@item @code{index1} @* is a list containing the indices of the elements belonging to the first cluster. A cluster containing only one element @var{i} can be represented as either a list @code{[@var{i}]}, or as an integer @code{@var{i}}.
+
+@item @code{index2} @* is a list containing the indices of the elements belonging to the second cluster. A cluster containing only one element @var{i} can be represented as either a list @code{[@var{i}]}, or as an integer @code{@var{i}}.
+
+@item @code{method} @*
+Specifies how the distance between clusters is defined:
+@itemize
+@item @code{method=='a'}: Distance between the two cluster centroids (arithmetic mean);
+@item @code{method=='m'}: Distance between the two cluster centroids (median);
+@item @code{method=='s'}: Shortest pairwise distance between elements in the two clusters;
+@item @code{method=='x'}: Longest pairwise distance between elements in the two clusters;
+@item @code{method=='v'}: Average over the pairwise distances between elements in the two clusters.
+@end itemize
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+
+@item @code{transpose} @*
+Determines if gene or microarray clusters are being considered. If @code{transpose==0}, then we are considering clusters of genes (rows). If @code{transpose==1}, then we are considering clusters of microarrays (columns).
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the distance between the two clusters.
+
+@section Calculating the distance matrix: @code{distancematrix}
+
+@noindent
+@code{@var{matrix} = distancematrix(data, mask=None, weight=None, transpose=0, dist='e')} @*
+returns the distance matrix between gene expression data.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+Array containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{mask} @*
+Array of integers showing which data are missing. If @code{mask[i][j]==0}, then @code{data[i][j]} is missing. If @code{mask==None}, then there are no missing data.
+
+@item @code{weight} @* contains the weights to be used when calculating distances. If @code{weight==None}, then equal weights are assumed.
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+@itemize @bullet
+@item @code{@var{matrix}} is a list of 1D arrays containing the distance matrix between the gene expression data. The number of columns in each row is equal to the row number. Hence, the first row has zero elements. An example of the return value is @*
+@code{@var{matrix} = [array([]), @*
+@ @ @ @ @ @ @ @ @ @ array([1.]), @*
+@ @ @ @ @ @ @ @ @ @ array([7., 3.]), @*
+@ @ @ @ @ @ @ @ @ @ array([4., 2., 6.])] @*}
+This corresponds to the distance matrix
+@tex
+$$
+\pmatrix{
+0 & 1 & 7 & 4  \cr
+1 & 0 & 3 & 2  \cr
+7 & 3 & 0 & 6  \cr
+4 & 2 & 6 & 0}
+$$
+@end tex
+@html
+<p><center>
+[0., 1., 7., 4.] <br>
+[1., 0., 3., 2.] <br>
+[7., 3., 0., 6.] <br>
+[4., 2., 6., 0.]; <br>
+<center></p>
+@end html
+@end itemize 
+
+@section Handling Cluster/TreeView-type files
+
+Cluster/TreeView are GUI-based codes for clustering gene expression data. They were originally written by @uref{http://rana.lbl.gov, Michael Eisen} while at Stanford University. Pycluster contains routines for reading and writing data files that correspond to the format specified for Cluster/TreeView. In particular, by saving a clustering result in that format, TreeView can be used to visualize the clustering results. We recommend using Alok Saldanha's @uref{http://jtreeview.sourceforge.net/, Java TreeView program}, which can display hierarchical as well as @emph{k}-means clustering results.
+
+@subsection The @code{Record} class
+
+An object of the class @code{Record} contains all information stored in a Cluster/TreeView-type data file. To store the information contained in the data file in a @code{Record} object, we first open the file and then read it:
+
+@code{
+@noindent
+>>> import Pycluster @*
+>>> @var{handle} = open("mydatafile.txt") @*
+>>> @var{record} = Pycluster.read(@var{handle}) @* }
+This two-step process gives you some flexibility in the source of the data.
+For example, you can use
+
+@code{
+@noindent
+>>> import gzip # Python standard library @*
+>>> @var{handle} = gzip.open("mydatafile.txt.gz") @*
+}
+to open a gzipped file, or
+
+@code{
+@noindent
+>>> import urllib # Python standard library @*
+>>> @var{handle} = urllib.urlopen("http://somewhere.org/mydatafile.txt") @*
+}
+to open a file stored on the Internet before calling @code{read}.
+
+If you're using the C Clustering Library from Biopython, you should use:
+
+@code{
+@noindent
+>>> from Bio import Cluster @*
+>>> @var{record} = Cluster.read(@var{handle}) @*
+}
+
+The @code{read} command reads the tab-delimited text file @code{mydatafile.txt} containing gene expression data in the format specified for Michael Eisen's Cluster/TreeView program. For a description of this file format, see the manual to Cluster/TreeView. It is available at @uref{http://rana.lbl.gov/manuals/ClusterTreeView.pdf, Michael Eisen's lab website} and at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster3.pdf, our website}.
+
+A @code{Record} object stores the following information:
+
+@itemize @bullet
+@item @code{data} @*
+The data array containing the gene expression data. Genes are stored row-wise, while microarrays are stored column-wise.
+
+@item @code{mask} @*
+This array shows which elements in the @code{data} array, if any, are missing. If @code{mask[i,j]==0}, then @code{data[i,j]} is missing. If no data were found to be missing, @code{mask} is set to @code{None}.
+
+@item @code{geneid} @*
+This is a list containing a unique description for each gene (i.e., ORF numbers).
+
+@item @code{genename} @*
+This is a list containing a description for each gene (i.e., gene name). If not present in the data file, @code{genename} is set to @code{None}.
+
+@item @code{gweight} @*
+The weights that are to be used to calculate the distance in expression profile between genes. If not present in the data file, @code{gweight} is set to @code{None}.
+
+@item @code{gorder} @*
+The preferred order in which genes should be stored in an output file. If not present in the data file, @code{gorder} is set to @code{None}.
+
+@item @code{expid} @*
+This is a list containing a description of each microarray, e.g. experimental condition.
+
+@item @code{eweight} @*
+The weights that are to be used to calculate the distance in expression profile between microarrays. If not present in the data file, @code{eweight} is set to @code{None}.
+
+@item @code{eorder} @*
+The preferred order in which microarrays should be stored in an output file. If not present in the data file, @code{eorder} is set to @code{None}.
+
+@item @code{uniqid} @*
+The string that was used instead of UNIQID in the data file.
+@end itemize
+
+After loading a @code{Record} object, each of these attributes can be accessed and modified directly. For example, the data can be log-transformed by taking the logarithm of @code{@var{record}.data}.
+
+@subsection Performing hierarchical clustering
+
+@noindent
+@code{@var{tree} = @var{record}.treecluster(transpose=0, method='m', dist='e')} @*
+applies hierachical clustering to the data contained in the @code{Record} object.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{method} @*
+defines the linkage method to be used:
+@itemize
+@item @code{method=='s'}: pairwise single-linkage clustering
+@item @code{method=='m'}: pairwise maximum- (or complete-) linkage clustering
+@item @code{method=='c'}: pairwise centroid-linkage clustering
+@item @code{method=='a'}: pairwise average-linkage clustering
+@end itemize
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+@noindent
+This method returns a @code{Tree} object containing @code{@emph{number of items} - 1} nodes, where the number of items is the number of genes if genes were clustered, or the number of microarrays if microarrays were clustered. Each node describes a pairwise linking event, where the node attributes @code{left} and @code{right} each contain the number of one gene/microarray or subnode, and @code{distance} the distance between them.  Genes/microarrays are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
+
+@subsection Performing @emph{k}-means or @emph{k}-medians clustering
+
+@noindent
+@code{@var{clusterid}, @var{error}, @var{nfound} = @var{record}.kcluster(nclusters=2, transpose=0, npass=1, method='a', dist='e', initialid=None)} @*
+applies @emph{k}-means or @emph{k}-medians clustering to the data contained in the @code{Record} object.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{nclusters} @*
+The number of clusters @emph{k}.
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{npass} @*
+The number of times the @emph{k}-means clustering algorithm is performed, each time with a different (random) initial condition. If @code{initialid} is given, the value of @code{npass} is ignored and the clustering algorithm is run only once, as it behaves deterministically in that case.
+
+@item @code{method} @*
+describes how the center of a cluster is found:
+@itemize 
+@item @code{method=='a'}: arithmetic mean;
+@item @code{method=='m'}: median.
+@end itemize
+@noindent
+For other values of @code{method}, the arithmetic mean is used.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@noindent
+@item @code{initialid} @*
+Specifies the initial clustering to be used for the EM algorithm. If @code{initialid==None}, then a different random initial clustering is used for each of the @code{npass} runs of the EM algorithm. If @code{initialid} is not @code{None}, then it should be equal to a 1D array containing the cluster number (between @code{0} and @code{nclusters-1}) for each item. Each cluster should contain at least one item. With the initial clustering specified, the EM algorithm is deterministic.
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns a tuple @code{(@var{clusterid}, @var{error}, @var{nfound})}.
+
+@itemize @bullet
+@item @code{@var{clusterid}} @*
+An array containing the number of the cluster to which each gene/microarray was assigned.
+@item @code{@var{error}} @*
+The within-cluster sum of distances for the optimal clustering solution.
+@item @code{@var{nfound}} @*
+The number of times the optimal solution was found.
+@end itemize
+
+@subsection Calculating a Self-Organizing Map
+
+@noindent
+@code{@var{clusterid}, @var{celldata} = @var{record}.somcluster(transpose=0, nxgrid=2, nygrid=1, inittau=0.02, niter=1, dist='e')} @*
+calculates a Self-Organizing Map on a rectangular grid, using the gene expression data in the @code{Record} object @var{record}.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{nxgrid, nygrid} @*
+The number of cells horizontally and vertically in the rectangular grid, on which the Self-Organizing Map is calculated.
+
+@item @code{inittau} @*
+The initial value for the parameter
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+that is used in the SOM algorithm. The default value for @code{inittau} is 0.02, which was used in Michael Eisen's Cluster/TreeView program.
+
+@item @code{niter} @*
+The number of iterations to be performed.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the tuple @code{@var{clusterid}, @var{celldata}}.
+
+@itemize @bullet
+@item @code{@var{clusterid}} @*
+An array with two columns, where the number of rows is equal to the number of genes or the number of microarrays depending on whether genes or microarrays are being clustered. Each row contains the @emph{x} and @emph{y} coordinates of the cell in the rectangular SOM grid to which the gene or microarray was assigned.
+@item  @code{@var{celldata}} @*
+An array with dimensions (@code{nxgrid}, @code{nygrid}, @code{@emph{number of microarrays}}) if genes are being clustered, or (@code{nxgrid}, @code{nygrid}, @code{@emph{number of genes}}) if microarrays are being clustered. Each element @code{[ix][iy]} of this array is a 1D vector containing the gene expression data for the centroid of the cluster in the grid cell with coordinates (@var{ix,iy}).
+@end itemize
+
+@subsection Finding the cluster centroid
+
+@noindent
+@code{@var{cdata}, @var{cmask} = @var{record}.clustercentroids(clusterid=None, method='a', transpose=0)} @*
+calculates the cluster centroids.
+
+@subsubheading Arguments
+
+@itemize @bullet @*
+@item @code{clusterid} @*
+Vector of integers showing to which cluster each element belongs. If @code{clusterid} is not given, then all elements are assumed to belong to the same cluster.
+
+@item @code{method} @*
+Specifies whether the arithmetic mean (@code{method=='a'}) or the median (@code{method=='m'}) is used to calculate the cluster center.
+
+@item @code{transpose} @*
+Determines if gene or microarray clusters are being considered. If @code{transpose==0}, then we are considering clusters of genes (rows). If @code{transpose==1}, then we are considering clusters of microarrays (columns).
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the tuple @code{@var{cdata}, @var{cmask}}.
+
+@itemize @bullet
+@item @code{@var{cdata}} @*
+A 2D array containing the centroid data. The dimensions of this array are @code{(@emph{number of clusters}, @emph{number of microarrays})} if genes were clustered, or @code{(@emph{number of genes}, @emph{number of clusters})} if microarrays were clustered. Each row (if genes were clustered) or column (if microarrays were clustered) contains the averaged gene expression data for corresponding to the centroid of one cluster that was found.
+@item @code{@var{cmask}} @*
+This matrix stores which values in @code{@var{cdata}} are missing. If @code{@var{cmask}[i][j]==0}, then @code{@var{cdata}[i][j]} is missing. The dimensions of this array are @code{(@emph{number of clusters}, @emph{number of microarrays})} if genes were clustered, or @code{(@emph{number of genes}, @emph{number of clusters})} if microarrays were clustered.
+@end itemize
+
+@subsection Calculating the distance between two clusters
+
+@noindent
+@code{@var{distance} = @var{record}.clusterdistance(index1=[0], index2=[0], method='a', dist='e', transpose=0)} @*
+calculates the distance between two clusters.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{index1} @* is a list containing the indices of the elements belonging to the first cluster. A cluster containing only one element @var{i} can be represented as either a list @code{[@var{i}]}, or as an integer @code{@var{i}}.
+
+@item @code{index2} @* is a list containing the indices of the elements belonging to the second cluster. A cluster containing only one element @var{i} can be represented as either a list @code{[@var{i}]}, or as an integer @code{@var{i}}.
+
+@item @code{method} @*
+Specifies how the distance between clusters is defined:
+@itemize
+@item @code{method=='a'}: Distance between the two cluster centroids (arithmetic mean);
+@item @code{method=='m'}: Distance between the two cluster centroids (median);
+@item @code{method=='s'}: Shortest pairwise distance between elements in the two clusters;
+@item @code{method=='x'}: Longest pairwise distance between elements in the two clusters;
+@item @code{method=='v'}: Average over the pairwise distances between elements in the two clusters.
+@end itemize
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+
+@item @code{transpose} @*
+Determines if gene or microarray clusters are being considered. If @code{transpose==0}, then we are considering clusters of genes (rows). If @code{transpose==1}, then we are considering clusters of microarrays (columns).
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the distance between the two clusters.
+
+@subsection Calculating the distance matrix
+
+@noindent
+@code{@var{matrix} = @var{record}.distancematrix(transpose=0, dist='e')} @*
+returns the distance matrix between gene expression data.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+@itemize @bullet
+@item @var{matrix} is a list of 1D arrays containing the distance matrix between the gene expression data. The number of columns in each row is equal to the row number. Hence, the first row has zero elements. An example of the return value is @*
+@code{@var{matrix} = [array([]), @*
+@ @ @ @ @ @ @ @ @ array([1.]), @*
+@ @ @ @ @ @ @ @ @ array([7., 3.]), @*
+@ @ @ @ @ @ @ @ @ array([4., 2., 6.])] @*}
+This corresponds to the distance matrix
+@tex
+$$
+\pmatrix{
+0 & 1 & 7 & 4  \cr
+1 & 0 & 3 & 2  \cr
+7 & 3 & 0 & 6  \cr
+4 & 2 & 6 & 0}
+$$
+@end tex
+@html
+<p><center>
+[0., 1., 7., 4.] <br>
+[1., 0., 3., 2.] <br>
+[7., 3., 0., 6.] <br>
+[4., 2., 6., 0.]; <br>
+<center></p>
+@end html
+@end itemize 
+
+@subsection Saving the clustering result
+
+@noindent
+@code{@var{record}.save(jobname, geneclusters, expclusters)} @*
+writes the text file @var{jobname}@code{.cdt}, @var{jobname}@code{.gtr}, @var{jobname}@code{.atr}, @var{jobname*}@code{.kgg}, and/or @var{jobname*}@code{.kag} for subsequent reading by the Java TreeView program. If @code{geneclusters} and @code{expclusters} are both @code{None}, this method only writes the text file @var{jobname}@code{.cdt}; this file can subsequently be read into a new @code{Record} object.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{jobname} @*
+The string @code{jobname} is used as the base name for names of the files that are to be saved.
+
+@item @code{geneclusters} @*
+This argument describes the gene clustering result. In case of @emph{k}-means clustering, this is a 1D array containing the number of the cluster each gene belongs to. It can be calculated using @code{kcluster}. In case of hierarchical clustering, @code{geneclusters} is a @code{Tree} object.
+
+@item @code{expclusters} @*
+This argument describes the clustering result for the experimental conditions. In case of @emph{k}-means clustering, this is a 1D array containing the number of the cluster each experimental condition belongs to. It can be calculated using @code{kcluster}. In case of hierarchical clustering, @code{expclusters} is a @code{Tree} object.
+@end itemize
+
+@subsection Example calculation
+
+This is an example of a hierarchical clustering calculation, using single linkage clustering for genes and maximum linkage clustering for experimental conditions. As the Euclidean distance is being used for gene clustering, it is necessary to scale the node distances @code{genetree} such that they are all between zero and one. This is needed for the Java TreeView code to display the tree diagram correctly. To cluster the experimental conditions, the uncentered correlation is being used. No scaling is needed in this case, as the distances in @code{exptree} are already between zero and two. The example data @code{cyano.txt} can be found in the @code{data} subdirectory.
+
+@noindent
+@code{>>> from Pycluster import * @*
+>>> handle = open("cyano.txt") @*
+>>> record = read(handle) @*
+>>> genetree = record.treecluster(method='s') @*
+>>> genetree.scale() @*
+>>> exptree = record.treecluster(dist='u', transpose=1) @*
+>>> record.save("cyano_result", genetree, exptree)
+}
+
+@noindent
+This will create the files @code{cyano_result.cdt}, @code{cyano_result.gtr}, and @code{cyano_result.atr}.
+
+Similarly, we can save a @emph{k}-means clustering solution:
+
+@noindent
+@code{>>> from Pycluster import * @*
+>>> handle = open("cyano.txt") @*
+>>> record = read(handle) @*
+>>> (geneclusters, error, ifound) = record.kcluster(nclusters=5, npass=1000) @*
+>>> (expclusters, error, ifound) = record.kcluster(nclusters=2, npass=100, transpose=1) @*
+>>> record.save("cyano_result", geneclusters, expclusters)
+}
+
+@noindent
+This will create the files @code{cyano_result_K_G2_A2.cdt}, @code{cyano_result_K_G2.kgg}, and @code{cyano_result_K_A2.kag}.
+
+@section Auxiliary routines
+
+@noindent
+@code{median(data)} @*
+returns the median of the 1D array @code{data}.
+
+@noindent
+@code{mean(data)} @*
+returns the mean of the 1D array @code{data}.
+
+@noindent
+@code{version()} @*
+returns the version number of the C Clustering Library as a string.
+
+@node Perl, Building, Python,
+@chapter Using the C Clustering Library with Perl: Algorithm::Cluster
+
+Algorithm::Cluster is a Perl wrapper extension of the C Clustering Library written by John Nolan of the University of California, Santa Cruz.
+
+Algorithm::Cluster requires Perl 5.6.0 at a minimum.  It will not compile properly with 5.005_03 or previous versions or Perl.
+It has been tested on Win32, Mac OS X, Linux, OpenBSD and Solaris. 
+
+To install Algorithm::Cluster on UNIX, Linux, Mac OS X, or Cygwin, you can download the source code from @url{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}.  You will need an ANSI C compiler; GNU's free @code{gcc} compiler will do.  Unpack the distribution and type the following familiar commands to compile, test and install the module: @*
+@code{perl Makefile.PL} @*
+@code{make} @*
+@code{make test} @* 
+@code{make install} @*
+You can also use the CPAN shell from within Perl to download the module and install it. 
+
+If you use ActiveState Perl on Windows, use the Perl Package Manager @code{ppm} to install Algorithm::Cluster by executing the following command from the DOS command prompt. @*
+
+@noindent
+@code{ppm install http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/Algorithm-Cluster.ppd} @*
+
+Algorithm::Cluster offers the following functions: 
+@itemize @bullet
+@item @code{kcluster}
+@item @code{kmedoids}
+@item @code{treecluster}
+@item @code{somcluster}
+@item @code{clustercentroids}
+@item @code{clusterdistance}
+@item @code{distancematrix}
+@item @code{mean}
+@item @code{median}
+@end itemize
+
+You can also use Algorithm::Cluster to read expression data files and to write the clustering solution to a file; see below for details.
+
+@section  Using named parameters
+
+Most of the interface functions in Algorithm::Cluster expect named parameters.  This is implemented by passing a hash as a parameter to the function.  For example, if a Perl function @code{sign_up()} accepts three named parameters, @code{name}, @code{program} and @code{class}, then you can invoke the function like this: @*
+@*
+@code{$return_value = sign_up( @*
+@ @ @ @ @ @ @ @ 'name'     => 'Mr. Smith', @*
+@ @ @ @ @ @ @ @ 'program'  => 'Biology', @*
+@ @ @ @ @ @ @ @ 'class'    => 'Intro to Molecular Biology', @*
+);
+}
+
+When the function parses its parameters, it will create a hash, on the fly, with three keys.  The function can access the values by referring to the hash. 
+
+This is convenient for several reasons. First, it means that you can pass the parameters in any order.  Both invocations below are valid: @*
+@*
+@code{$return_value = sign _up( @*
+@ @ @ @ @ @ @ @ 'class'    => 'Intro to Molecular Biology', @*
+@ @ @ @ @ @ @ @ 'name'     => 'Ms. Jones', @*
+@ @ @ @ @ @ @ @ 'program'  => 'Biology', @*
+); @*
+$return_value = sign _up( @*
+@ @ @ @ @ @ @ @ 'name'     => 'Miss Chen', @*
+@ @ @ @ @ @ @ @ 'program'  => 'Biology', @*
+@ @ @ @ @ @ @ @ 'class'    => 'Intro to Molecular Biology', @*
+);}
+
+If the function defines default values for parameters, you can also leave some parameters out, and the function will still know which parameter is which: @*
+@*
+@code{$return_value = sign_up( @*
+@ @ @ @ @ @ @ @ 'name'     => 'Ms. Jones', @*
+);}
+
+You can define the hash on your own, and pass this to the function. This is useful if your function accepts a long list of parameters, and you intend to call it several times, (mostly) reusing the same values.  You can implement your own defaults: @*
+@*
+@code{%student = ( @*
+@ @ @ @ @ @ @ @ 'name'     => 'Mr. Smith', @*
+@ @ @ @ @ @ @ @ 'program'  => 'Biology', @*
+@ @ @ @ @ @ @ @ 'class'    => 'Intro to Molecular Biology', @*
+); @*
+$return_value  = sign_up(%student); @*
+@*
+$hash@{student@} = 'Ms. Jones'; @*
+$return_value  = sign_up(%student); @*
+@*
+$hash@{student@} = 'Miss Chen'; @*
+$return_value  = sign_up(%student); @*
+}
+
+
+@section References to arrays, and two-dimensional matrices
+
+Perl implements two-dimensional matrices using references.  For example, a reference to a one-dimensional array (a row) can be defined like this: @*
+@*
+@code{$row = [ 1, 2 ];} @*
+
+In this example, @code{$row} itself is not an array, but a reference to the array (1, 2).  (The square brackets indicate that we want to create a reference.) @code{$row->[0]} equals 1 and @code{$row->[1]} equals 2.   
+@tex
+A $3 \times 2$ matrix of integers can be defined like this:
+@end tex
+@html
+A 3 &times; 2 matrix of integers can be defined like this:
+@end html
+@*
+@*
+@code{$row0 = [ 1, 2 ]; @*
+$row1 = [ 3, 4 ]; @*
+$row2 = [ 5, 6 ]; @*
+$data = [ $row0, $row1, $row2 ];} @*
+@*
+Or, more succinctly: @*
+@*
+@code{
+$data = [ @*
+@ @ @ @ [ 1, 2 ], @*
+@ @ @ @ [ 3, 4 ], @*
+@ @ @ @ [ 5, 6 ], @*
+];}
+@*
+@*
+
+In this example, @code{$data->[0]->[1]} equals 2, while @code{$data->[2]->[0]} equals 5.
+
+Many of the functions available in Algorithm::Cluster expect data to be in the form of a two dimensional array, like the example above.   Some functions also return references to data structures like this. 
+
+@section Partitioning algorithms
+
+@subsection The @emph{k}-means clustering algorithm: @code{kcluster}
+
+The function @code{kcluster()} implements the @emph{k}-means clustering algorithm. In the example invocation below, we have created @code{$param@{data@}} as an empty matrix, because that is the default value, but you must populate @code{$param@{data@}} with real data, in order to invoke @code{kcluster()} properly.  @*
+@*
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ nclusters =>     2, @*
+@ @ @ @ @ @ @ @ data      =>  [[]], @*
+@ @ @ @ @ @ @ @ mask      =>    '', @*
+@ @ @ @ @ @ @ @ weight    =>    '', @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+@ @ @ @ @ @ @ @ npass     =>    10, @*
+@ @ @ @ @ @ @ @ method    =>   'a', @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+@ @ @ @ @ @ @ @ initialid =>    [], @*
+); @*
+my ($clusters, $error, $found) = kcluster(%param);}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+A reference to a two-dimensional matrix containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{nclusters} @*
+The number of clusters @emph{k}.
+
+@item @code{mask} @*
+A reference to a two-dimensional matrix of integers showing which data are missing. If @code{$param@{mask@}->[i]->[j]==0}, then @code{$param@{data@}->[i]->[j]} is missing. If @code{mask} is @code{''} (i.e., the null string, and not a reference at all), then there are no missing data.
+
+@item @code{weight} @*
+A reference to an array containing the weights to be used when calculating distances. If @code{weight} equals @code{''}  (i.e., the null string, and not a reference at all), then equal weights are assumed.  If @code{transpose==0}, the length of this array must equal the number of columns in the data matrix. If @code{transpose==1}, the length of the @code{weight} array should equal the number of rows in the data matrix. If @code{weight} has a different length, the entire array will be ignored. 
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{$param@{transpose@}==0}, genes (rows) are being clustered. If @code{$param@{transpose@}==1}, microarrays (columns) are clustered.
+
+@item @code{npass} @*
+The number of times the @emph{k}-means clustering algorithm is performed, each time with a different (random) initial condition. If the argument @code{initialid} is given, the value of @code{npass} is ignored and the clustering algorithm is run only once, as it behaves deterministically in that case.
+
+@item @code{method} @*
+A one-character flag, indicating how the center of a cluster is found:
+@itemize
+@item @code{'a'}: arithmetic mean
+@item @code{'m'}: median
+@end itemize
+For any other values of method, the arithmetic mean is used.
+
+@item @code{dist} @*
+A one-character flag, defining the distance function to be used:
+@itemize
+@item @code{'c'}: correlation
+@item @code{'a'}: absolute value of the correlation
+@item @code{'u'}: uncentered correlation
+@item @code{'x'}: absolute uncentered correlation
+@item @code{'s'}: Spearman's rank correlation
+@item @code{'k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{'e'}: Euclidean distance
+@item @code{'b'}: City-block distance
+@end itemize
+For other values of @code{dist}, the default (Euclidean distance) is used.
+@item @code{initialid} @*
+An optional parameter defining the initial clustering to be used for the EM algorithm. If @code{initialid} is not specified, then a different random initial clustering is used for each of the @code{npass} runs of the EM algorithm. If @code{initialid} is specified, then it should be equal to a 1D array containing the cluster number (between @code{0} and @code{nclusters-1}) for each item. Each cluster should contain at least one item. With the initial clustering specified, the EM algorithm is deterministic.
+@end itemize
+
+@subsubheading Return values
+
+This function returns a list of three items: @var{$clusterid}, @var{$error}, @var{$nfound}.  
+
+@itemize @bullet
+@item @var{$clusterid} @*
+A reference to an array whose length is equal to the number of rows in the data array. Each element in the @var{clusterid} array contains the number of the cluster to which each gene/microarray was assigned. 
+
+@item @var{$error} @*
+The within-cluster sum of distances of the optimal clustering solution that was found. 
+
+@item @var{$nfound} @*
+The number of times the optimal solution was found. 
+@end itemize
+
+@subsection The @emph{k}-medoids algorithm: @code{kmedoids}
+
+The function @code{kmedoids()} implements the @emph{k}-means clustering algorithm. In the example invocation below, we have created the distance matrix @code{$param@{distances@}} as an empty matrix, because that is the default value, but you must populate @code{$param@{distances@}} with real data, in order to invoke @code{kmedoids()} properly.  @*
+@*
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ nclusters =>     2, @*
+@ @ @ @ @ @ @ @ distances =>  [[]], @*
+@ @ @ @ @ @ @ @ npass     =>    10, @*
+@ @ @ @ @ @ @ @ initialid =>    [], @*
+); @*
+my ($clusters, $error, $found) = kmedoids(%param);}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{nclusters} @*
+The number of clusters @emph{k}.
+@item @code{distances} @*
+A list containing the distance matrix between the elements.
+An example of a distance matrix is: @*
+@code{$distances = [[],
+                    [1.1], 
+                    [1.0, 4.5],
+                    [2.3, 1.8, 6.1]];
+} @*
+@item @code{npass} @*
+The number of times the @emph{k}-medoids clustering algorithm is performed, each time with a different (random) initial condition. If @code{initialid} is given, the value of @var{npass} is ignored, as the clustering algorithm behaves deterministically in that case.
+@item @code{initialid} @*
+Specifies the initial clustering to be used for the EM algorithm. If @code{initialid} is not specified, then a different random initial clustering is used for each of the @code{npass} runs of the EM algorithm. If @code{initialid} is specified, then it should be equal to a 1D array containing the cluster number (between @code{0} and @code{nclusters-1}) for each item. Each cluster should contain at least one item. With the initial clustering specified, the EM algorithm is deterministic.
+@end itemize
+
+@subsubheading Return values
+
+This function returns a list of three items: @var{$clusterid}, @code{$error}, @code{$nfound}.  
+
+@itemize @bullet
+@item @code{$clusterid} @*
+@var{$clusterid} is a reference to an array whose length is equal to the number of rows of the distance matrix. Each element in the @var{clusterid} array contains the number of the cluster to which each gene/microarray was assigned. The cluster number is defined as the number of the gene/microarray that is the centroid of the cluster.
+
+@item @code{$error} @*
+@code{$error} is the within-cluster sum of distances of the optimal clustering solution that was found. 
+
+@item @code{$nfound} @*
+@code{$nfound} is the number of times the optimal solution was found. 
+@end itemize
+
+
+@section Hierarchical clustering: @code{treecluster}
+
+The pairwise single-, maximum-, average-, and centroid-linkage clustering methods are accessible through the function @code{treecluster}.
+@*
+@code{my %param = ( @*
+@ @ @ @ @ @ @ @ data       =>  [[]], @*
+@ @ @ @ @ @ @ @ mask       =>    '', @*
+@ @ @ @ @ @ @ @ weight     =>    '', @*
+@ @ @ @ @ @ @ @ transpose  =>     0, @*
+@ @ @ @ @ @ @ @ dist       =>   'e', @*
+@ @ @ @ @ @ @ @ method     =>   's', @*
+); @*
+ @*
+my @var{$tree} = Algorithm::Cluster::treecluster(%param); @*
+}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+A reference to a two-dimensional matrix containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise. It is also possible to pass a user-defined distance matrix as a lower-diagonal matrix, for example: @*
+@code{$data = [ @*
+@ @ @ @ @ @ @ @ @ [], @*
+@ @ @ @ @ @ @ @ @ [ 3.4], @*
+@ @ @ @ @ @ @ @ @ [ 4.3, 10.1], @*
+@ @ @ @ @ @ @ @ @ [ 3.7, 11.5,  1.0] @*
+@ @ @ @ @ @ @ @ ];} @*
+If the @code{data} argument has this form, it will be interpreted as a distance matrix instead of a raw data matrix, and the arguments @code{mask}, @code{weight}, @code{transpose}, and @code{dist} will be ignored. 
+
+@item @code{mask} @*
+A referene to a two-dimensional matrix of integers showing which data are missing. If @code{$param@{mask@}->[i]->[j]==0}, then @code{$param@{data@}->[i]->[j]} is missing. If @code{mask} is @code{''} (i.e., the null string, and not a reference at all), then there are no missing data.
+
+@item @code{weight} @*
+A reference to an array containing the weights to be used when calculating distances. If @code{weight} equals @code{''}  (i.e., the null string, and not a reference at all), then equal weights are assumed.  If @code{transpose==0}, the length of this array must equal the number of columns in the data matrix. If @code{transpose==1}, the length of the @code{weight} array should equal the number of rows in the data matrix. If @code{weight} has a different length, the entire array will be ignored. 
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{$param@{transpose@}==0}, genes (rows) are being clustered. If @code{$param@{transpose@}==1}, microarrays (columns) are clustered.
+
+@item @code{dist} @*
+A one-character flag, defining the distance function to be used:
+@itemize
+@item @code{'c'}: correlation
+@item @code{'a'}: absolute value of the correlation
+@item @code{'u'}: uncentered correlation
+@item @code{'x'}: absolute uncentered correlation
+@item @code{'s'}: Spearman's rank correlation
+@item @code{'k'}: Kendall's tau
+@item @code{'e'}: Euclidean distance
+@item @code{'b'}: City-block distance
+@end itemize
+
+@item @code{method} @*
+Specifies which type of hierarchical clustering is used:
+@itemize
+@item @code{'s'}: pairwise single-linkage clustering
+@item @code{'m'}: pairwise maximum- (or complete-) linkage clustering
+@item @code{'a'}: pairwise average-linkage clustering
+@item @code{'c'}: pairwise centroid-linkage clustering
+@end itemize
+Pairwise centroid-linkage clustering is not available if a user-defined distance matrix is passed via @code{data}.
+@end itemize
+
+@subsubheading Return values
+@noindent
+This method returns an array of @code{@emph{number of items} - 1} rows and three columns, where the number of items is the number of genes if genes were clustered, or the number of microarrays if microarrays were clustered. Each row describes a pairwise linking event, where the first two columns show which genes/microarrays or subnodes are being joined, and the third column shows the distance between them.  Genes/microarrays are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
+
+@section Self-Organizing Maps: @code{somcluster}
+
+The @code{somcluster()} function implements a Self-Organizing Map on a rectangular grid. @* 
+@*
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ data      =>  [[]], @*
+@ @ @ @ @ @ @ @ mask      =>    '', @*
+@ @ @ @ @ @ @ @ weight    =>    '', @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+@ @ @ @ @ @ @ @ nxgrid    =>    10, @*
+@ @ @ @ @ @ @ @ nygrid    =>    10, @*
+@ @ @ @ @ @ @ @ niter     =>   100, @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+); @*
+my ($clusterid) = Algorithm::Cluster::somcluster(%param);}
+
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+A reference to a two-dimensional matrix containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{mask} @*
+A reference to a two-dimensional matrix of integers showing which data are missing. If @code{$param@{mask@}->[i]->[j]==0}, then @code{$param@{data@}->[i]->[j]} is missing. If @code{mask} is @code{''} (i.e., the null string, and not a reference at all), then there are no missing data.
+
+@item @code{weight} @*
+A reference to an array containing the weights to be used when calculating distances. If @code{weight} equals @code{''}  (i.e., the null string, and not a reference at all), then equal weights are assumed.  If @code{transpose==0}, the length of this array must equal the number of columns in the data matrix. If @code{transpose==1}, the length of the @code{weight} array should equal the number of rows in the data matrix. If @code{weight} has a different length, the entire array will be ignored. 
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{$param@{transpose@}==0}, genes (rows) are being clustered. If @code{$param@{transpose@}==1}, microarrays (columns) are clustered.
+
+@item @code{nxgrid, nygrid} @*
+Both parameters are integers, indicating the number of cells horizontally and vertically in the rectangular grid, on which the Self-Organizing Map is calculated.
+
+@item @code{inittau} @*
+The initial value for the neighborhood function, as given by the parameter
+@tex
+$\tau$.
+@end tex
+@html
+<i>&tau;</i>.
+@end html
+The default value for @code{inittau} is 0.02, which was used in Michael Eisen's Cluster/TreeView program.
+
+@item @code{niter} @*
+The number of iterations to be performed.
+
+@item @code{dist} @*
+A one-character flag, defining the distance function to be used:
+@itemize
+@item @code{'c'}: correlation
+@item @code{'a'}: absolute value of the correlation
+@item @code{'u'}: uncentered correlation
+@item @code{'x'}: absolute uncentered correlation
+@item @code{'s'}: Spearman's rank correlation
+@item @code{'k'}: Kendall's tau
+@item @code{'e'}: Euclidean distance
+@item @code{'b'}: City-block distance
+@end itemize
+@end itemize
+
+@subsubheading Return values
+
+This function returns one value, @var{$clusterid}, which is a reference to a two-dimensional matrix. If @code{$param@{transpose@}==0}, then the number of rows in @var{$clusterid} equals the number of rows (genes) in the original data array;  if @code{$param@{transpose@}==1}, then then the number of rows in @var{$clusterid} equals the number of columns (microarrays) in the original data array.  Each row in the array @var{clusterid} contains the x and y coordinates of the cell in the rectangular SOM grid to which the gene or microarray was assigned.  
+
+
+@section Finding the cluster centroids: @code{clustercentroids}
+
+@noindent
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ data      =>  [[]], @*
+@ @ @ @ @ @ @ @ mask      =>    '', @*
+@ @ @ @ @ @ @ @ clusterid => undef, @*
+@ @ @ @ @ @ @ @ method    =>   'a', @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+); @*
+my ($cdata, $cmask) = clustercentroids(%param)
+} @*
+calculates the cluster centroids.
+
+@subsubheading Arguments
+
+@itemize @bullet @*
+@item @code{data} @*
+Array containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{mask} @*
+Array of integers showing which data are missing. If @code{$param@{mask@}->[$i]->[$j]==0}, then @code{$param@{data@}->[$i]->[$j]} is missing. If @code{mask} is @code{''}, then there are no missing data.
+
+@item @code{clusterid} @*
+Vector of integers showing to which cluster each element belongs. If @code{clusterid} is not given, then all elements are assumed to belong to the same cluster.
+
+@item @code{method} @*
+Specifies whether the arithmetic mean (@code{method=>'a'}) or the median (@code{method=>'m'}) is used to calculate the cluster center.
+
+@item @code{transpose} @*
+Determines if gene or microarray clusters are being considered. If @code{transpose==0}, then we are considering clusters of genes (rows). If @code{transpose==1}, then we are considering clusters of microarrays (columns).
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the list @code{@var{cdata}, @var{cmask}}.
+
+@itemize @bullet
+@item @code{@var{$cdata}} @*
+A 2D array containing the centroid data. The dimensions of this array are @code{(@emph{number of clusters}, @emph{number of microarrays})} if genes were clustered, or @code{(@emph{number of genes}, @emph{number of clusters})} if microarrays were clustered. Each row (if genes were clustered) or column (if microarrays were clustered) contains the averaged gene expression data for corresponding to the centroid of one cluster that was found.
+@item @code{@var{$cmask}} @*
+This matrix stores which values in @code{@var{$cdata}} are missing. If @code{@var{$cmask}[$i][$j]==0}, then @code{@var{$cdata}[$i][$j]} is missing. The dimensions of this array are @code{(@emph{number of clusters}, @var{number of microarrays})} if genes were clustered, or @code{(@var{number of genes}, @var{number of clusters})} if microarrays were clustered.
+@end itemize
+
+@section  The distance between two clusters: @code{clusterdistance}
+
+The @code{clusterdistance} routine calculates the distance between two clusters, between a cluster and an item, or between two items. @*
+@code{ @*
+my %param = ( @*
+@ @ @ @ @ @ @ @ data      =>  [[]], @*
+@ @ @ @ @ @ @ @ mask      =>    '', @*
+@ @ @ @ @ @ @ @ weight    =>    '', @*
+@ @ @ @ @ @ @ @ cluster1  =>    [], @*
+@ @ @ @ @ @ @ @ cluster2  =>    [], @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+@ @ @ @ @ @ @ @ method    =>   'a', @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+); @*
+ @*
+my ($distance) = Algorithm::Cluster::clusterdistance(%param); }
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+A reference to a two-dimensional matrix containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{mask} @*
+A reference to a two-dimensional matrix of integers showing which data are missing. If @code{$param@{mask@}->[i]->[j]==0}, then @code{$param@{data@}->[i]->[j]} is missing. If @code{mask} is @code{''} (i.e., the null string, and not a reference at all), then there are no missing data.
+
+@item @code{weight} @*
+A reference to an array containing the weights to be used when calculating distances. If @code{weight} equals @code{''}  (i.e., the null string, and not a reference at all), then equal weights are assumed.  If @code{transpose==0}, the length of this array must equal the number of columns in the data matrix. If @code{transpose==1}, the length of the @code{weight} array should equal the number of rows in the data matrix. If @code{weight} has a different length, the entire array will be ignored. 
+
+@item @code{cluster1} @*
+contains the indices of the elements belonging to the first cluster, or alternatively an integer to refer to a single item.
+
+@item @code{cluster2} @*
+contains the indices of the elements belonging to the second cluster, or alternatively an integer to refer to a single item.
+
+@item @code{dist} @*
+A one-character flag, defining the distance function to be used:
+@itemize
+@item @code{'c'}: correlation
+@item @code{'a'}: absolute value of the correlation
+@item @code{'u'}: uncentered correlation
+@item @code{'x'}: absolute uncentered correlation
+@item @code{'s'}: Spearman's rank correlation
+@item @code{'k'}: Kendall's tau
+@item @code{'e'}: Euclidean distance
+@item @code{'b'}: City-block distance
+@end itemize
+
+@item @code{method} @*
+A one-character flag, indicating how the center of a cluster is found:
+@itemize
+@item @code{'a'}: Distance between the two cluster centroids (arithmetic mean)
+@item @code{'m'}: Distance between the two cluster centroids (median)
+@item @code{'s'}: Shortest distance between elements in the two clusters
+@item @code{'x'}: Longest pairwise distance between elements in the two clusters
+@item @code{'v'}: Average over the pairwise distances between elements in the two clusters.
+@end itemize
+For any other values of @code{method}, the arithmetic mean is used.
+
+@item @code{transpose} @*
+Determines if the distance between genes or between microarrays should be calculated. If @code{$param@{transpose@}==0}, the function calculates the distance between the genes (rows) specified by @code{$param@{cluster1@}} and @code{$param@{cluster2@}}. If @code{$param@{transpose@}==1}, the function calculates the distance between the microarrays (columns) specified by @code{$param@{cluster1@}} and @code{$param@{cluster2@}}.
+@end itemize
+
+@subsubheading Return values
+
+The distance between the clusters indicated by @code{cluster1} and @code{cluster2}.
+
+@section Calculating the distance matrix: @code{distancematrix}
+
+The function @code{distancematrix()} calculates the distance matrix between the gene expression data and returns it as a ragged array.
+@*
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ data      =>  [[]], @*
+@ @ @ @ @ @ @ @ mask      =>    '', @*
+@ @ @ @ @ @ @ @ weight    =>    '', @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+); @*
+my $distancematrix = distancematrix(%param);}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{data} @*
+A reference to a two-dimensional matrix containing the gene expression data, where genes are stored row-wise and microarray experiments column-wise.
+
+@item @code{mask} @*
+A reference to a two-dimensional matrix of integers showing which data are missing. If @code{$param@{mask@}->[i]->[j]==0}, then @code{$param@{data@}->[i]->[j]} is missing. If @code{mask} is @code{''} (i.e., the null string, and not a reference at all), then there are no missing data.
+
+@item @code{weight} @*
+A reference to an array containing the weights to be used when calculating distances. If @code{weight} equals @code{''}  (i.e., the null string, and not a reference at all), then equal weights are assumed.  If @code{transpose==0}, the length of this array must equal the number of columns in the data matrix. If @code{transpose==1}, the length of the @code{weight} array should equal the number of rows in the data matrix. If @code{weight} has a different length, the entire array will be ignored. 
+
+@item @code{transpose} @*
+Determines if the distances between genes or microarrays should be calculated. If @code{$param@{transpose@}==0}, the distances between genes (rows) are calculated. If @code{$param@{transpose@}==1}, the distances are calculated between microarrays (columns).
+
+@item @code{dist} @*
+A one-character flag, defining the distance function to be used:
+@itemize
+@item @code{'c'}: correlation
+@item @code{'a'}: absolute value of the correlation
+@item @code{'u'}: uncentered correlation
+@item @code{'x'}: absolute uncentered correlation
+@item @code{'s'}: Spearman's rank correlation
+@item @code{'k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{'e'}: Euclidean distance
+@item @code{'b'}: City-block distance
+For other values of @code{dist}, the default (Euclidean distance) is used.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+
+This function returns the @var{$distancematrix}, an array of rows containing the distance matrix between the gene expression data. The number of columns in each row is equal to the row number. Hence, the first row has zero elements.
+
+@section Auxiliary routines
+
+@noindent
+@code{median($data)} @*
+Returns the median of the data.  @code{$data} is a reference to a (one-dimensional) array of numbers.
+
+@noindent
+@code{mean($data)} @*
+Returns the mean of the data.  @code{$data} is a reference to a (one-dimensional) array of numbers.
+
+@noindent
+@code{version()} @*
+Returns the version number of the C Clustering Library as a string.
+
+@section Handling Cluster/TreeView-type files
+
+Cluster/TreeView are GUI-based codes for clustering gene expression data. They were originlly written by Michael Eisen (@url{http://rana.lbl.gov}) while at Stanford University. Algorithm::Cluster contains routines for reading and writing data files in the format specifies for Cluster/TreeView. In particular, by saving a clustering result in that format, we can use TreeView to visualize the clustering results. We recommend using Alok Saldanha's Java TreeView program (@url{http://jtreeview.sourceforget.net}), which can display hierarchical as well as @emph{k}-means clustering clustering results.
+
+@subsection The @code{Record} class
+An object of the class @code{Record} contains all information stored in a Cluster/TreeView-type data file. To store the information contained in the data file in a @code{Record} object, we create a @code{Record} object, open the file, and then read the file contents into the @code{Record} object: @*
+
+@code{
+@noindent use Algorithm::Cluster::Record; @*
+my @var{$record} = Record->new(); @*
+open @var{INPUT}, "mydatafile.txt"; @*
+@var{$record}->read(*@var{INPUT}); @*
+}
+
+The @code{read} command reads the tab-delimited text file @code{mydatafile.txt} containing gene expression data in the format specified for Michael Eisen's Cluster/TreeView program.  For a description of this file format, see the manual to Cluster/TreeView. It is available at @uref{http://rana.lbl.gov/manuals/ClusterTreeView.pdf, Michael Eisen's lab website} and at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster3.pdf, our website}.
+
+A @code{Record} object stores the following information:
+
+@itemize @bullet
+@item @code{data} @*
+The data array containing the gene expression data. Genes are stored row-wise, while microarrays are stored column-wise.
+
+@item @code{mask} @*
+This array shows which elements in the @code{data} array, if any, are missing. If @code{@var{$record}@{mask@}[$i][$j]==0}, then @code{@var{$record}@{data@}[$i][$j]} is missing. If no data were found to be missing, @code{@var{$record}@{mask@}} remains @code{undef}.
+
+@item @code{geneid} @*
+This is a list containing a unique description for each gene (i.e., ORF numbers).
+
+@item @code{genename} @*
+This is a list containing a description for each gene (i.e., gene name). If not present in the data file, @code{@var{$record}@{genename@}} remains @code{undef}.
+
+@item @code{gweight} @*
+The weights that are to be used to calculate the distance in expression profile between genes. If not present in the data file, @code{@var{$record}@{gweight@}} remains @code{undef}.
+
+@item @code{gorder} @*
+The preferred order in which genes should be stored in an output file. If not present in the data file, @code{@var{$record}@{gorder@}} remains @code{undef}.
+
+@item @code{expid} @*
+This is a list containing a description of each microarray, e.g. experimental condition.
+
+@item @code{eweight} @*
+The weights that are to be used to calculate the distance in expression profile between microarrays. If not present in the data file, @code{@var{$record}@{eweight@}} remains @code{undef}.
+
+@item @code{eorder} @*
+The preferred order in which microarrays should be stored in an output file. If not present in the data file, @code{@var{$record}@{eorder@}} remains @code{undef}.
+
+@item @code{uniqid} @*
+The string that was used instead of UNIQID in the data file.
+@end itemize
+
+After loading a @code{Record} object, each of these attributes can be accessed and modified directly. For example, the data can be log-transformed by taking the logarithm of @code{@var{record}->{data}}.
+
+@subsection Performing hierarchical clustering
+
+@noindent
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+@ @ @ @ @ @ @ @ method    =>   'a', @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+); @*
+my @var{$tree} = @var{$record}->treecluster(%param)}; @*
+applies hierachical clustering to the data contained in the @code{Record} object.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{method} @*
+defines the linkage method to be used:
+@itemize
+@item @code{method=='s'}: pairwise single-linkage clustering
+@item @code{method=='m'}: pairwise maximum- (or complete-) linkage clustering
+@item @code{method=='c'}: pairwise centroid-linkage clustering
+@item @code{method=='a'}: pairwise average-linkage clustering
+@end itemize
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+@noindent
+This method returns an array of @code{@emph{number of items} - 1} rows and three columns, where the number of items is the number of genes if genes were clustered, or the number of microarrays if microarrays were clustered. Each row describes a pairwise linking event, where the first two columns show which genes/microarrays or subnodes are being joined, and the third column shows the distance between them.  Genes/microarrays are numbered from @code{0} to @code{(@emph{number of items} - 1)}, while clusters are numbered @code{-1} to @code{-(@emph{number of items}-1)}.
+
+
+@subsection Performing @emph{k}-means or @emph{k}-medians clustering
+
+@noindent
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ nclusters =>     2, @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+@ @ @ @ @ @ @ @ npass     =>     1, @*
+@ @ @ @ @ @ @ @ method    =>   'a', @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+@ @ @ @ @ @ @ @ initialid => undef, @*
+); @*
+my (@var{$clusterid}, @var{$error}, @var{$nfound}) = @var{$record}->kcluster(%param);} @*
+applies @emph{k}-means or @emph{k}-medians clustering to the data contained in the @code{Record} object.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{nclusters} @*
+The number of clusters @emph{k}.
+
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{npass} @*
+The number of times the @emph{k}-means clustering algorithm is performed, each time with a different (random) initial condition. If @code{initialid} is given, the value of @code{npass} is ignored and the clustering algorithm is run only once, as it behaves deterministically in that case.
+
+@item @code{method} @*
+describes how the center of a cluster is found:
+@itemize
+@item @code{method=='a'}: arithmetic mean;
+@item @code{method=='m'}: median.
+@end itemize
+@noindent
+For other values of @code{method}, the arithmetic mean is used.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@noindent
+@item @code{initialid} @*
+Specifies the initial clustering to be used for the EM algorithm. If @code{initialid==None}, then a different random initial clustering is used for each of the @code{npass} runs of the EM algorithm. If @code{initialid} is not @code{None}, then it should be equal to a 1D array containing the cluster number (between @code{0} and @code{nclusters-1}) for each item. Each cluster should contain at least one item. With the initial clustering specified, the EM algorithm is deterministic.
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns three variables @code{(@var{$clusterid}, @var{$error}, @var{$nfound})}.
+
+@itemize @bullet
+@item @code{@var{$clusterid}} @*
+An array containing the number of the cluster to which each gene/microarray was assigned.
+@item @code{@var{$error}} @*
+The within-cluster sum of distances for the optimal clustering solution.
+@item @code{@var{$nfound}} @*
+The number of times the optimal solution was found.
+@end itemize
+
+@subsection Calculating a Self-Organizing Map
+
+@noindent
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+@ @ @ @ @ @ @ @ nxgrid    =>     2, @*
+@ @ @ @ @ @ @ @ nygrid    =>     1, @*
+@ @ @ @ @ @ @ @ inittau   =>  0.02, @*
+@ @ @ @ @ @ @ @ niter     =>     1, @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+); @*
+my @@clusterid = @var{$record}->somcluster(%param);} @*
+calculates a Self-Organizing Map on a rectangular grid, using the gene expression data in the @code{Record} object @var{$record}.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{nxgrid, nygrid} @*
+The number of cells horizontally and vertically in the rectangular grid, on which the Self-Organizing Map is calculated.
+
+@item @code{inittau} @*
+The initial value for the parameter
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
+that is used in the SOM algorithm. The default value for @code{inittau} is 0.02, which was used in Michael Eisen's Cluster/TreeView program.
+
+@item @code{niter} @*
+The number of iterations to be performed.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns an array with two columns, where the number of rows is equal to the number of genes or the number of microarrays depending on whether genes or microarrays are being clustered. Each row contains the @emph{x} and @emph{y} coordinates of the cell in the rectangular SOM grid to which the gene or microarray was assigned.
+
+@subsection Finding the cluster centroid
+
+@noindent
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ clusterid => undef, @*
+@ @ @ @ @ @ @ @ method    =>   'a', @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+); @*
+my (@var{$cdata}, @var{$cmask}) = @var{record}->clustercentroids(%param);} @*
+calculates the cluster centroids.
+
+@subsubheading Arguments
+
+@itemize @bullet @*
+@item @code{clusterid} @*
+Vector of integers showing to which cluster each element belongs. If @code{clusterid} is not given, then all elements are assumed to belong to the same cluster.
+
+@item @code{method} @*
+Specifies whether the arithmetic mean (@code{method=='a'}) or the median (@code{method=='m'}) is used to calculate the cluster center.
+
+@item @code{transpose} @*
+Determines if gene or microarray clusters are being considered. If @code{transpose==0}, then we are considering clusters of genes (rows). If @code{transpose==1}, then we are considering clusters of microarrays (columns).
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the list @code{@var{$cdata}, @var{$cmask}}.
+
+@itemize @bullet
+@item @code{@var{$cdata}} @*
+A 2D array containing the centroid data. The dimensions of this array are @code{(@emph{number of clusters}, @emph{number of microarrays})} if genes were clustered, or @code{(@emph{number of genes}, @emph{number of clusters})} if microarrays were clustered. Each row (if genes were clustered) or column (if microarrays were clustered) contains the averaged gene expression data for corresponding to the centroid of one cluster that was found.
+@item @code{@var{$cmask}} @*
+This matrix stores which values in @code{@var{cdata}} are missing. If @code{@var{$cmask}[$i][$j]==0}, then @code{@var{$cdata}[$i][$j]} is missing. The dimensions of this array are @code{(@emph{number of clusters}, @emph{number of microarrays})} if genes were clustered, or @code{(@emph{number of genes}, @emph{number of clusters})} if microarrays were clustered.
+@end itemize
+
+@subsection Calculating the distance between two clusters
+
+@noindent
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ index1    =>    [], @*
+@ @ @ @ @ @ @ @ index2    =>    [], @*
+@ @ @ @ @ @ @ @ method    =>   'a', @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+); @*
+my @var{$distance} = @var{record}->clusterdistance(%param);} @*
+calculates the distance between two clusters.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{index1} @* is a list containing the indices of the elements belonging to the first cluster, or alternatively an integer to refer to a single item.
+
+@item @code{index2} @* is a list containing the indices of the elements belonging to the second cluster, or alternatively an integer to refer to a single item.
+
+@item @code{method} @*
+Specifies how the distance between clusters is defined:
+@itemize
+@item @code{method=='a'}: Distance between the two cluster centroids (arithmetic mean);
+@item @code{method=='m'}: Distance between the two cluster centroids (median);
+@item @code{method=='s'}: Shortest pairwise distance between elements in the two clusters;
+@item @code{method=='x'}: Longest pairwise distance between elements in the two clusters;
+@item @code{method=='v'}: Average over the pairwise distances between elements in the two clusters.
+@end itemize
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+
+@item @code{transpose} @*
+Determines if gene or microarray clusters are being considered. If @code{transpose==0}, then we are considering clusters of genes (rows). If @code{transpose==1}, then we are considering clusters of microarrays (columns).
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the distance between the two clusters.
+
+@subsection Calculating the distance matrix
+
+@noindent
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ transpose =>     0, @*
+@ @ @ @ @ @ @ @ dist      =>   'e', @*
+); @*
+my @var{$matrix} = @var{record}->distancematrix(%param);} @*
+returns the distance matrix between gene expression data.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{transpose} @*
+Determines if genes or microarrays are being clustered. If @code{transpose==0}, genes (rows) are being clustered. If @code{transpose==1}, microarrays (columns) are clustered.
+
+@item @code{dist} @*
+defines the distance function to be used:
+@itemize
+@item @code{dist=='c'}: correlation;
+@item @code{dist=='a'}: absolute value of the correlation;
+@item @code{dist=='u'}: uncentered correlation;
+@item @code{dist=='x'}: absolute uncentered correlation;
+@item @code{dist=='s'}: Spearman's rank correlation;
+@item @code{dist=='k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
+@item @code{dist=='e'}: Euclidean distance;
+@item @code{dist=='b'}: City-block distance.
+@end itemize
+@end itemize
+
+@subsubheading Return values
+This function returns the @var{$distancematrix}, an array of rows containing the distance matrix between the gene expression data. The number of columns in each row is equal to the row number. Hence, the first row has zero elements.
+
+@subsection Saving the clustering result
+
+@noindent
+@code{
+my %param = ( @*
+@ @ @ @ @ @ @ @ jobname      =>    '', @*
+@ @ @ @ @ @ @ @ geneclusters =>    [], @*
+@ @ @ @ @ @ @ @ expclusters  =>    [], @*
+); @*
+@var{$record}->save(%param);} @*
+writes the text file @var{jobname}@code{.cdt}, @var{jobname}@code{.gtr}, @var{jobname}@code{.atr}, @var{jobname*}@code{.kgg}, and/or @var{jobname*}@code{.kag} for subsequent reading by the Java TreeView program. If @code{geneclusters} and @code{expclusters} are both @code{None}, this method only writes the text file @var{jobname}@code{.cdt}; this file can subsequently be read into a new @code{Record} object.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{jobname} @*
+The string @code{jobname} is used as the base name for names of the files that are to be saved.
+
+@item @code{geneclusters} @*
+This argument describes the gene clustering result. In case of @emph{k}-means clustering, this is a 1D array containing the number of the cluster each gene belongs to. It can be calculated using @code{kcluster}. In case of hierarchical clustering, @code{geneclusters} is a @code{Tree} object.
+
+@item @code{expclusters} @*
+This argument describes the clustering result for the experimental conditions. In case of @emph{k}-means clustering, this is a 1D array containing the number of the cluster each experimental condition belongs to. It can be calculated using @code{kcluster}. In case of hierarchical clustering, @code{expclusters} is a @code{Tree} object.
+@end itemize
+
+@subsection Example calculation
+
+This is an example of a hierarchical clustering calculation, using single linkage clustering for genes and maximum linkage clustering for experimental conditions. As the Euclidean distance is being used for gene clustering, it is necessary to scale the node distances @code{genetree} such that they are all between zero and one. This is needed for the Java TreeView code to display the tree diagram correctly. To cluster the experimental conditions, the uncentered correlation is being used. No scaling is needed in this case, as the distances in @code{exptree} are already between zero and two. The example data @code{cyano.txt} can be found in the @code{data} subdirectory.
+
+@noindent
+@code{use Algorithm::Cluster::Record; @*
+my $record = Record->new(); @*
+open INPUT, "cyano.txt"; @*
+$record->read(*INPUT); @*
+my $genetree = $record->treecluster(method=>'s'); @*
+my $exptree = $record->treecluster(dist=>'u', transpose=>1); @*
+$record->save(jobname=>"cyano_result", geneclusters=>$genetree, expclusters=>$exptree);
+}
+
+@noindent
+This will create the files @code{cyano_result.cdt}, @code{cyano_result.gtr}, and @code{cyano_result.atr}.
+
+Similarly, we can save a @emph{k}-means clustering solution:
+
+@noindent
+@code{use Algorithm::Cluster::Record; @*
+my $record = Record->new(); @*
+open INPUT, "cyano.txt"; @*
+$record->read(*INPUT); @*
+my ($geneclusters, $error, $ifound) = $record->kcluster(nclusters=>5, npass=>1000); @*
+my ($expclusters, $error, $ifound) = $record->kcluster(nclusters=>2, npass=>100, transpose=>1); @*
+$record->save(jobname=>"cyano_result", geneclusters=>$geneclusters, expclusters=>$expclusters);
+}
+
+@noindent
+This will create the files @code{cyano_result_K_G2_A2.cdt}, @code{cyano_result_K_G2.kgg}, and @code{cyano_result_K_A2.kag}.
+
+
+@node Building, , Perl, 
+@chapter Compiling and linking
+
+In the instructions below, @code{@emph{<version>}} refers to the version number.
+The C Clustering Library complies with the ANSI-C standard since version 1.04. As of version 1.06, the C Clustering Library makes use of @code{autoconf}/@code{automake} to make the installation process easier.
+To install the library for use with Python, use the @code{setup.py} script instead, as described below. To install the library for use with Perl, use the @code{Makefile.PL} script.
+
+@node Installing the C Clustering Library for Python
+@section Installing the C Clustering Library for Python
+Pycluster is available as part of the Biopython distribution and as a separate package. As of version 1.41, Pycluster uses the ``new'' Numerical Python (version 1.1.1 or later), which you should install before installing Pycluster.
+
+To install Pycluster as a separate package, download @code{Pycluster-@emph{<version>}.tar.gz} from
+@url{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}.
+Unpack this file: @*
+@code{gunzip Pycluster-@emph{<version>}.tar.gz} @*
+@code{tar -xvf Pycluster-@emph{<version>}.tar} @*
+and change to the directory @code{Pycluster-@emph{<version>}}. Type @*
+@code{python setup.py install} @*
+from this directory. This will compile the library and install it for use with
+Python. If the installation was successful, you can remove the directory
+@code{Pycluster-@emph{<version>}}.
+For Python on Windows (run from a DOS command window, or with a graphical user interface such as IDLE, PyCrust, PyShell, or PythonWin), a binary installer is available from @url{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}.
+
+Installation instructions for Biopython are available from the @uref{http://www.biopython.org, Biopython website}.
+
+@node Installing the C Clustering Library for Perl
+@section Installing the C Clustering Library for Perl
+To install the C Clustering Library for Perl, download @code{Algorithm-Cluster-@emph{<version>}.tar.gz} from @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster} or from CPAN. Next, unpack this file with @*
+@code{gunzip Algorithm-Cluster-@emph{<version>}.tar.gz} @*
+@code{tar -xvf Algorithm-Cluster-@emph{<version>}.tar} @*
+and change to the directory @code{Algorithm-Cluster-@emph{<version>}}. Type @*
+@code{perl Makefile.PL} @*
+which will create a Makefile. To compile and install, type @*
+@code{make} @*
+@code{make install} @*
+from this directory. 
+You can execute @*
+@code{make test} @*
+to run some scripts that test the Algorithm::Cluster module.
+Some example Perl scripts can be found in the @code{perl/examples} subdirectory.
+If the installation was successful, you can remove the directory
+@code{Algorithm-Cluster-@emph{<version>}}.
+
+If you use ActiveState Perl on Windows, you can use the Perl Package Manager by
+executing @*
+@code{ppm install http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/Algorithm-Cluster.ppd} @*
+from the DOS command prompt. This assumes that you are using Perl 5.8 or 5.10 from ActiveState.
+
+@section Accessing the C Clustering Library from C/C++
+To call the routines in the C Clustering Library from your own C or C++
+program, simply collect the relevant source files and compile them together with
+your program. The figure below shows the dependency structure for the source files in the C Clustering Library.
+
+@image{structure}
+
+To use the routines in the C Clustering Library, put @*
+@code{#include <cluster.h>} @*
+in your source code. If your program is written in C++, use @*
+@code{extern "C" @{} @*
+@code{#include <cluster.h>} @*
+@code{@}} @*
+instead. To compile a C or C++ program with the C Clustering Library, add the relevant source files to the compile command. For example, a C program @code{myprogram.c} can be compiled and linked by @*
+@code{gcc -o myprogram myprogram.c cluster.c} @*
+An example C program that makes use of the C Clustering Library can be found in the @code{example} subdirectory.
+
+
+@section Installing Cluster 3.0 for Windows
+The easiest way to install Cluster 3.0 for Windows is to use the @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster, Windows installer}. The executable @code{cluster.com} can be used both as a GUI and as a command line program. To start Cluster 3.0 as a GUI program, simply double-click on @code{cluster.com}. If you want to use Cluster 3.0 from the command prompt as a command line program, you may need to give the full path to the executable (e.g., @code{C:\Program Files\Stanford University\Cluster 3.0\cluster.com}; the exact path may be different on your computer). Type @code{cluster.com --help} for an overview of all command line options.
+
+If you want to compile Cluster 3.0 from the source, change to the @code{windows} directory, and type @code{make}. This will compile the C Clustering Library, the Cluster 3.0 GUI, the Windows help files and the documentation. To compile the GUI, you need an ANSI C compiler such as GNU @code{gcc}. To compile the resources needed for the GUI, you will need the GNU program @code{windres}.  To generate the help files, you need the HTML Help SDK, which can be downloaded from Microsoft. You will also need GNU makeinfo.
+
+To generate the Windows installer, type @*
+@code{make clustersetup.exe} @*
+For this, you will need the Inno Setup Compiler, which can be downloaded from
+@uref{http://www.jrsoftware.org}.
+
+@section Installing Cluster 3.0 for Mac OS X
+Cluster 3.0 for Mac OS X can be installed most easily by using the prebuilt package that is available at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}. After installing, you can start Cluster 3.0 as a GUI program by double-clicking on its icon. To run Cluster 3.0 as a command line program (e.g., from the Terminal), most likely you will need to give the full path to the executable (e.g., @code{/Applications/Cluster.app/Contents/MacOS/Cluster}).
+If you want to recompile Cluster 3.0, it is easiest to use the Project Builder and Interface Builder that are part of Mac OS X. The directory @code{mac} contains the project file that was used.
+
+@section Installing Cluster 3.0 for Linux/Unix
+Cluster 3.0 was ported to Linux/Unix using the Motif libraries. Motif is installed on most Linux/Unix computers. You will need a version compliant with Motif 2.1, such as Open Motif (@uref{http://www.opengroup.org}), which is available at @uref{http://www.motifzone.net}. Currently, LessTif (@uref{http://www.lesstif.org}) does not work correctly with Cluster 3.0.
+
+To install Cluster 3.0 on Linux/Unix, type @*
+@code{./configure} @*
+@code{make} @*
+@code{make install} @*
+This will create the executable @code{cluster} and install it in @code{/usr/local/bin}. Some auxiliary files will be installed in @code{/usr/local/cluster}. The executable can be used both as a GUI program and as a command line program. Type @*
+@code{cluster --help} @*
+for more information about running Cluster 3.0 as a command line program.
+
+@section Installing Cluster 3.0 as a command line program
+Cluster 3.0 can also be installed without GUI support. In this case, Cluster 3.0 can only be run as a command line program, in which the action taken by the program depends on the command line parameters. To install Cluster 3.0 as a command line program, the Motif libraries are not needed. Simply download the source code for the C Clustering Library from our website
+@uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}, unpack and untar the file, and change to the directory @code{cluster-@emph{<version>}}. Then type @*
+@code{./configure --without-x} @*
+@code{make} @*
+@code{make install} @*
+For the last step, you may need superuser privileges. For more information about
+the command line options, check the Cluster 3.0 manual.
+
+
+@node Bibliography, , ,
+@unnumbered Bibliography
+
+@noindent
+Brown, P. O., and Botstein, D. (1999). Exploring the new world of the genome with DNA microarrays. @emph{Nature Genetics} @strong{21} (Supplement 1), 33--37.
+
+@noindent
+De Hoon, M. J. L., Imoto, S., and Miyano, S. (2002). Statistical analysis of a small set of time-ordered gene expression data using linear splines. @emph{Bioinformatics} @strong{18} (11), 1477--1485.
+
+@noindent
+De Hoon, M. J. L., Imoto, S., Nolan, J., and Miyano, S. (2004). Open source clustering software. @emph{Bioinformatics},  @strong{20} (9), 1453--1454.
+
+@noindent
+Eisen, M. B., Spellman, P. T., Brown, P. O., and Botstein, D. (1998). Cluster analysis and display of genome-wide expression patterns. @emph{Proceedings of the National Academy of Science USA} @strong{95} (25), 14863--14868.
+
+@noindent
+Golub, G. H. and Reisch, C. (1971). Singular value decomposition and least squares solutions. In @emph{Handbook for Automatic Computation}, @strong{2}, (Linear Algebra) (J. H. Wilkinson and C. Reinsch, eds), 134--151. New York: Springer-Verlag.
+
+@noindent
+Hartigan, J. A. (1975). @emph{Clustering algorithms} (New York: Wiley).
+
+@noindent
+Jain, A. K. and Dubes, R. C. (1988). @emph{Algorithms for clustering data} (Englewood Cliffs, N.J.: Prentice Hall).
+
+@noindent
+Kachitvichyanukul, V. and Schmeiser, B. W. (1988). Binomial Random Variate Generation. @emph{Communications of the ACM} @strong{31} (2), 216--222.
+
+@noindent
+Kohonen, T. (1997). @emph{Self-organizing maps}, 2nd Edition (Berlin; New York: Springer-Verlag).
+
+@noindent
+L'Ecuyer, P. (1988) Efficient and Portable Combined Random Number Generators.
+@emph{Communications of the ACM} @strong{31} (6), 742--749,774.
+
+@noindent
+Sibson, R. (1973). SLINK: An optimally efficient algorithm for the single-link cluster method. @emph{The Computer Journal}, @strong{16} (1), 30--34.
+
+@noindent
+Snedecor, G. W. and Cochran, W. G. (1989). @emph{Statistical methods} (Ames, Iowa: Iowa State University Press).
+
+@noindent
+Tamayo, P., Slonim, D., Mesirov, J., Zhu, Q., Kitareewan, S., Dmitrovsky, E., Lander, E., and Golub, T. (1999). Interpreting patterns of gene expression with self-organizing maps: Methods and application to hematopoietic differentiation. @emph{Proceedings of the National Academy of Science USA}, @strong{96} (6), 2907--2912.
+
+@noindent
+Tryon, R. C., and Bailey, D. E. (1970). @emph{Cluster analysis} (New York: McGraw-Hill).
+
+@noindent
+Tukey, J. W. (1977). @emph{Exploratory data analysis} (Reading, Mass.: Addison-Wesley Pub. Co.).
+
+@noindent
+Yeung, K. Y., and Ruzzo, W. L. (2001). Principal Component Analysis for clustering gene expression data. @emph{Bioinformatics}, @strong{17} (9), 763--774.
+
+@bye

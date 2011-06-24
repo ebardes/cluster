@@ -1,0 +1,51 @@
+<html lang="en">
+<head>
+<title>PCA - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Cluster.html#Cluster" title="Cluster">
+<link rel="prev" href="SOM.html#SOM" title="SOM">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="PCA"></a>Previous:&nbsp;<a rel="previous" accesskey="p" href="SOM.html#SOM">SOM</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
+<hr><br>
+</div>
+
+<h3 class="section">4.4 Principal Component Analysis</h3>
+
+<p>Principal Component Analysis (PCA) is a widely used technique for analyzing multivariate data. 
+In PCA, the data vectors are written as a linear sum over principal components. The number of principal components is equal to the number of dimensions of the data vectors.
+
+   <p>The principal components are chosen such that they maximally explain the variance in the data vectors. For example, in case of 3D data vectors, the data can be represented as an ellipsoidal cloud of points in three dimensional space. The first principal component would be the longest axis of the ellipsoid, the second principal component would be the second longest axis of the ellipsoid, and the third principal component would be the shortest axis. In other words, the principal components are ordered by the amount of variance they explain.
+
+   <p>Each data point can be reconstructed by a suitable linear combination of the principal components. However, in order to reduce the dimensionality of the data, usually only the most important principal components are used. The remaining variance present in the data is then regarded as unexplained variance.
+
+   <p>The principal components can be found by calculating the eigenvectors of the covariance matrix of the data. The corresponding eigenvalues determine how much of the variance present in the data is explained by each principal component.
+
+   <p>In Cluster, the eigenvectors are found by calculating the singular value decomposition of the data matrix. 
+The output is very simple in
+this version and consists of two files: <span class="file">JobName_svv.txt</span> that contains the principal
+components and <span class="file">JobName_svu.txt</span> that contains the loadings of each gene on the principal
+components. By multiplying the principal components by the loadings and summing, the data vector of each gene can be recovered.
+
+   <p>A practical example of applying Principal Component Analysis to gene expression data is presented by Yeung and Ruzzo (2001).
+
+   </body></html>
+

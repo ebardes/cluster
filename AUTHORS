@@ -1,0 +1,18 @@
+Michiel de Hoon (currently at the RIKEN Genomic Sciences Center),
+SunYong Kim, Seiya Imoto, and Satoru Miyano.
+
+University of Tokyo,
+Institute of Medical Science,
+Human Genome Center,
+Laboratory of DNA Information Analysis.
+http://bonsai.ims.u-tokyo.ac.jp
+
+Contact: mdehoon 'AT' gsc.riken.jp
+
+Cluster 3.0 is an enhanced version of Cluster, which was written by Michael
+Eisen (http://rana.lbl.gov) while at Stanford University. Cluster 3.0 was
+written for Windows, and subsequently ported to Mac OS X and Linux/Unix.
+
+The Perl interface to the C Clustering Library was written by John Nolan
+(jpnolan@sonic.net) of the University of California, Santa Cruz.
+

@@ -1,0 +1,80 @@
+<html lang="en">
+<head>
+<title>SOM - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="up" href="Cluster.html#Cluster" title="Cluster">
+<link rel="prev" href="KMeans.html#KMeans" title="KMeans">
+<link rel="next" href="PCA.html#PCA" title="PCA">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="SOM"></a>Next:&nbsp;<a rel="next" accesskey="n" href="PCA.html#PCA">PCA</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="KMeans.html#KMeans">KMeans</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
+<hr><br>
+</div>
+
+<h3 class="section">4.3 Self-Organizing Maps</h3>
+
+<div class="block-image"><img src="images/som.png" alt="images/som.png"></div>
+
+   <p>Self-Organizing Maps (SOMs) is a method of cluster analysis that are somewhat related to
+<i>k</i>-meansclustering. SOMs were invented in by Teuvo Kohonen in the early 1980s, and
+have recently been used in genomic analysis (see Chu 1998, Tamayo 1999 and Golub
+1999 in references). The Tamayo paper contains a simple explanation of the methods. A
+more detailed description is available in the book by Kohonen, Self-Organizing Maps,
+1997.
+
+   <p>The current implementation varies slightly from that of Tamayo et al., in that it restricts
+the analysis one-dimensional SOMs along each axis, as opposed to a two-dimensional
+network. The one-dimensional SOM is used to reorder the elements on whichever axes
+are selected. The result is similar to the result of k-means clustering, except that, unlike kmeans,
+the nodes in a SOM are ordered. This tends to result in a relatively smooth
+transition between groups.
+
+   <p>The options for SOMs are
+     <ul>
+<li>whether or not you will organize each axis;
+<li>the number of nodes for each axis (the default is
+<i>n</i><SUP>1/4</SUP>,where
+<i>n</i>is the number of items. The total number of clusters is then equal to the square root of the number of items. 
+<li>the number of iterations to be run. 
+</ul>
+
+   <p>The output file is of the form <span class="file">JobName_SOM_GXg-Yg_AXa-Ya.txt</span>, where <span class="file">GXg-Yg</span> is
+included if genes were organized, and <span class="file">AXg-Yg</span> is included if arrays were organized. <span class="file">X</span> and
+<span class="file">Y</span> represent the dimensions of the corresponding SOM. 
+Up to two additional files (<span class="file">.gnf</span> and <span class="file">.anf</span>) are written containing the vectors for
+the SOM nodes.
+
+   <p>In previous versions of Cluster, only one-dimensional SOMs were supported. 
+The current version of the Cluster introduces two-dimensional SOMs.
+
+   <p>SOMs and hierarchical clustering:
+Our original use of SOMs (see Chu et al., 1998) was
+motivated by the desire to take advantage of the properties of both SOMs and hierarchical
+clustering. This was accomplished by first computing a one dimensional SOM, and using
+the ordering from the SOM to guide the flipping of nodes in the hierarchical tree. In
+Cluster, after a SOM is run on a dataset, the GORDER and/or EORDER fields are set to
+the ordering from the SOM so that, for subsequent hierarchical clustering runs, the output
+ordering will come as close as possible to the ordering in the SOM without violating the
+structure of the tree.
+
+   </body></html>
+

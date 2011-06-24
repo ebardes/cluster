@@ -1,0 +1,90 @@
+<html lang="en">
+<head>
+<title>Command - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
+<meta http-equiv="Content-Type" content="text/html">
+<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
+<meta name="generator" content="makeinfo 4.7">
+<link title="Top" rel="start" href="index.html#Top">
+<link rel="prev" href="Cluster.html#Cluster" title="Cluster">
+<link rel="next" href="TreeView.html#TreeView" title="TreeView">
+<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<style type="text/css"><!--
+  pre.display { font-family:inherit }
+  pre.format  { font-family:inherit }
+  pre.smalldisplay { font-family:inherit; font-size:smaller }
+  pre.smallformat  { font-family:inherit; font-size:smaller }
+  pre.smallexample { font-size:smaller }
+  pre.smalllisp    { font-size:smaller }
+  span.sc { font-variant:small-caps }
+  span.roman { font-family: serif; font-weight: normal; } 
+--></style>
+</head>
+<body>
+<div class="node">
+<p>
+<a name="Command"></a>Next:&nbsp;<a rel="next" accesskey="n" href="TreeView.html#TreeView">TreeView</a>,
+Previous:&nbsp;<a rel="previous" accesskey="p" href="Cluster.html#Cluster">Cluster</a>,
+Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
+<hr><br>
+</div>
+
+<h2 class="chapter">5 Running Cluster 3.0 as a command line program</h2>
+
+<p>Cluster 3.0 can also be run as a command line program. This may be useful if you want to run Cluster 3.0 on a remote server, and also allows automatic processing a large number of data files by running a batch script. Note, however, that the Python and Perl interfaces to the C Clustering Library may be better suited for this task, as they are more powerful than the command line program (see the manual for the C Clustering Library at <a href="http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster.pdf">http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster.pdf</a>).
+
+   <p>The GUI version of Cluster 3.0 can be used as a command line program by applying the appropriate command line parameters. You can also compile Cluster 3.0 without GUI support (if you will be using it from the command line only) by downloading the source code from <a href="http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster">http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster</a>, and running <br>
+<code>configure --without-x</code> <br>
+<code>make</code> <br>
+<code>make install</code> <br>
+The executable is called <code>cluster</code>. To run this program, execute <br>
+<code>cluster [options]</code> <br>
+in which the options consist of the following command line parameters:
+     <dl>
+<dt><code>-f </code><var>filename</var><dd>File loading
+<br><dt><code>-l</code><dd>Specifies to log-transform the data before clustering (default is no log-transform)
+<br><dt><code>-cg a|m</code><dd>Specifies whether to center each row (gene) in the data set: <br>
+<code>a</code>: Subtract the mean of each row <br>
+<code>m</code>: Subtract the median of each row <br>
+(default is no centering)
+<br><dt><code>-ng</code><dd>Specifies to normalize each row (gene) in the data set (default is no normalization)
+<br><dt><code>-ca a|m</code><dd>Specifies whether to center each column (microarray) in the data set: <br>
+<code>a</code>: Subtract the mean of each column <br>
+<code>m</code>: Subtract the median of each column <br>
+(default is no centering)
+<br><dt><code>-na</code><dd>Specifies to normalize each column (microarray) in the data set (default is no normalization)
+<br><dt><code>-u </code><var>jobname</var><dd>Allows you to specify a different name for the output files
+(default is derived from the input file name)
+<br><dt><code>-g [0..9]</code><dd>Specifies the distance measure for gene clustering. 0 means no gene clustering; for the values 1 through 9, see below (default: 0)
+<br><dt><code>-e [0..9]</code><dd>Specifies the distance measure for microarray clustering. 0 means no microarray clustering; for the values 1 through 9, see below (default: 0)
+<br><dt><code>-m [msca]</code><dd>Specifies which hierarchical clustering method to use: <br>
+<code>m</code>: Pairwise complete- (maximum-) linkage (default) <br>
+<code>s</code>: Pairwise single-linkage <br>
+<code>c</code>: Pairwise centroid-linkage <br>
+<code>a</code>: Pairwise average-linkage
+<br><dt><code>-k </code><var>number</var><dd>Specifies whether to run
+<i>k</i>-meansclustering instead of hierarchical clustering, and the number of clusters
+<i>k</i> to use (default: 0, no <i>k</i>-means clustering)<br><dt><code>-s</code><dd>Specifies to calculate an SOM instead of hierarchical clustering
+<br><dt><code>-x </code><var>number</var><dd>Specifies the horizontal dimension of the SOM grid (default: 2)
+<br><dt><code>-y </code><var>number</var><dd>Specifies the vertical dimension of the SOM grid (default: 1)
+<br><dt><code>-v, --version</code><dd>Display version information
+<br><dt><code>-h, --help</code><dd>Display help information
+</dl>
+
+   <p>For the command line options <span class="option">-g</span>, <span class="option">-e</span>, the following integers can be used to specify the distance measure:
+     <dl>
+<dt><code>0</code><dd>No clustering
+<br><dt><code>1</code><dd>Uncentered correlation
+<br><dt><code>2</code><dd>Pearson correlation
+<br><dt><code>3</code><dd>Uncentered correlation, absolute value
+<br><dt><code>4</code><dd>Pearson correlation, absolute value
+<br><dt><code>5</code><dd>Spearman's rank correlation
+<br><dt><code>6</code><dd>Kendall's tau
+<br><dt><code>7</code><dd>Euclidean distance
+<br><dt><code>8</code><dd>City-block distance
+</dl>
+
+   <p>By default, no clustering is done, allowing you to use <code>cluster</code> for normalizing a data set only.
+
+   </body></html>
+
