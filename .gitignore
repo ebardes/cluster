@@ -1,0 +1,7 @@
+Makefile
+config.*
+src/.deps
+stamp-h1
+*.o
+src/cluster
+autom4te.cache/
