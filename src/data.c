@@ -76,32 +76,46 @@ static int** _mask = NULL;
 
 static char* GetLine(FILE* inputfile)
 /* The function GetLine reads one line from the inputfile, and returns it as a
- * null-terminated string. If inputfile is at EOF, a null pointer is returned.
+ * null-terminated string. If inputfile is at EOF, an empty string is returned.
+ * Empty lines are skipped.
+ * If this function fails due to memory allocation error, it returns NULL.
  * The calling routine should free the char* returned by GetLine.
  */
 { int c;
   int n = 0;
   int size = 1023;
+  char* temp;
   char* line = malloc((size+1)*sizeof(char));
-  while ((c = getc(inputfile))!=EOF && c!='\r' && c!='\n')
-  { if (n == size)
-    { size *= 2;
-      line = realloc(line,(size+1)*sizeof(char));
+  if (!line) return NULL;
+  while (n==0)
+  { while ((c = getc(inputfile))!=EOF && c!='\r' && c!='\n')
+    { if (n == size)
+      { size *= 2;
+        temp = realloc(line,(size+1)*sizeof(char));
+        if (!temp)
+        { free(line);
+          return NULL;
+        }
+        line = temp;
+      }
+      line[n] = (char)c;
+      n++;
     }
-    line[n] = (char)c;
-    n++;
-  }
-  if (c=='\r')
-  { c = getc(inputfile);
-    if (c!='\n' && c!=EOF) ungetc(c,inputfile);
-  }
-  if (n==0 && c==EOF)
-  { free(line);
-    return 0;
+    if (c=='\r')
+    { c = getc(inputfile);
+      if (c!='\n' && c!=EOF) ungetc(c,inputfile);
+    }
+    if (c==EOF) break;
   }
   line[n] = '\0';
-  line = realloc(line,(n+1)*sizeof(char));
-  return line;
+  temp = realloc(line,(n+1)*sizeof(char));
+  if (!temp)
+  /* This should not happen, as temp is smaller than line.
+   * But let's check to make sure anyway. */
+  { free(line);
+    return NULL;
+  }
+  return temp;
 }
 
 static char* tokenize(char* s)
@@ -121,7 +135,7 @@ static char* tokenize(char* s)
   return NULL;
 }
 
-static char* MakeID (const char* name, int i)
+static char* MakeID(const char* name, int i)
 { int n;
   char* ID;
   int ndigits = 1;
@@ -130,19 +144,20 @@ static char* MakeID (const char* name, int i)
   n = strlen(name) + ndigits + 2;
   /* One more for the X, and one more for the \0 termination character */
   ID = malloc(n*sizeof(char));
-  sprintf (ID, "%s%dX",name,i);
+  if (ID) sprintf(ID, "%s%dX",name,i);
   return ID;
 }
 
-static void SetClusterIndex (char which, int k, int* clusterid)
+static int SetClusterIndex(char which, int k, int* clusterid)
 { int i;
   int cluster;
   int counter = 0;
   int* index = NULL;
   if (which=='g')
   { index = malloc(_rows*sizeof(int));
+    if (!index) return 0;
     for (i=0; i<_rows; i++) index[i] = i;
-    sort (_rows, _geneorder, index);
+    sort(_rows, _geneorder, index);
     for (cluster = 0; cluster < k; cluster++)
     { for (i = 0; i < _rows; i++)
       { const int j = index[i];
@@ -155,8 +170,9 @@ static void SetClusterIndex (char which, int k, int* clusterid)
   }
   if (which=='a')
   { index = malloc(_columns*sizeof(int));
+    if (!index) return 0;
     for (i=0; i<_columns; i++) index[i] = i;
-    sort (_columns, _arrayorder, index);
+    sort(_columns, _arrayorder, index);
     for (cluster = 0; cluster < k; cluster++)
     { for (i = 0; i < _columns; i++)
       { const int j = index[i];
@@ -168,16 +184,21 @@ static void SetClusterIndex (char which, int k, int* clusterid)
     }
   }
   free(index);
-  return;
+  return 1;
 }
 
-static void
+static int
 TreeSort(const char which, const int nNodes, const double* order,
   const double* nodeorder, const int* nodecounts, Node* tree)
 { const int nElements = nNodes + 1;
   int i;
-  double* neworder = calloc(nElements,sizeof(double)); /* initialized to 0.0 */
+  double* neworder = calloc(nElements, sizeof(double)); /* initialized to 0.0 */
   int* clusterids = malloc(nElements*sizeof(int));
+  if (!neworder || !clusterids)
+  { if (neworder) free(neworder);
+    if (clusterids) free(clusterids);
+    return 0;
+  }
   for (i = 0; i < nElements; i++) clusterids[i] = i;
   for (i = 0; i < nNodes; i++)
   { const int i1 = tree[i].left;
@@ -219,40 +240,67 @@ TreeSort(const char which, const int nNodes, const double* order,
     sort(_columns, neworder, _arrayindex);
   }
   free(neworder);
-  return;
+  return 1;
 }
 
-static void
+static int
 PerformGeneSOM(FILE* file, int XDim, int YDim, int iterations, double tau,
                char metric)
-{ int i,j,k;
-  int* clusterid;
-  int* index;
+{ int i = 0;
+  int j = 0;
+  int k;
+  int ok;
+
   int (*Group)[2] = malloc(_rows*sizeof(int[2]));
-  double*** Nodes = malloc(XDim*YDim*_columns*sizeof(double**));
-  for (i = 0; i < XDim; i++)
-  { Nodes[i] = malloc(YDim*_columns*sizeof(double*));
-    for (j = 0; j < YDim; j++) Nodes[i][j] = malloc(_columns*sizeof(double));
+  double*** Nodes = malloc(XDim*sizeof(double**));
+  int* clusterid = malloc(_rows*sizeof(int));
+  int* index = malloc(_columns*sizeof(int));
+  if (Nodes)
+  { for (i = 0; i < XDim; i++)
+    { Nodes[i] = malloc(YDim*sizeof(double*));
+      j = 0;
+      if (!Nodes[i]) break;
+      for ( ; j < YDim; j++)
+      { Nodes[i][j] = malloc(_columns*sizeof(double));
+        if (!Nodes[i][j]) break;
+      }
+      if (j < YDim) break;
+    }
+  }
+  if (!Group || !clusterid || !index || !Nodes || i < XDim || j < YDim)
+  { if (Group) free(Group);
+    if (clusterid) free(clusterid);
+    if (index) free(index);
+    if (Nodes)
+    { if (i < XDim)
+      { while (j--) free(Nodes[i][j]);
+        free(Nodes[i]);
+      }
+      while (i--)
+      { for (j = 0; j < YDim; j++) free(Nodes[i][j]);
+        free(Nodes[i]);
+      }
+      free(Nodes);
+    }
+    return 0;
   }
 
   somcluster(_rows, _columns, _data, _mask, _arrayweight, 0,
     XDim, YDim, tau, iterations, metric, Nodes, Group);
 
-  clusterid = malloc(_rows*sizeof(int));
   for (i=0; i<_rows; i++) clusterid[i] = Group[i][0] * YDim + Group[i][1];
   free(Group);
 
-  index = malloc(_columns*sizeof(int));
   for (k=0; k<_columns; k++) index[k] = k;
-  sort (_columns, _arrayorder, index);
-  fputs ("NODE", file);
-  for (i=0; i<_columns; i++) fprintf (file, "\t%s", _arrayname[index[i]]);
-  putc ('\n', file);
+  sort(_columns, _arrayorder, index);
+  fputs("NODE", file);
+  for (i=0; i<_columns; i++) fprintf(file, "\t%s", _arrayname[index[i]]);
+  putc('\n', file);
   for (i=0; i<XDim; i++)
   { for (j=0; j<YDim; j++)
-    { fprintf (file, "NODE(%d,%d)", i, j);
-      for (k=0; k<_columns; k++) fprintf (file, "\t%f", Nodes[i][j][index[k]]);
-      putc ('\n', file);
+    { fprintf(file, "NODE(%d,%d)", i, j);
+      for (k=0; k<_columns; k++) fprintf(file, "\t%f", Nodes[i][j][index[k]]);
+      putc('\n', file);
     }
   }
   free(index);
@@ -263,43 +311,70 @@ PerformGeneSOM(FILE* file, int XDim, int YDim, int iterations, double tau,
   }
   free(Nodes);
 
-  SetClusterIndex ('g', XDim * YDim, clusterid);
+  ok = SetClusterIndex('g', XDim * YDim, clusterid);
   free(clusterid);
+  return ok;
 }
 
-static void
+static int
 PerformArraySOM(FILE* file, int XDim, int YDim, int iterations, double tau,
                 char metric)
-{ int i,j,k;
-  int* clusterid;
+{ int i = 0;
+  int j = 0;
+  int k;
+  int ok;
   int (*Group)[2] = malloc(_columns*sizeof(int[2]));
-  double*** Nodes = malloc(XDim*YDim*_rows*sizeof(double**));
-  for (i = 0; i < XDim; i++)
-  { Nodes[i] = malloc(YDim*_rows*sizeof(double*));
-    for (j = 0; j < YDim; j++) Nodes[i][j] = malloc(_rows*sizeof(double));
+  double*** Nodes = malloc(XDim*sizeof(double**));
+  int* clusterid = malloc(_columns*sizeof(int));
+  if (Nodes)
+  { for (i = 0; i < XDim; i++)
+    { Nodes[i] = malloc(YDim*sizeof(double*));
+      j = 0;
+      if (!Nodes[i]) break;
+      for ( ; j < YDim; j++)
+      { Nodes[i][j] = malloc(_rows*sizeof(double));
+        if (!Nodes[i][j]) break;
+      }
+      if (j < YDim) break;
+    }
+  }
+  if (!Group || !clusterid || !Nodes || i < XDim || j < YDim)
+  { if (Group) free(Group);
+    if (Nodes)
+    { if (i < XDim)
+      { while (j--) free(Nodes[i][j]);
+        free(Nodes[i]);
+      }
+      while (i--)
+      { for (j = 0; j < YDim; j++) free(Nodes[i][j]);
+        free(Nodes[i]);
+      }
+      free(Nodes);
+    }
+    free(clusterid);
+    return 0;
   }
 
   somcluster(_rows, _columns, _data, _mask, _geneweight, 1,
     XDim, YDim, tau, iterations, metric, Nodes, Group);
 
-  clusterid = malloc(_columns*sizeof(int));
   for (i=0; i<_columns; i++)
     clusterid[i] = Group[i][0] * YDim + Group[i][1];
   free(Group);
 
-  fprintf (file, "%s\t", _uniqID);
+  fprintf(file, "%s\t", _uniqID);
   for (i=0; i<XDim; i++)
     for (j=0; j<YDim; j++) fprintf(file, "\tNODE(%d,%d)", i, j);
-  putc ('\n', file);
+  putc('\n', file);
 
   for (k=0;k<_rows;k++)
   { int index = _geneindex[k];
-    fprintf (file, "%s\t", _geneuniqID[index]);
-    if (_genename[index]) fputs (_genename[index], file);
-    else fputs (_geneuniqID[index], file);
+    fprintf(file, "%s\t", _geneuniqID[index]);
+    if (_genename[index]) fputs(_genename[index], file);
+    else fputs(_geneuniqID[index], file);
     for (i=0; i<XDim; i++)
-      for (j=0; j<YDim; j++) fprintf (file, "\t%f", Nodes[i][j][index]);
-    putc ('\n', file);
+      for (j=0; j<YDim; j++) fprintf(file, "\t%f", Nodes[i][j][index]);
+    putc('\n', file);
   }
 
   for (i=0;i<XDim;i++)
@@ -307,8 +382,9 @@ PerformArraySOM(FILE* file, int XDim, int YDim, int iterations, double tau,
     free(Nodes[i]);
   }
   free(Nodes);
-  SetClusterIndex ('a', XDim * YDim, clusterid);
+  ok = SetClusterIndex('a', XDim * YDim, clusterid);
   free(clusterid);
+  return ok;
 }
 
 /*============================================================================*/
@@ -317,26 +393,38 @@ PerformArraySOM(FILE* file, int XDim, int YDim, int iterations, double tau,
 
 void Free(void)
 { int row, column;
-  for (row = 0; row < _rows; row++)
-  { free (_data[row]);
-    free (_mask[row]);
-    free (_geneuniqID[row]);
-    free (_genename[row]);
+  if (_data)
+  { for (row = 0; row < _rows; row++)
+      if (_data[row]) free(_data[row]);
+    free(_data);
   }
-  free (_data);
-  free (_mask);
-  free (_geneuniqID);
-  free (_genename);
-  for (column = 0; column < _columns; column++)
-    free (_arrayname[column]);
-  free (_arrayname);
-  free (_geneorder);
-  free (_arrayorder);
-  free (_geneindex);
-  free (_arrayindex);
-  free (_geneweight);
-  free (_arrayweight);
-  free (_uniqID);
+  if (_mask)
+  { for (row = 0; row < _rows; row++)
+      if (_mask[row]) free(_mask[row]);
+    free(_mask);
+  }
+  if (_geneuniqID)
+  { for (row = 0; row < _rows; row++)
+      if (_geneuniqID[row]) free(_geneuniqID[row]);
+    free(_geneuniqID);
+  }
+  if (_genename)
+  { for (row = 0; row < _rows; row++)
+      if (_genename[row]) free(_genename[row]);
+    free(_genename);
+  }
+  if (_arrayname)
+  { for (column = 0; column < _columns; column++)
+      if (_arrayname[column]) free(_arrayname[column]);
+    free(_arrayname);
+  }
+  if (_geneorder) free(_geneorder);
+  if (_arrayorder) free(_arrayorder);
+  if (_geneindex) free(_geneindex);
+  if (_arrayindex) free(_arrayindex);
+  if (_geneweight) free(_geneweight);
+  if (_arrayweight) free(_arrayweight);
+  if (_uniqID) free(_uniqID);
   _genename = NULL;
   _geneuniqID = NULL;
   _geneweight = NULL;
@@ -361,12 +449,13 @@ int GetColumns(void)
 { return _columns;
 }
 
-char* Load (FILE* file)
+char* Load(FILE* file)
 /* Load in data from tab-delimited text file.
  * If an error occurs, an error message is returned.
- * All error messages are allocated with malloc, even if not strictly
- * necessary. The reason is that any error message then can (and should) be
- * safely freed. */
+ * If no error occurs, the string "ok" is returned.
+ * In case of insufficient memory, NULL is returned.
+ * All messages are allocated with malloc, and should be
+ * freed by the calling routine. */
 { int row, column;           /* Counters for data matrix */
   int fileRow, fileColumn;   /* Counters for rows and columns in the file */
   int n;
@@ -380,29 +469,20 @@ char* Load (FILE* file)
   int arrayWeightRow = -1;
   int arrayOrderRow = -1;
 
-
   /* Deallocate previously allocated space */
   Free();
 
   /* Parse header line (first line) to find out what the columns are */
-  line=GetLine(file);
-  if(!line)
-  { const char text[] = "Error: Attempt to read empty file";
+  line = GetLine(file);
+  if (!line) return NULL;
+  if(line[0]=='\0')
+  { const char text[] = "Attempting to read empty file";
     const int m = strlen(text) + 1;
     char* error = malloc(m*sizeof(char));
-    strcpy(error,text);
+    free(line);
+    if (!error) return NULL;
+    strcpy(error, text);
     return error;
-  }
-  while(line[0]=='\0') /* Ignore completely empty lines */
-  { free(line);
-    line = GetLine(file);
-    if(!line)
-    { const char text[] = "Error: Failed to find first line in file";
-      const int m = strlen(text) + 1;
-      char* error = malloc(m*sizeof(char));
-      strcpy(error,text);
-      return error;
-    }
   }
   s = tokenize(line); /* Skip the first column UNIQID */
   fileColumn = 1;
@@ -419,18 +499,24 @@ char* Load (FILE* file)
   free(line);
   nFileColumns = fileColumn;
   if (nFileColumns < 2) 
-  { const char text[] = "Error: less than two columns found in the file";
+  { const char text[] = "Less than two columns found in data file";
     const int m = strlen(text) + 1;
     char* error = malloc(m*sizeof(char));
-    strcpy(error,text);
+    if (!error) return NULL;
+    strcpy(error, text);
     _columns = 0;
     return error;
   }
 
   /* Check if the other rows in the file have the same number of columns */
   fileRow = 1;
-  while ((line = GetLine(file)))
-  { if (line[0]=='\0') free(line); /* Ignore completely empty lines */
+  while (1)
+  { line = GetLine(file);
+    if (!line) return NULL;
+    if (line[0]=='\0')
+    { free(line);
+      break; /* Reached the end of the file */
+    }
     else
     /* Parse the first column to find out what the rows contain */
     { fileColumn = 1; /* One more columns than tabs */
@@ -444,34 +530,52 @@ char* Load (FILE* file)
       fileRow++;
       if (s==NULL)
       { int n = 1024;
+        char* temp;
         char* text = malloc(n*sizeof(char));
-        sprintf (text, "Error reading line %d: Gene name is missing", fileRow);
+        if (!text) return NULL;
+        sprintf(text, "Gene name is missing in line %d", fileRow);
 	n = strlen(text) + 1;
-        text = realloc(text,n*sizeof(char));
+        temp = realloc(text,n*sizeof(char));
+        if (!temp)
+        { free(text);
+          return NULL;
+        }
         _rows = 0;
         _columns = 0;
-	return text;
+	return temp;
       }
       if (fileColumn < nFileColumns)
       { int n = 1024;
+        char* temp;
         char* text = malloc(n*sizeof(char));
-        sprintf (text,
-                 "Error reading line %d: only %d columns available (%d needed)",
-                 fileRow, fileColumn, nFileColumns);
+        if (!text) return NULL;
+        sprintf(text,
+                "Error reading line %d: only %d columns found (%d expected)",
+                fileRow, fileColumn, nFileColumns);
 	n = strlen(text) + 1;
-        text = realloc(text,n*sizeof(char));
+        temp = realloc(text,n*sizeof(char));
+        if (!temp)
+        { free(text);
+          return NULL;
+        }
         _rows = 0;
         _columns = 0;
-	return text;
+	return temp;
       }
       if (fileColumn > nFileColumns)
       { int n = 1024;
+        char* temp;
         char* text = malloc(n*sizeof(char));
-        sprintf (text,
-                 "Error reading line %d: %d columns given (%d needed)",
-                 fileRow, fileColumn, nFileColumns);
+        if (!text) return NULL;
+        sprintf(text,
+                "Error reading line %d: %d columns given (%d expected)",
+                fileRow, fileColumn, nFileColumns);
 	n = strlen(text) + 1;
-        text = realloc(text,n*sizeof(char));
+        temp = realloc(text,n*sizeof(char));
+        if (!temp)
+        { free(text);
+          return NULL;
+        }
         _rows = 0;
         _columns = 0;
 	return text;
@@ -480,26 +584,26 @@ char* Load (FILE* file)
   }
 
   /* Read the first line into a string */
-  fseek (file, 0, SEEK_SET);
+  rewind(file);
   line = GetLine(file);
+  if (!line) return NULL;
   
   /* Save which word the user used instead of UniqID */
-  if(!line)
-  { char text[] = "Error finding UniqID keyword";
-    const int m = strlen(text) + 1;
-    char* error = malloc(m*sizeof(char));
-    strcpy(error,text);
-    _rows = 0;
-    _columns = 0;
-    return error;
-  }
   s = tokenize(line);
   n = strlen(line);
   _uniqID = malloc((n+1)*sizeof(char));
+  if (!_uniqID)
+  { free(line);
+    goto exit;
+  }
   strcpy(_uniqID, line);
 
   /* Allocate space for array names (experiment names) and save them */
-  _arrayname = malloc(_columns*sizeof(char*));
+  _arrayname = calloc(_columns, sizeof(char*));
+  if (!_arrayname)
+  { free(line);
+    goto exit;
+  }
   column = 0;
   fileColumn = 1;
   while (column < _columns)
@@ -511,7 +615,11 @@ char* Load (FILE* file)
         fileColumn!=geneWeightColumn &&
         fileColumn!=geneOrderColumn)
     { _arrayname[column] = malloc((n+1)*sizeof(char));
-      strcpy(_arrayname[column],token);
+      if (!_arrayname[column])
+      { free(line);
+        goto exit;
+      }
+      strcpy(_arrayname[column], token);
       column++;
     }
     fileColumn++;
@@ -520,31 +628,36 @@ char* Load (FILE* file)
 
   /* Allocate space for array weights */
   _arrayweight = malloc(_columns*sizeof(double));
+  if (!_arrayweight) goto exit;
   _arrayorder = malloc(_columns*sizeof(double));
+  if (!_arrayorder) goto exit;
   _arrayindex = malloc(_columns*sizeof(int));
+  if (!_arrayindex) goto exit;
   for (column = 0; column < _columns; column++)
   { _arrayweight[column] = 1.;
     _arrayorder[column] = column;
   }
 
   /* Allocate space for data */
-  _data = malloc(_rows*sizeof(double*));
-  _mask = malloc(_rows*sizeof(int*));
+  _data = calloc(_rows, sizeof(double*));
+  if (!_data) goto exit;
+  _mask = calloc(_rows, sizeof(int*));
+  if (!_mask) goto exit;
   for (row = 0; row < _rows; row++)
   { _data[row] = malloc(_columns*sizeof(double));
     _mask[row] = malloc(_columns*sizeof(int));
+    if (!_data[row] || !_mask[row]) goto exit;
   }
 
   /* Allocate space for gene quantities */
   _geneweight = malloc(_rows*sizeof(double));
   _geneorder = malloc(_rows*sizeof(double));
   _geneindex = malloc(_rows*sizeof(int));
-  _geneuniqID = malloc(_rows*sizeof(char*));
-  _genename = malloc(_rows*sizeof(char*));
+  _geneuniqID = calloc(_rows, sizeof(char*));
+  _genename = calloc(_rows, sizeof(char*));
+  if (!_geneweight || !_geneorder || !_geneindex || !_geneuniqID || !_genename)
+    goto exit;
 
-  /* Unless a NAME column exists, fill the gene names with NULL */
-  if (geneNameColumn == -1)
-    for (row = 0; row < _rows; row++) _genename[row] = NULL;
   /* Unless a GWEIGHT column exists, 
    * fill the gene weights with the default value */
   if (geneWeightColumn == -1)
@@ -555,262 +668,237 @@ char* Load (FILE* file)
 
   /* Read in gene data */
   row = 0;
-  fseek (file, 0, SEEK_SET);
-  free(GetLine(file)); /* Skip header line */
   fileRow = 1;
-  while ((line=GetLine(file)))
-  { if (strlen(line) > 1) /* Ignore completely empty lines */
-    { if (fileRow==arrayWeightRow)
-      { column = 0;
-	fileColumn = 1;
-        /* Skipping UNIQID column */
-        s = tokenize(line);
-        while (column < _columns)
-        { char* error = NULL;
-	  char* token = s;
-          s = tokenize(s);
-          if (fileColumn!=geneNameColumn &&
-              fileColumn!=geneWeightColumn &&
-              fileColumn!=geneOrderColumn)
-          {
-	    _arrayweight[column] = 0; /* Default value */
-            if(token[0]!='\0')
-	    { const double number = strtod(token, &error);
-	      if (!(*error)) _arrayweight[column] = number;
-            }
-            column++;
-          }
-	  fileColumn++;
-        }
-      }
-      else if (fileRow==arrayOrderRow)
-      { column = 0;
-	fileColumn = 1;
-        /* Skipping UNIQID column */
-        s = tokenize(line);
-        while (column < _columns)
-        { char* error = NULL;
-	  char* token = s;
-          s = tokenize(s);
-          if (fileColumn!=geneNameColumn &&
-              fileColumn!=geneWeightColumn &&
-              fileColumn!=geneOrderColumn)
-	  {
-            _arrayorder[column] = 0; /* Default value */
-            if(token[0]!='\0')
-	    { const double number = strtod(token, &error);
-	      if (!(*error)) _arrayorder[column] = number;
-            }
-            column++;
-          }
-	  fileColumn++;
-        }
-      }
-      else
-      { column = 0;
-	fileColumn = 0;
-	s = line;
-        while (s)
-        { char* token = s;
-          s = tokenize(s);
-          if (fileColumn==0)
-          { const int n = strlen(token) + 1;
-            _geneuniqID[row] = malloc(n*sizeof(char));
-            strcpy (_geneuniqID[row],token);
-	  }
-          else if (fileColumn==geneNameColumn)
-          { const int n = strlen(token) + 1;
-            _genename[row] = malloc(n*sizeof(char));
-            strcpy (_genename[row],token);
-	  }
-          else if (fileColumn==geneWeightColumn)
-          { char* error = NULL;
-	    double number = strtod(token, &error);
-	    if (!(*error)) _geneweight[row] = number;
-	    else _geneweight[row] = 0.;
-	  }
-          else if (fileColumn==geneOrderColumn)
-          { char* error = NULL;
-	    double number = strtod(token, &error);
-	    if (!(*error)) _geneorder[row] = number;
-	    else _geneorder[row] = 0.;
-	  }
-          else
-          { char* error = NULL;
-	    _data[row][column] = 0;
-            _mask[row][column] = 0;
-            if (token[0]!='\0') /* Otherwise it is a missing value */
-	    { double number = strtod(token, &error);
-	      if (!(*error))
-	      { _data[row][column] = number;
-                _mask[row][column] = 1;
-	      }
-            }
-            column++;
-          }
-	  fileColumn++;
-        }
-        row++;
-      }
-      fileRow++;
+  while (1)
+  { line = GetLine(file); /* Reached end of file */
+    if (!line) goto exit;
+    if (line[0]=='\0')
+    { free(line);
+      break;
     }
+    if (fileRow==arrayWeightRow)
+    { column = 0;
+      fileColumn = 1;
+      /* Skipping UNIQID column */
+      s = tokenize(line);
+      while (column < _columns)
+      { char* error = NULL;
+        char* token = s;
+        s = tokenize(s);
+        if (fileColumn!=geneNameColumn &&
+            fileColumn!=geneWeightColumn &&
+            fileColumn!=geneOrderColumn)
+        {
+          _arrayweight[column] = 0; /* Default value */
+          if(token[0]!='\0')
+	  { const double number = strtod(token, &error);
+	    if (!(*error)) _arrayweight[column] = number;
+          }
+          column++;
+        }
+        fileColumn++;
+      }
+    }
+    else if (fileRow==arrayOrderRow)
+    { column = 0;
+      fileColumn = 1;
+      /* Skipping UNIQID column */
+      s = tokenize(line);
+      while (column < _columns)
+      { char* error = NULL;
+        char* token = s;
+        s = tokenize(s);
+        if (fileColumn!=geneNameColumn &&
+            fileColumn!=geneWeightColumn &&
+            fileColumn!=geneOrderColumn)
+        {
+          _arrayorder[column] = 0; /* Default value */
+          if(token[0]!='\0')
+          { const double number = strtod(token, &error);
+            if (!(*error)) _arrayorder[column] = number;
+          }
+          column++;
+        }
+        fileColumn++;
+      }
+    }
+    else
+    { column = 0;
+      fileColumn = 0;
+      s = line;
+      while (s)
+      { char* token = s;
+        s = tokenize(s);
+        if (fileColumn==0)
+        { const int n = strlen(token) + 1;
+          _geneuniqID[row] = malloc(n*sizeof(char));
+          if (!_geneuniqID[row])
+          { free(line);
+            goto exit;
+          }
+          strcpy(_geneuniqID[row], token);
+        }
+        else if (fileColumn==geneNameColumn)
+        { const int n = strlen(token) + 1;
+          _genename[row] = malloc(n*sizeof(char));
+          if (!_genename[row])
+          { free(line);
+            goto exit;
+          }
+          strcpy(_genename[row],token);
+        }
+        else if (fileColumn==geneWeightColumn)
+        { char* error = NULL;
+          double number = strtod(token, &error);
+          if (!(*error)) _geneweight[row] = number;
+          else _geneweight[row] = 0.;
+        }
+        else if (fileColumn==geneOrderColumn)
+        { char* error = NULL;
+          double number = strtod(token, &error);
+          if (!(*error)) _geneorder[row] = number;
+          else _geneorder[row] = 0.;
+        }
+        else
+        { char* error = NULL;
+          _data[row][column] = 0;
+          _mask[row][column] = 0;
+          if (token[0]!='\0') /* Otherwise it is a missing value */
+          { double number = strtod(token, &error);
+            if (!(*error))
+            { _data[row][column] = number;
+              _mask[row][column] = 1;
+            }
+          }
+          column++;
+        }
+        fileColumn++;
+      }
+      row++;
+    }
+    fileRow++;
     free(line);
   }
-  sort (_rows, _geneorder, _geneindex);
-  sort (_columns, _arrayorder, _arrayindex);
-  return 0;
+  sort(_rows, _geneorder, _geneindex);
+  sort(_columns, _arrayorder, _arrayindex);
+  return "ok";
+exit:
+  Free();
+  return NULL;
 }
 
-void Save(FILE* outputfile, int geneID, int arrayID)
+int Save(FILE* outputfile, int geneID, int arrayID)
 { int row, column;
-  if (geneID) fputs ("GID\t", outputfile);
-  fputs (_uniqID, outputfile);
-  fputs ("\tNAME\tGWEIGHT", outputfile);
+  if (geneID) fputs("GID\t", outputfile);
+  fputs(_uniqID, outputfile);
+  fputs("\tNAME\tGWEIGHT", outputfile);
   /* Now add headers for data columns */
   for (column = 0; column < _columns; column++)
   { putc('\t', outputfile);
     fputs(_arrayname[_arrayindex[column]], outputfile);
   }
-  putc ('\n', outputfile);
+  putc('\n', outputfile);
 
   if (arrayID)
-  { fputs ("AID", outputfile);
-    if (geneID) putc ('\t',outputfile);
-    fputs ("\t\t", outputfile);
+  { fputs("AID", outputfile);
+    if (geneID) putc('\t',outputfile);
+    fputs("\t\t", outputfile);
     for (column = 0; column < _columns; column++)
     { char* ID = MakeID("ARRY",_arrayindex[column]);
-      putc ('\t', outputfile);
-      fputs (ID, outputfile);
-      free (ID);
+      if (!ID) return 0;
+      putc('\t', outputfile);
+      fputs(ID, outputfile);
+      free(ID);
     }
-    putc ('\n', outputfile);
+    putc('\n', outputfile);
   }
 
-  fputs ("EWEIGHT", outputfile);
-  if (geneID) putc ('\t', outputfile);
-  fputs ("\t\t", outputfile);
+  fputs("EWEIGHT", outputfile);
+  if (geneID) putc('\t', outputfile);
+  fputs("\t\t", outputfile);
   for (column = 0; column < _columns; column++)
-    fprintf (outputfile, "\t%f", _arrayweight[_arrayindex[column]]);
-  putc ('\n', outputfile);
+    fprintf(outputfile, "\t%f", _arrayweight[_arrayindex[column]]);
+  putc('\n', outputfile);
 
   for (row = 0; row < _rows; row++)
   { int index = _geneindex[row];
     if (geneID)
     { char* ID = MakeID("GENE",index);
-      fputs (ID, outputfile);
-      free (ID);
-      putc ('\t', outputfile);
+      if (!ID) return 0;
+      fputs(ID, outputfile);
+      free(ID);
+      putc('\t', outputfile);
     }
 
-    fputs (_geneuniqID[index], outputfile);
-    putc ('\t', outputfile);
-    if (_genename[index]) fputs (_genename[index], outputfile);
-    else fputs (_geneuniqID[index], outputfile);
-    fprintf (outputfile, "\t%f", _geneweight[index]);
+    fputs(_geneuniqID[index], outputfile);
+    putc('\t', outputfile);
+    if (_genename[index]) fputs(_genename[index], outputfile);
+    else fputs(_geneuniqID[index], outputfile);
+    fprintf(outputfile, "\t%f", _geneweight[index]);
 
     for (column = 0; column < _columns; column++)
     { int columnindex = _arrayindex[column];
-      putc ('\t', outputfile);
+      putc('\t', outputfile);
       if (_mask[index][columnindex])
-        fprintf (outputfile, "%f", _data[index][columnindex]);
+        fprintf(outputfile, "%f", _data[index][columnindex]);
     }
-    putc ('\n', outputfile);
+    putc('\n', outputfile);
   }
-  return;
+  return 1;
 }
 
-void SelectSubset(int useRows, const int use[])
-{ /* Allocate temporary space */
-  char** tempID = malloc(_rows*sizeof(char*));
-  char** tempName = malloc(_rows*sizeof(char*));
-  double* tempOrder = malloc(_rows*sizeof(double));
-  double* tempWeight = malloc(_rows*sizeof(double));
-  double** tempData = malloc(_rows*sizeof(double*));
-  int** tempMask = malloc(_rows*sizeof(int*));
-  int counter = 0;
-
-  int row, column;
-  for (row = 0; row < _rows; row++)
-  { int n = strlen(_geneuniqID[row]) + 1;
-    tempData[row] = malloc(_columns*sizeof(double));
-    tempMask[row] = malloc(_columns*sizeof(int));
-    for (column = 0; column < _columns; column++)
-    { tempData[row][column] = _data[row][column];
-      tempMask[row][column] = _mask[row][column];
-    }
-    tempID[row] = malloc(n*sizeof(char));
-    strcpy (tempID[row],_geneuniqID[row]);
-    if (_genename[row])
-    { n = strlen(_genename[row]) + 1;
-      tempName[row] = malloc(n*sizeof(char));
-      strcpy (tempName[row],_genename[row]);
-    }
-    else tempName[row] = NULL;
-    tempOrder[row] = _geneorder[row];
-    tempWeight[row] = _geneweight[row];
+int SelectSubset(int n, const int use[])
+{ int row;
+  double** data = malloc(n*sizeof(double*));
+  int** mask = malloc(n*sizeof(int*));
+  char** geneuniqID = malloc(n*sizeof(char*));
+  char** genename = malloc(n*sizeof(char*));
+  double* geneorder = malloc(n*sizeof(double));
+  double* geneweight = malloc(n*sizeof(double));
+  
+  if (!data || !mask || !geneuniqID || !genename || !geneorder || !geneweight)
+  { if (data) free(data);
+    if (mask) free(mask);
+    if (geneuniqID) free(geneuniqID);
+    if (genename) free(genename);
+    if (geneorder) free(geneorder);
+    if (geneweight) free(geneweight);
+    return 0;
   }
-  /* Deallocate space previously used */
+
+  n = 0;
   for (row = 0; row < _rows; row++)
-  { free(_data[row]);
-    free(_mask[row]);
-    free(_geneuniqID[row]);
-    free(_genename[row]);
+  { if (use[row])
+    { data[n] = _data[row];
+      mask[n] = _mask[row];
+      geneuniqID[n] = _geneuniqID[row];
+      genename[n] = _genename[row];
+      geneorder[n] = _geneorder[row];
+      geneweight[n] = _geneweight[row];
+      n++;
+    }
+    else
+    { free(_data[row]);
+      free(_mask[row]);
+      free(_geneuniqID[row]);
+      if (_genename[row]) free(_genename[row]);
+    }
   }
   free(_data);
   free(_mask);
   free(_geneuniqID);
   free(_genename);
   free(_geneorder);
-  free(_geneindex);
   free(_geneweight);
-  /* Allocate space that will be used now */
-  _geneuniqID = malloc(useRows*sizeof(char*));
-  _genename = malloc(useRows*sizeof(char*));
-  _geneorder = malloc(useRows*sizeof(double));
-  _geneweight = malloc(useRows*sizeof(double));
-  _geneindex = malloc(useRows*sizeof(int));
-  _data = malloc(useRows*sizeof(double*));
-  _mask = malloc(useRows*sizeof(int*));
-  for (row = 0; row < useRows; row++)
-  { _data[row] = malloc(_columns*sizeof(double));
-    _mask[row] = malloc(_columns*sizeof(int));
-  }
-  for (row = 0; row < _rows; row++)
-  { if (use[row])
-    { int n = strlen(tempID[row]) + 1;
-      for (column = 0; column < _columns; column++)
-      { _data[counter][column] = tempData[row][column];
-        _mask[counter][column] = tempMask[row][column];
-      }
-      _geneuniqID[counter] = malloc(n*sizeof(char));
-      strcpy (_geneuniqID[counter],tempID[row]);
-      if (tempName[row])
-      { n = strlen(tempName[row]) + 1;
-        _genename[counter] = malloc(n*sizeof(char));
-        strcpy (_genename[counter],tempName[row]);
-      }
-      else _genename[counter] = 0;
-      _geneorder[counter] = tempOrder[row];
-      _geneweight[counter] = tempWeight[row];
-      counter++;
-    }
-  }
-  /* Deallocate temporary data */
-  for (row = 0; row < _rows; row++)
-  { free(tempData[row]);
-    free(tempMask[row]);
-    free(tempName[row]);
-    free(tempID[row]);
-  }
-  free(tempData);
-  free(tempMask);
-  free(tempID);
-  free(tempName);
-  free(tempOrder);
-  free(tempWeight);
-  _rows = counter;
-  sort (_rows, _geneorder, _geneindex);
-  return;
+  _rows = n;
+  _data = data;
+  _mask = mask;
+  _geneuniqID = geneuniqID;
+  _genename = genename;
+  _geneorder = geneorder;
+  _geneweight = geneweight;
+  sort(_rows, _geneorder, _geneindex);
+  return 1;
 }
 
 void LogTransform(void)
@@ -826,13 +914,14 @@ void LogTransform(void)
   return;
 }
 
-void AdjustGenes (int MeanCenter, int MedianCenter, int Normalize)
+int AdjustGenes(int MeanCenter, int MedianCenter, int Normalize)
 { int row, column;
   for (row = 0; row < _rows; row++)
   { /* Center genes */
     if (MeanCenter || MedianCenter)
     { int counter = 0;
       double* temp = malloc(_columns*sizeof(double));
+      if (!temp) return 0;
       for (column = 0; column < _columns; column++)
       { if (_mask[row][column])
         { temp[counter] = _data[row][column];
@@ -869,13 +958,15 @@ void AdjustGenes (int MeanCenter, int MedianCenter, int Normalize)
       }
     }
   }
+  return 1;
 }
 
-void AdjustArrays (int MeanCenter, int MedianCenter, int Normalize)
+int AdjustArrays(int MeanCenter, int MedianCenter, int Normalize)
 { int row, column;
   /* Center Arrays */
   if (MeanCenter || MedianCenter)
   { double* temp = malloc(_rows*sizeof(double));
+    if (!temp) return 0;
     for (column = 0; column < _columns; column++)
     { int counter = 0;
       for (row = 0; row < _rows; row++)
@@ -918,30 +1009,37 @@ void AdjustArrays (int MeanCenter, int MedianCenter, int Normalize)
       }
     }
   }
-  return;
+  return 1;
 }
 
-void PerformSOM(FILE* GeneFile, int GeneXDim, int GeneYDim, int GeneIters,
+int PerformSOM(FILE* GeneFile, int GeneXDim, int GeneYDim, int GeneIters,
   double GeneTau, char GeneMetric, FILE* ArrayFile, int ArrayXDim,
   int ArrayYDim, int ArrayIters, double ArrayTau, char ArrayMetric)
-{ if (GeneIters>0) PerformGeneSOM(GeneFile,
-                                  GeneXDim,
-                                  GeneYDim,
-                                  GeneIters,
-                                  GeneTau,
-                                  GeneMetric);
-  else sort (_rows, _geneorder, _geneindex);
-  if (ArrayIters>0) PerformArraySOM(ArrayFile,
-                                    ArrayXDim,
-                                    ArrayYDim,
-                                    ArrayIters,
-                                    ArrayTau,
-                                    ArrayMetric);
-  else sort (_columns, _arrayorder, _arrayindex);
-  return;
+{ int ok = 1;
+  if (GeneIters>0)
+  { ok = PerformGeneSOM(GeneFile,
+                        GeneXDim,
+                        GeneYDim,
+                        GeneIters,
+                        GeneTau,
+                        GeneMetric);
+    if (!ok) return 0;
+  }
+  else sort(_rows, _geneorder, _geneindex);
+  if (ArrayIters>0)
+  { ok = PerformArraySOM(ArrayFile,
+                         ArrayXDim,
+                         ArrayYDim,
+                         ArrayIters,
+                         ArrayTau,
+                         ArrayMetric);
+    if (!ok) return 0;
+  }
+  else sort(_columns, _arrayorder, _arrayindex);
+  return ok;
 }
 
-int FilterRow (int Row, int bStd, int bPercent, int bAbsVal, int bMaxMin,
+int FilterRow(int Row, int bStd, int bPercent, int bAbsVal, int bMaxMin,
   double absVal, double percent, double std, int numberAbs, double maxmin)
 { int Count = 0;
   int CountAbs = 0;
@@ -956,7 +1054,7 @@ int FilterRow (int Row, int bStd, int bPercent, int bAbsVal, int bMaxMin,
     { double value = _data[Row][Column];
       Sum += value;
       Sum2 += value*value;
-      Count ++;
+      Count++;
       Min = min(value,Min);
       Max = max(value,Max);
       if (fabs(value) >= absVal) CountAbs++;
@@ -1020,19 +1118,25 @@ CalculateWeights(double GeneCutoff, double GeneExponent, char GeneDist,
 
 int HierarchicalCluster(FILE* file, char metric, int transpose, char method)
 { int i;
-  double* nodeorder;
-  int* nodecounts;
-  char** nodeID;
-
+  int ok = 0;
   const int nNodes = (transpose ? _columns : _rows) - 1;
   const double* order = (transpose==0) ? _geneorder : _arrayorder;
   double* weight = (transpose==0) ? _arrayweight : _geneweight;
   const char* keyword = (transpose==0) ? "GENE" : "ARRY";
-    
+ 
+  double* nodeorder = malloc(nNodes*sizeof(double));
+  int* nodecounts = malloc(nNodes*sizeof(int));
+  char** nodeID = calloc(nNodes, sizeof(char*));
   /* Perform hierarchical clustering. */
   Node* tree = treecluster(_rows, _columns, _data, _mask, weight, transpose,
                            metric, method, NULL);
-  if (!tree) return 0;
+  if (!tree || !nodeorder || !nodecounts || !nodeID)
+  { if (tree) free(tree);
+    if (nodeorder) free(nodeorder);
+    if (nodecounts) free(nodecounts);
+    if (nodeID) free(nodeID);
+    return 0;
+  }
 
   if (metric=='e' || metric=='b')
   /* Scale all distances such that they are between 0 and 1 */
@@ -1043,10 +1147,6 @@ int HierarchicalCluster(FILE* file, char metric, int transpose, char method)
   }
 
   /* Now we join nodes */
-  nodeorder = malloc(nNodes*sizeof(double));
-  nodecounts = malloc(nNodes*sizeof(int));
-  nodeID = malloc(nNodes*sizeof(char*));
-
   for (i = 0; i < nNodes; i++)
   { int min1 = tree[i].left;
     int min2 = tree[i].right;
@@ -1057,7 +1157,8 @@ int HierarchicalCluster(FILE* file, char metric, int transpose, char method)
     int counts2;
     char* ID1;
     char* ID2;
-    nodeID[i] = MakeID ("NODE",i+1);
+    nodeID[i] = MakeID("NODE",i+1);
+    if (!nodeID[i]) break;
     if (min1 < 0)
     { int index1 = -min1-1;
       order1 = nodeorder[index1];
@@ -1068,7 +1169,7 @@ int HierarchicalCluster(FILE* file, char metric, int transpose, char method)
     else
     { order1 = order[min1];
       counts1 = 1;
-      ID1 = MakeID (keyword, min1);
+      ID1 = MakeID(keyword, min1);
     }
     if (min2 < 0)
     { int index2 = -min2-1;
@@ -1080,116 +1181,126 @@ int HierarchicalCluster(FILE* file, char metric, int transpose, char method)
     else
     { order2 = order[min2];
       counts2 = 1;
-      ID2 = MakeID (keyword, min2);
+      ID2 = MakeID(keyword, min2);
     }
  
-    fprintf (file, "%s\t%s\t%s\t", nodeID[i], ID1, ID2);
-    fprintf (file, "%f\n", 1.0-tree[i].distance);
-
-    if (min1>=0) free(ID1);
-    if (min2>=0) free(ID2);
+    if (ID1 && ID2)
+    { fprintf(file, "%s\t%s\t%s\t", nodeID[i], ID1, ID2);
+      fprintf(file, "%f\n", 1.0-tree[i].distance);
+    }
+    if (ID1 && min1>=0) free(ID1);
+    if (ID2 && min2>=0) free(ID2);
+    if (!ID1 || !ID2) break;
 
     nodecounts[i] = counts1 + counts2;
     nodeorder[i] = (counts1*order1 + counts2*order2) / (counts1 + counts2);
   }
 
-  /* Now set up order based on the tree structure */
-  TreeSort((transpose==0) ? 'g' : 'a', nNodes, order, nodeorder, nodecounts,
-           tree);
+  if (i==nNodes) /* Otherwise we encountered the break */
+  { /* Now set up order based on the tree structure */
+    const char which = (transpose==0) ? 'g' : 'a';
+    ok = TreeSort(which, nNodes, order, nodeorder, nodecounts, tree);
+  }
   free(nodecounts);
-
   free(nodeorder);
-  for (i = 0; i < nNodes; i++) free(nodeID[i]);
+  for (i = 0; i < nNodes; i++) if (nodeID[i]) free(nodeID[i]);
   free(nodeID);
   free(tree);
 
-  return 1;
+  return ok;
 }
 
 int GeneKCluster(int k, int nTrials, char method, char dist, int* NodeMap)
 { int ifound = 0;
   double error;
-  kcluster (k, _rows, _columns, _data, _mask,
+  int ok;
+  kcluster(k, _rows, _columns, _data, _mask,
     _arrayweight, 0, nTrials, method, dist, NodeMap, &error, &ifound);
-  SetClusterIndex('g', k, NodeMap);
-  return ifound;
+  ok = SetClusterIndex('g', k, NodeMap);
+  if (ok) return ifound;
+  return -1;
 }
 
 int ArrayKCluster(int k, int nTrials, char method, char dist, int* NodeMap)
 { int ifound = 0;
   double error;
-  kcluster (k, _rows, _columns, _data, _mask,
+  int ok;
+  kcluster(k, _rows, _columns, _data, _mask,
     _geneweight, 1, nTrials, method, dist, NodeMap, &error, &ifound);
-  SetClusterIndex ('a', k, NodeMap);
-  return ifound;
+  ok = SetClusterIndex('a', k, NodeMap);
+  if (ok) return ifound;
+  return -1;
 }
 
-void
-SaveGeneKCluster(FILE* file, int k, const int* NodeMap)
+int SaveGeneKCluster(FILE* file, int k, const int* NodeMap)
 { int i, cluster;
   int* geneindex = malloc(_rows*sizeof(int));
-  fprintf (file, "%s\tGROUP\n", _uniqID);
+  if (!geneindex) return 0;
+  fprintf(file, "%s\tGROUP\n", _uniqID);
   for (i=0; i<_rows; i++) geneindex[i] = i;
-  sort (_rows,_geneorder,geneindex);
+  sort(_rows,_geneorder,geneindex);
   for (cluster = 0; cluster < k; cluster++)
   { for (i = 0; i < _rows; i++)
     { const int j = geneindex[i];
       if (NodeMap[j]==cluster)
-        fprintf (file, "%s\t%d\n", _geneuniqID[j], NodeMap[j]);
+        fprintf(file, "%s\t%d\n", _geneuniqID[j], NodeMap[j]);
     }
   }
   free(geneindex);
+  return 1;
 }
 
-void
-SaveArrayKCluster(FILE* file, int k, const int* NodeMap)
+int SaveArrayKCluster(FILE* file, int k, const int* NodeMap)
 { int i, cluster;
   int* arrayindex = malloc(_columns*sizeof(int));
-  fputs ("ARRAY\tGROUP\n", file);
+  if (!arrayindex) return 0;
+  fputs("ARRAY\tGROUP\n", file);
   for (i=0; i<_columns; i++) arrayindex[i] = i;
-  sort (_columns,_arrayorder,arrayindex);
+  sort(_columns,_arrayorder,arrayindex);
   for (cluster = 0; cluster < k; cluster++)
   { for (i = 0; i < _columns; i++)
     { const int j = arrayindex[i];
       if (NodeMap[j]==cluster)
-        fprintf (file, "%s\t%d\n", _arrayname[j], NodeMap[j]);
+        fprintf(file, "%s\t%d\n", _arrayname[j], NodeMap[j]);
     }
   }
   free(arrayindex);
+  return 1;
 }
 
 const char* PerformGenePCA(FILE* coordinatefile, FILE* pcfile)
 {
-  int i, j;
+  int i = 0;
+  int j = 0;
   const int nmin = min(_rows,_columns);
   double** u = malloc(_rows*sizeof(double*));
   double** v = malloc(nmin*sizeof(double*));
   double* w = malloc(nmin*sizeof(double));
   double* m = malloc(_columns*sizeof(double));
-  for (i = 0; i < _rows; i++)
-  { u[i] = malloc(_columns*sizeof(double));
-    if (!u[i]) break;
+  if (u)
+  { for (i = 0; i < _rows; i++)
+    { u[i] = malloc(_columns*sizeof(double));
+      if (!u[i]) break;
+    }
   }
-  if (i < _rows) /* then we encountered the break */
-  { while(i-- > 0) free(u[i]);
-    free(u);
-    u = NULL;
+  if (v)
+  { for (j = 0; j < nmin; j++)
+    { v[j] = malloc(nmin*sizeof(double));
+      if (!v[j]) break;
+    }
   }
-  for (i = 0; i < nmin; i++)
-  { v[i] = malloc(nmin*sizeof(double));
-    if (!v[i]) break;
-  }
-  if (i < nmin) /* then we encountered the break */
-  { while(i-- > 0) free(v[i]);
-    free(v);
-    v = NULL;
-  }
-  if (!u || !v || !w ||!m)
-  { if (u) free(u);
-    if (v) free(v);
+  if (!u || !v || !w || !m || i < _rows || j < nmin)
+  { if (u)
+    { while (i--) free(u[i]);
+      free(u);
+    }
+    if (v)
+    { while (j--) free(v[j]);
+      free(v);
+    }
     if (w) free(w);
     if (m) free(m);
-    return "Memory allocation error in PerformGenePCA";
+    return "Insufficient Memory for PCA calculation";
   }
   for (j = 0; j < _columns; j++)
   { double value;
@@ -1206,41 +1317,41 @@ const char* PerformGenePCA(FILE* coordinatefile, FILE* pcfile)
   fprintf(coordinatefile, "%s\tNAME\tGWEIGHT", _uniqID);
   for (j=0; j < nmin; j++)
     fprintf(coordinatefile, "\t%f", w[j]);
-  putc ('\n', coordinatefile);
+  putc('\n', coordinatefile);
   fprintf(pcfile, "EIGVALUE");
   for (j=0; j < _columns; j++)
     fprintf(pcfile, "\t%s", _arrayname[j]);
-  putc ('\n', pcfile);
+  putc('\n', pcfile);
   fprintf(pcfile, "MEAN");
   for (j=0; j < _columns; j++)
     fprintf(pcfile, "\t%f", m[j]);
-  putc ('\n', pcfile);
+  putc('\n', pcfile);
   if (_rows>_columns)
   { for (i=0; i<_rows; i++)
-    { fprintf (coordinatefile, "%s\t",_geneuniqID[i]);
-      if (_genename[i]) fputs (_genename[i], coordinatefile);
-      else fputs (_geneuniqID[i], coordinatefile);
-      fprintf (coordinatefile, "\t%f", _geneweight[i]);
+    { fprintf(coordinatefile, "%s\t",_geneuniqID[i]);
+      if (_genename[i]) fputs(_genename[i], coordinatefile);
+      else fputs(_geneuniqID[i], coordinatefile);
+      fprintf(coordinatefile, "\t%f", _geneweight[i]);
       for (j=0; j<_columns; j++)
-        fprintf (coordinatefile, "\t%f", u[i][j]);
-      putc ('\n', coordinatefile);
+        fprintf(coordinatefile, "\t%f", u[i][j]);
+      putc('\n', coordinatefile);
     }
     for (i = 0; i < nmin; i++)
     { fprintf(pcfile, "%f", w[i]);
       for (j=0; j < _columns; j++)
         fprintf(pcfile, "\t%f", v[i][j]);
-      putc ('\n', pcfile);
+      putc('\n', pcfile);
     }
   }
   else
   { for (i=0; i<_rows; i++)
-    { fprintf (coordinatefile, "%s\t",_geneuniqID[i]);
-      if (_genename[i]) fputs (_genename[i], coordinatefile);
-      else fputs (_geneuniqID[i], coordinatefile);
-      fprintf (coordinatefile, "\t%f", _geneweight[i]);
+    { fprintf(coordinatefile, "%s\t",_geneuniqID[i]);
+      if (_genename[i]) fputs(_genename[i], coordinatefile);
+      else fputs(_geneuniqID[i], coordinatefile);
+      fprintf(coordinatefile, "\t%f", _geneweight[i]);
       for (j=0; j<nmin; j++)
-        fprintf (coordinatefile, "\t%f", v[i][j]);
-      putc ('\n', coordinatefile);
+        fprintf(coordinatefile, "\t%f", v[i][j]);
+      putc('\n', coordinatefile);
     }
     for (i = 0; i < _rows; i++)
     { fprintf(pcfile, "%f", w[i]);
@@ -1254,42 +1365,43 @@ const char* PerformGenePCA(FILE* coordinatefile, FILE* pcfile)
   free(u);
   free(v);
   free(w); 
-  free(m); 
+  free(m);
   return NULL;
 }
 
 const char* PerformArrayPCA(FILE* coordinatefile, FILE* pcfile)
 {
-  int i, j;
+  int i = 0;
+  int j = 0;
   const int nmin = min(_rows,_columns);
   double** u = malloc(_columns*sizeof(double*));
   double** v = malloc(nmin*sizeof(double*));
   double* w = malloc(nmin*sizeof(double));
   double* m = malloc(_rows*sizeof(double));
-  for (i = 0; i < _columns; i++)
-  { u[i] = malloc(_rows*sizeof(double));
-    if (!u[i]) break;
+  if (u)
+  { for (i = 0; i < _columns; i++)
+    { u[i] = malloc(_rows*sizeof(double));
+      if (!u[i]) break;
+    }
   }
-  if (i < _columns) /* then we encountered the break */
-  { while(i-- > 0) free(u[i]);
-    free(u);
-    u = NULL;
+  if (v)
+  { for (j = 0; j < nmin; j++)
+    { v[j] = malloc(nmin*sizeof(double));
+      if (!v[j]) break;
+    }
   }
-  for (i = 0; i < nmin; i++)
-  { v[i] = malloc(nmin*sizeof(double));
-    if (!v[i]) break;
-  }
-  if (i < nmin) /* then we encountered the break */
-  { while(i-- > 0) free(v[i]);
-    free(v);
-    v = NULL;
-  }
-  if (!u || !v || !w ||!m)
-  { if (u) free(u);
-    if (v) free(v);
+  if (!u || !v || !w || !m || i < _columns || j < nmin)
+  { if (u)
+    { while (i--) free(u[i]);
+      free(u);
+    }
+    if (v)
+    { while (j--) free(v[j]);
+      free(v);
+    }
     if (w) free(w);
     if (m) free(m);
-    return "Memory allocation error in PerformGenePCA";
+    return "Insufficient Memory for PCA calculation";
   }
   for (j = 0; j < _rows; j++)
   { double value;
@@ -1305,48 +1417,48 @@ const char* PerformArrayPCA(FILE* coordinatefile, FILE* pcfile)
   pca(_columns, _rows, u, v, w);
   fprintf(coordinatefile, "EIGVALUE");
   for (j=0; j < _columns; j++)
-    fprintf (coordinatefile, "\t%s", _arrayname[j]);
-  putc ('\n', coordinatefile);
+    fprintf(coordinatefile, "\t%s", _arrayname[j]);
+  putc('\n', coordinatefile);
   fprintf(coordinatefile, "EWEIGHT");
   for (j=0; j < _columns; j++)
-    fprintf (coordinatefile, "\t%f", _arrayweight[j]);
-  putc ('\n', coordinatefile);
+    fprintf(coordinatefile, "\t%f", _arrayweight[j]);
+  putc('\n', coordinatefile);
   fprintf(pcfile, "%s\tNAME\tMEAN", _uniqID);
   for (j=0; j < nmin; j++)
     fprintf(pcfile, "\t%f", w[j]);
-  putc ('\n', pcfile);
+  putc('\n', pcfile);
   if (_rows>_columns)
   { for (i = 0; i < nmin; i++)
     { fprintf(coordinatefile, "%f", w[i]);
       for (j=0; j<_columns; j++)
-        fprintf (coordinatefile, "\t%f", v[j][i]);
-      putc ('\n', coordinatefile);
+        fprintf(coordinatefile, "\t%f", v[j][i]);
+      putc('\n', coordinatefile);
     }
     for (i = 0; i < _rows; i++)
     { fprintf(pcfile, "%s\t",_geneuniqID[i]);
-      if (_genename[i]) fputs (_genename[i], pcfile);
-      else fputs (_geneuniqID[i], pcfile);
+      if (_genename[i]) fputs(_genename[i], pcfile);
+      else fputs(_geneuniqID[i], pcfile);
       fprintf(pcfile, "\t%f", m[i]);
       for (j=0; j<_columns; j++)
         fprintf(pcfile, "\t%f", u[j][i]);
-      putc ('\n', pcfile);
+      putc('\n', pcfile);
     }
   }
   else /* _rows < _columns */
   { for (i=0; i<_rows; i++)
     { fprintf(coordinatefile, "%f", w[i]);
       for (j=0; j<_columns; j++)
-        fprintf (coordinatefile, "\t%f", u[j][i]);
-      putc ('\n', coordinatefile);
+        fprintf(coordinatefile, "\t%f", u[j][i]);
+      putc('\n', coordinatefile);
     }
     for (i = 0; i < _rows; i++)
     { fprintf(pcfile, "%s\t",_geneuniqID[i]);
-      if (_genename[i]) fputs (_genename[i], pcfile);
-      else fputs (_geneuniqID[i], pcfile);
+      if (_genename[i]) fputs(_genename[i], pcfile);
+      else fputs(_geneuniqID[i], pcfile);
       fprintf(pcfile, "\t%f", m[i]);
       for (j=0; j<nmin; j++)
         fprintf(pcfile, "\t%f", v[j][i]);
-      putc ('\n', pcfile);
+      putc('\n', pcfile);
     }
   }
   for (i = 0; i < _columns; i++) free(u[i]);
@@ -1354,6 +1466,6 @@ const char* PerformArrayPCA(FILE* coordinatefile, FILE* pcfile)
   free(u);
   free(v);
   free(w); 
-  free(m); 
+  free(m);
   return NULL;
 }

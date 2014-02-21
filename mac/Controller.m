@@ -43,8 +43,8 @@ static void CloseFile(FileHandle file)
 @implementation Controller
 - (void)UpdateInfo
 {
-    int rows = GetRows();
-    int columns = GetColumns();
+    const int rows = GetRows();
+    const int columns = GetColumns();
     [Rows setIntValue: rows];
     [Columns setIntValue: columns];
     int dim = 1 + (int)pow(rows,0.25);
@@ -114,20 +114,32 @@ static void CloseFile(FileHandle file)
                                     nil);
             return;
         }
-        char* error = Load(inputfile.pointer);
+        char* result = Load(inputfile.pointer);
         CloseFile(inputfile);
         [FileMemo setStringValue: @""];
         [JobName setStringValue: @""];
         [Rows setStringValue: @""];
         [Columns setStringValue: @""];
         [self FilterReset];
-        if (error) {
-            NSRunCriticalAlertPanel(@"Error in data file",
-                                    [NSString stringWithCString: error],
+        if (!result)
+        {
+            NSRunCriticalAlertPanel(@"Error reading file",
+                                    @"Insufficient memory",
                                     @"OK",
                                     nil,
                                     nil);
-            free(error);
+            [statusbar setStringValue:
+                [@"Error reading file " stringByAppendingString: aFile]];
+            return;
+        }
+        else if (strcmp(result, "ok")!=0)
+        {
+            NSRunCriticalAlertPanel(@"Error in data file",
+                                    [NSString stringWithCString: result],
+                                    @"OK",
+                                    nil,
+                                    nil);
+            free(result);
             [statusbar setStringValue:
                 [@"Error reading file " stringByAppendingString: aFile]];
             return;
@@ -170,9 +182,19 @@ static void CloseFile(FileHandle file)
             [statusbar setStringValue: @"Error: Unable to open the output file"];
             return;
         }
-        Save(outputfile.pointer,0,0);
+        result = Save(outputfile.pointer, 0, 0);
         CloseFile(outputfile);
-        [statusbar setStringValue: @"Finished saving file"];
+        if (result)
+            [statusbar setStringValue: @"Finished saving file"];
+        else
+        {
+            NSRunCriticalAlertPanel(@"Error saving file",
+                                    @"Insufficient memory",
+                                    @"OK",
+                                    nil,
+                                    nil);
+            [statusbar setStringValue: @"Error saving to file"];
+        }
     } else {
         [statusbar setStringValue: @"Cancelled"];
     }
@@ -230,13 +252,23 @@ static void CloseFile(FileHandle file)
 
 - (IBAction)FilterAccept:(id)sender
 {
+    int ok;
     [filteraccept setEnabled: FALSE];
-    SelectSubset(useRows, use);
-    [self UpdateInfo];
+    ok = SelectSubset(useRows, use);
+    if (!ok) {
+        NSRunCriticalAlertPanel(@"Insufficient memory",
+                                @"Memory allocation error",
+                                @"OK",
+                                nil,
+                                nil);
+        [statusbar setStringValue: @"Error accepting filter"];
+    }
+    else [self UpdateInfo];
 }
 
 - (IBAction)AdjustApply:(id)sender
 {
+    int ok;
     [statusbar setStringValue: @"Adjusting data"];
     [statusbar display];
     const BOOL bLogTransform = [AdjustLogXB state];
@@ -245,12 +277,30 @@ static void CloseFile(FileHandle file)
     const int GeneMeanCenter = GeneCenter && [AdjustMeanGenes state];
     const int GeneMedianCenter = GeneCenter && [AdjustMedianGenes state];
     const int GeneNormalize = [AdjustNormalizeGenes state];
-    AdjustGenes(GeneMeanCenter, GeneMedianCenter, GeneNormalize);
+    ok = AdjustGenes(GeneMeanCenter, GeneMedianCenter, GeneNormalize);
+    if (!ok) {
+        NSRunCriticalAlertPanel(@"Insufficient memory",
+                                @"Memory allocation error",
+                                @"OK",
+                                nil,
+                                nil);
+        [statusbar setStringValue: @"Error adjusting genes"];
+        return;
+    }
     const int ArrayCenter = [AdjustCenterArraysXB state];
     const int ArrayMeanCenter = ArrayCenter && [AdjustMeanArrays state];
     const int ArrayMedianCenter = ArrayCenter && [AdjustMedianArrays state];
     const int ArrayNormalize = [AdjustNormalizeArrays state];
-    AdjustArrays(ArrayMeanCenter, ArrayMedianCenter, ArrayNormalize);
+    ok = AdjustArrays(ArrayMeanCenter, ArrayMedianCenter, ArrayNormalize);
+    if (!ok) {
+        NSRunCriticalAlertPanel(@"Insufficient memory",
+                                @"Memory allocation error",
+                                @"OK",
+                                nil,
+                                nil);
+        [statusbar setStringValue: @"Error adjusting arrays"];
+        return;
+    }
     [statusbar setStringValue: @"Done adjusting data"];
 }
 
@@ -342,6 +392,7 @@ static void CloseFile(FileHandle file)
 
 - (void)HierarchicalExecute:(NSString*)method_string
 {
+    int ok;
     const int rows = GetRows();
     const int columns = GetColumns();
     const char method = *([method_string cString]);
@@ -389,8 +440,8 @@ static void CloseFile(FileHandle file)
           gene_cutoff = [[HierarchicalGeneCutoff stringValue] doubleValue];
           gene_exponent = [[HierarchicalGeneExp stringValue] doubleValue];
         }
-        error = CalculateWeights (gene_cutoff, gene_exponent, genemetric,
-                                  array_cutoff, array_exponent, arraymetric);
+        error = CalculateWeights(gene_cutoff, gene_exponent, genemetric,
+                                 array_cutoff, array_exponent, arraymetric);
         if (error) {
             [statusbar setStringValue: [NSString stringWithCString: error]];
             return;
@@ -414,7 +465,6 @@ static void CloseFile(FileHandle file)
     [statusbar display];
 
     if (ClusterGenes) {
-        int result;
         NSString* filename = [jobname stringByAppendingPathExtension: @"gtr"];
         [[NSFileManager defaultManager] createFileAtPath: filename
                                                 contents: nil
@@ -424,16 +474,15 @@ static void CloseFile(FileHandle file)
             [statusbar setStringValue: @"Error: Unable to open the output file"];
             return;
         }
-        result = HierarchicalCluster(outputfile.pointer, genemetric, 0, method);
+        ok = HierarchicalCluster(outputfile.pointer, genemetric, 0, method);
         CloseFile(outputfile);
-        if (!result) {
+        if (!ok) {
             [statusbar setStringValue: @"Error: Insufficient memory"];
             return;
         }
     }
 
     if (ClusterArrays) {
-        int result;
         NSString* filename = [jobname stringByAppendingPathExtension: @"atr"];
         [[NSFileManager defaultManager] createFileAtPath: filename
                                                 contents: nil
@@ -443,9 +492,9 @@ static void CloseFile(FileHandle file)
             [statusbar setStringValue: @"Error: Unable to open the output file"];
             return;
         }
-        result = HierarchicalCluster(outputfile.pointer, arraymetric, 1, method);
+        ok = HierarchicalCluster(outputfile.pointer, arraymetric, 1, method);
         CloseFile(outputfile);
-        if (!result) {
+        if (!ok) {
             [statusbar setStringValue: @"Error: Insufficient memory"];
             return;
         }
@@ -464,10 +513,19 @@ static void CloseFile(FileHandle file)
         [statusbar setStringValue: @"Error: Unable to open the output file"];
         return;
     }
-    Save(outputfile.pointer, ClusterGenes, ClusterArrays);
+    ok = Save(outputfile.pointer, ClusterGenes, ClusterArrays);
     CloseFile(outputfile);
-    [statusbar setStringValue: @"Done Clustering"];
-
+    if (!ok)
+    {
+        NSRunCriticalAlertPanel(@"Error saving file",
+                                @"Insufficient memory",
+                                @"OK",
+                                nil,
+                                nil);
+        [statusbar setStringValue: @"Error saving to file"];
+    }
+    else
+        [statusbar setStringValue: @"Done Clustering"];
 /* Release this thread's autorelease pool here in a multithreaded application
     [threadPool release];
  */
@@ -475,6 +533,7 @@ static void CloseFile(FileHandle file)
 
 - (IBAction)KMeansExecute:(id)sender
 {
+    int ok;
     const int rows = GetRows();
     const int columns = GetColumns();
     if (rows==0 || columns==0) {
@@ -512,22 +571,37 @@ static void CloseFile(FileHandle file)
         const char dist = [self GetMetric: KMeansGeneMetric];
         int *NodeMap = malloc(rows*sizeof(int));
         const int nGeneTrials = [KMeansGeneRuns intValue];
+        ok = 1;
+        NSString* filename = nil;
         int ifound = GeneKCluster(kGenes, nGeneTrials, method, dist, NodeMap);
-        [statusbar setStringValue: [NSString stringWithFormat: @"Solution was found %d times", ifound]];
+        if (ifound < 0) ok = 0;
+        if (ok) {
+            [statusbar setStringValue: [NSString stringWithFormat: @"Solution was found %d times", ifound]];
         
-        NSString* filename = [jobname stringByAppendingFormat: @"_K_G%d.kgg", kGenes];
-        [[NSFileManager defaultManager] createFileAtPath: filename
-                                                contents: nil
-                                              attributes: nil];
-        FileHandle outputfile;
-        if (!OpenFile(&outputfile, filename, "wt")) {
-            [statusbar setStringValue: @"Error: Unable to open the output file"];
-            free(NodeMap);
+            filename = [jobname stringByAppendingFormat: @"_K_G%d.kgg", kGenes];
+            [[NSFileManager defaultManager] createFileAtPath: filename
+                                                    contents: nil
+                                                  attributes: nil];
+            FileHandle outputfile;
+            if (!OpenFile(&outputfile, filename, "wt")) {
+                [statusbar setStringValue: @"Error: Unable to open the output file"];
+                free(NodeMap);
+                return;
+            }
+            ok = SaveGeneKCluster(outputfile.pointer, kGenes, NodeMap);
+            CloseFile(outputfile);
+        }
+        free(NodeMap);
+        if (!ok) {
+            NSRunCriticalAlertPanel(@"Insufficient memory",
+                                    @"Memory allocation problem",
+                                    @"OK",
+                                    nil,
+                                    nil);
+            [statusbar setStringValue:
+                [@"Error saving file " stringByAppendingString: filename]];
             return;
         }
-        SaveGeneKCluster(outputfile.pointer, kGenes, NodeMap);
-        CloseFile(outputfile);
-        free(NodeMap);
     }
     
     if (ClusterArrays) {
@@ -548,22 +622,37 @@ static void CloseFile(FileHandle file)
         int *NodeMap = malloc(columns*sizeof(int));
         const int nArrayTrials = [KMeansArrayRuns intValue];
 
+        ok = 1;
+        NSString* filename = nil;
         int ifound = ArrayKCluster(kArrays, nArrayTrials, method, dist, NodeMap);
-        [statusbar setStringValue: [NSString stringWithFormat: @"Solution was found %d times", ifound]];
+        if (ifound < 0) ok = 0;
+        if (ok) {
+            [statusbar setStringValue: [NSString stringWithFormat: @"Solution was found %d times", ifound]];
         
-        NSString* filename = [jobname stringByAppendingFormat: @"_K_A%d.kag", kArrays];
-        [[NSFileManager defaultManager] createFileAtPath: filename
-                                                contents: nil
-                                              attributes: nil];
-        FileHandle outputfile;
-        if (!OpenFile(&outputfile, filename, "wt")) {
-            [statusbar setStringValue: @"Error: Unable to open the output file"];
-            free(NodeMap);
+            filename = [jobname stringByAppendingFormat: @"_K_A%d.kag", kArrays];
+            [[NSFileManager defaultManager] createFileAtPath: filename
+                                                    contents: nil
+                                                  attributes: nil];
+            FileHandle outputfile;
+            if (!OpenFile(&outputfile, filename, "wt")) {
+                [statusbar setStringValue: @"Error: Unable to open the output file"];
+                free(NodeMap);
+                return;
+            }
+            ok = SaveArrayKCluster(outputfile.pointer, kArrays, NodeMap);
+            CloseFile(outputfile);
+        }
+        free(NodeMap);
+        if (!ok) {
+            NSRunCriticalAlertPanel(@"Insufficient memory",
+                                    @"Memory allocation problem",
+                                    @"OK",
+                                    nil,
+                                    nil);
+            [statusbar setStringValue:
+                [@"Error saving file " stringByAppendingString: filename]];
             return;
         }
-        SaveArrayKCluster(outputfile.pointer, kArrays, NodeMap);
-        CloseFile(outputfile);
-        free(NodeMap);
     }
 
     NSString* filename = 0;
@@ -582,8 +671,19 @@ static void CloseFile(FileHandle file)
         [statusbar setStringValue: @"Error: Unable to open the output file"];
         return;
     }
-    Save(outputfile.pointer, 0, 0);
+    ok = Save(outputfile.pointer, 0, 0);
     CloseFile(outputfile);
+    if (!ok)
+    {
+        NSRunCriticalAlertPanel(@"Error saving file",
+                                @"Insufficient memory",
+                                @"OK",
+                                nil,
+                                nil);
+        [statusbar setStringValue: @"Error saving to file"];
+    }
+    else
+        [statusbar setStringValue: @"Finished saving file"];
 }
 
 - (IBAction)SOMExecute:(id)sender
@@ -683,17 +783,35 @@ static void CloseFile(FileHandle file)
         }
     }
 
-    PerformSOM(GeneFile.pointer, GeneXDim, GeneYDim,
-               GeneIters, GeneTau, GeneMetric,
-               ArrayFile.pointer, ArrayXDim, ArrayYDim,
-               ArrayIters, ArrayTau, ArrayMetric);
+    int ok = PerformSOM(GeneFile.pointer, GeneXDim, GeneYDim,
+                        GeneIters, GeneTau, GeneMetric,
+                        ArrayFile.pointer, ArrayXDim, ArrayYDim,
+                        ArrayIters, ArrayTau, ArrayMetric);
     if (ClusterGenes) CloseFile(GeneFile);
     if (ClusterArrays) CloseFile(ArrayFile);
+    if (!ok) {
+        NSRunCriticalAlertPanel(@"Insufficient memory",
+                                @"Memory allocation problem",
+                                @"OK",
+                                nil,
+                                nil);
+        [statusbar setStringValue: @"Error performing SOM"];
+        return;
+    }
 
-    Save(DataFile.pointer, 0, 0);
+    ok = Save(DataFile.pointer, 0, 0);
     CloseFile(DataFile);
-
-    [statusbar setStringValue: @"Done making SOM"];
+    if (!ok)
+    {
+        NSRunCriticalAlertPanel(@"Error saving file",
+                                @"Insufficient memory",
+                                @"OK",
+                                nil,
+                                nil);
+        [statusbar setStringValue: @"Error saving to file"];
+    }
+    else
+        [statusbar setStringValue: @"Done making SOM"];
 }
 
 - (IBAction)PCAExecute:(id)sender
@@ -708,8 +826,8 @@ static void CloseFile(FileHandle file)
 
     if (!DoGenePCA && !DoArrayPCA) return; // Nothing to do
 
-    int rows = GetRows();
-    int columns = GetColumns();
+    const int rows = GetRows();
+    const int columns = GetColumns();
     if (rows==0 || columns==0) {
         [statusbar setStringValue: @"No data available"];
         return;

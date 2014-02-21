@@ -1340,6 +1340,11 @@ Pycluster is also available as part of @uref{http://www.biopython.org, Biopython
 @code{>>> from Bio.Cluster import *} @*
 This will give you access to the clustering routines in the C Clustering Library directly from Python.
 
+The function @*
+@noindent
+@code{>>> version()} @*
+returns the version number of the C Clustering Library as a string.
+
 @section Partitioning algorithms
 
 @subsection @emph{k}-means and @emph{k}-medians clustering: @code{kcluster}
@@ -2358,20 +2363,6 @@ Similarly, we can save a @emph{k}-means clustering solution:
 
 @noindent
 This will create the files @code{cyano_result_K_G2_A2.cdt}, @code{cyano_result_K_G2.kgg}, and @code{cyano_result_K_A2.kag}.
-
-@section Auxiliary functions
-
-@noindent
-@code{median(data)} @*
-returns the median of the 1D array @code{data}.
-
-@noindent
-@code{mean(data)} @*
-returns the mean of the 1D array @code{data}.
-
-@noindent
-@code{version()} @*
-returns the version number of the C Clustering Library as a string.
 
 @node Perl, Building, Python,
 @chapter Using the C Clustering Library with Perl: Algorithm::Cluster

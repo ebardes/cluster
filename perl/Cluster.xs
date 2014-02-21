@@ -920,6 +920,9 @@ get (obj, index)
     RETVAL = newSViv(0);
     scalar = newSVrv(RETVAL, "Algorithm::Cluster::Node");
     node = malloc(sizeof(Node));
+    if (!node) {
+        croak("Memory allocation failure in Algorithm::Cluster::Tree::get\n");
+    }
     node->left = tree->nodes[index].left;
     node->right = tree->nodes[index].right;
     node->distance = tree->nodes[index].distance;
@@ -1123,7 +1126,7 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
         if (!ok) {
             croak("failed to read input data for _treecluster\n");
         }
-        }
+    }
 
     /* ------------------------
      * Run the library function
@@ -1157,8 +1160,14 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
         RETVAL = newSViv(0);
         obj = newSVrv(RETVAL, "Algorithm::Cluster::Tree");
         tree = malloc(sizeof(Tree));
+        if (!tree)
+            croak("Memory allocation failure in Algorithm::Cluster::Tree\n");
         tree->n = n;
         tree->nodes = malloc(n*sizeof(Node));
+        if (!tree->nodes) {
+            free(tree);
+            croak("Memory allocation failure in Algorithm::Cluster::Tree\n");
+        }
         sv_setiv(obj, PTR2IV(tree));
         SvREADONLY_on(obj);
         for(i=0; i<n; i++) {
@@ -1229,8 +1238,8 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
         nobjects = ncols;
         ndata = nrows;
     }
-        clusterid = malloc(nobjects * sizeof(int) );
-        if (!clusterid) {
+    clusterid = malloc(nobjects * sizeof(int) );
+    if (!clusterid) {
         croak("memory allocation failure in _kcluster\n");
     }
 
@@ -1243,9 +1252,9 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
                 data_ref,   &matrix,
                 mask_ref,   &mask,  
                 nrows,      ncols);
-        if (!ok) {
+    if (!ok) {
         free(clusterid);
-            croak("failed to read input data for _kcluster\n");
+        croak("failed to read input data for _kcluster\n");
     }
 
     /* ------------------------
@@ -1317,9 +1326,9 @@ _kmedoids(nclusters,nobjects,distancematrix_ref,npass,initialid_ref)
     /* ------------------------
      * Malloc space for the return values from the library function
      */
-    clusterid = malloc(nobjects * sizeof(int) );
-        if (!clusterid) {
-            croak("memory allocation failure in _kmedoids\n");
+    clusterid = malloc(nobjects * sizeof(int));
+    if (!clusterid) {
+        croak("memory allocation failure in _kmedoids\n");
     }
 
     /* ------------------------
@@ -1660,7 +1669,7 @@ _distancematrix(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist)
         nrows,      ncols
     );
     if (!ok) {
-            croak("failed to read input data for _distancematrix");
+        croak("failed to read input data for _distancematrix");
     }
 
     /* ------------------------

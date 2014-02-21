@@ -38,7 +38,7 @@
 #  include <windows.h>
 #endif
 
-#define CLUSTERVERSION "1.50"
+#define CLUSTERVERSION "1.52"
 
 /* Chapter 2 */
 double clusterdistance (int nrows, int ncolumns, double** data, int** mask,

@@ -42,7 +42,7 @@ class test_Pycluster(Command):
 
 
 setup(name="Pycluster",
-      version="1.50",
+      version="1.52",
       description="The C Clustering Library",
       author="Michiel de Hoon",
       author_email="mdehoon 'AT' gsc.riken.jp",

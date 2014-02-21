@@ -66,7 +66,7 @@ MdH 2003.07.17.
 /*============================================================================*/
 
 static int load(const char filename[])
-{ char* error;
+{ char* result;
   struct stat filestat;
   FILE* inputfile;
   if (stat(filename, &filestat) ||
@@ -75,14 +75,16 @@ static int load(const char filename[])
   { printf("Error opening file %s\n", filename);
     return 0;
   }
-  error = Load(inputfile);
+  result = Load(inputfile);
   fclose(inputfile);
-  if (error)
-  { printf("Error reading file %s:\n%s\n", filename, error);
-    free(error);
+  if (result==NULL)
+  { printf("Error reading file %s:\nInsufficient memory\n", filename);
     return 0;
   }
-  return 1;
+  if (strcmp(result, "ok")==0) return 1;
+  printf("Error reading file %s:\n%s\n", filename, result);
+  free(result);
+  return 0;
 }
 
 static void display_help(void)
@@ -221,7 +223,8 @@ static char getmetric(int i)
 
 static void
 Hierarchical(char genemetric, char arraymetric, char method, char* jobname)
-{ FILE* outputfile;
+{ int ok;
+  FILE* outputfile;
   const int n = strlen(jobname) + strlen(".ext") + 1;
   char* const filename = malloc(n*sizeof(char));
   if (!filename)
@@ -233,7 +236,11 @@ Hierarchical(char genemetric, char arraymetric, char method, char* jobname)
     outputfile = fopen(filename, "wt");
     if (!outputfile) printf ("Failed opening output file %s\n", filename);
     else
-    { HierarchicalCluster(outputfile, genemetric, 0, method);
+    { ok = HierarchicalCluster(outputfile, genemetric, 0, method);
+      if (!ok)
+      { printf("ERROR: Failed to allocate sufficient memory for clustering\n");
+        return;
+      }
       fclose(outputfile);
     }
   }
@@ -242,7 +249,11 @@ Hierarchical(char genemetric, char arraymetric, char method, char* jobname)
     outputfile = fopen(filename, "wt");
     if (!outputfile) printf ("Failed opening output file %s\n", filename);
     else
-    { HierarchicalCluster(outputfile, arraymetric, 1, method);
+    { ok = HierarchicalCluster(outputfile, arraymetric, 1, method);
+      if (!ok)
+      { printf("ERROR: Failed to allocate sufficient memory for clustering\n");
+        return;
+      }
       fclose(outputfile);
     }
   }
@@ -315,10 +326,18 @@ static void KMeans(char genemetric, char arraymetric, int k, int r,
     { int* NodeMap = malloc(Rows*sizeof(int));
       if (!NodeMap) printf ("ERROR: Memory allocation failure\n");
       else
-      { GeneKCluster(k, r, method, genemetric, NodeMap);
-        SaveGeneKCluster(outputfile, k, NodeMap);
+      { int ok = GeneKCluster(k, r, method, genemetric, NodeMap);
+        if (ok >= 0) ok = SaveGeneKCluster(outputfile, k, NodeMap);
         fclose(outputfile);
         free(NodeMap);
+        if (ok < 0)
+        { printf("ERROR: Failed to allocate sufficient memory for clustering\n");
+          return;
+        }
+        if (ok==0)
+        { printf("ERROR: Failed to allocate sufficient memory for saving file\n");
+          return;
+        }
       }
     }
   }
@@ -331,10 +350,18 @@ static void KMeans(char genemetric, char arraymetric, int k, int r,
     { int* NodeMap = malloc(Columns*sizeof(int));
       if (!NodeMap) printf ("ERROR: Memory allocation failure\n");
       else
-      { ArrayKCluster(k, r, method, arraymetric, NodeMap);
-        SaveArrayKCluster(outputfile, k, NodeMap);
+      { int ok = ArrayKCluster(k, r, method, arraymetric, NodeMap);
+        if (ok >= 0) ok = SaveArrayKCluster(outputfile, k, NodeMap);
         fclose(outputfile);
         free(NodeMap);
+        if (ok < 0)
+        { printf("ERROR: Failed to allocate sufficient memory for clustering\n");
+          return;
+        }
+        if (ok==0)
+        { printf("ERROR: Failed to allocate sufficient memory for saving file\n");
+          return;
+        }
       }
     }
   }
@@ -382,7 +409,7 @@ static void PCA(char which, const int Rows, const int Columns,
     fclose(coordinatefile);
     fclose(pcfile);
     if (error)
-    { printf(error);
+    { puts(error);
       free(filename);
       return;
     }
@@ -403,7 +430,7 @@ static void PCA(char which, const int Rows, const int Columns,
     fclose(coordinatefile);
     fclose(pcfile);
     if (error)
-    { printf(error);
+    { puts(error);
       free(filename);
       return;
     }
@@ -413,7 +440,8 @@ static void PCA(char which, const int Rows, const int Columns,
 
 static void SOM(char genemetric, char arraymetric, int x, int y,
                 int Rows, int Columns, char* jobname)
-{ char* filename;
+{ int ok;
+  char* filename;
   char* extension;
   FILE* GeneFile = NULL;
   FILE* ArrayFile = NULL;
@@ -444,9 +472,9 @@ static void SOM(char genemetric, char arraymetric, int x, int y,
   { printf("ERROR: Failed to allocate memory for file name\n");
     return;
   }
-  sprintf (filename, "%s_SOM", jobname);
-  if (genemetric) sprintf (strchr(filename,'\0'),"_G%d-%d",x,y);
-  if (arraymetric) sprintf (strchr(filename,'\0'),"_A%d-%d",x,y);
+  sprintf(filename, "%s_SOM", jobname);
+  if (genemetric) sprintf(strchr(filename,'\0'),"_G%d-%d",x,y);
+  if (arraymetric) sprintf(strchr(filename,'\0'),"_A%d-%d",x,y);
   extension = strchr(filename, '\0');
 
   sprintf(extension, ".txt");
@@ -482,14 +510,14 @@ static void SOM(char genemetric, char arraymetric, int x, int y,
   }
   else ArrayIters = 0;
 
-  free (filename);
+  free(filename);
 
-  PerformSOM(GeneFile, x, y, GeneIters, tau, genemetric,
-             ArrayFile, x, y, ArrayIters, tau, arraymetric);
+  ok = PerformSOM(GeneFile, x, y, GeneIters, tau, genemetric,
+                  ArrayFile, x, y, ArrayIters, tau, arraymetric);
   if (GeneFile) fclose(GeneFile);
   if (ArrayFile) fclose(ArrayFile);
-
-  Save(DataFile, 0, 0);
+  if (!ok) printf("Error performing SOM: Insufficient memory\n");
+  else Save(DataFile, 0, 0);
   fclose(DataFile);
   return;
 }
@@ -518,6 +546,7 @@ int commandmain(int argc, char* argv[])
   int na = 0;
   int pg = 0;
   int pa = 0;
+  int ok = 1;
   while (i < argc)
   { const char* const argument = argv[i];
     i++;
@@ -689,7 +718,10 @@ int commandmain(int argc, char* argv[])
       default: printf ("Unknown option\n");
     }
   }
-  if (filename) load(filename);
+  if (filename)
+  { ok = load(filename);
+    if (!ok) return 0;
+  }
   else
   { display_help();
     return 0;
@@ -700,14 +732,22 @@ int commandmain(int argc, char* argv[])
   else
   { if (l) LogTransform();
     switch (cg)
-    {  case 'a': AdjustGenes (1, 0, ng); break;
-       case 'm': AdjustGenes (0, 1, ng); break;
-       default : AdjustGenes (0, 0, ng);
+    {  case 'a': ok = AdjustGenes (1, 0, ng); break;
+       case 'm': ok = AdjustGenes (0, 1, ng); break;
+       default : ok = AdjustGenes (0, 0, ng);
+    }
+    if (!ok)
+    { printf("Error adjusting genes:\nInsufficient memory\n");
+      return 0;
     }
     switch (ca)
-    {  case 'a': AdjustArrays (1, 0, na); break;
-       case 'm': AdjustArrays (0, 1, na); break;
-       default : AdjustArrays (0, 0, na);
+    {  case 'a': ok = AdjustArrays (1, 0, na); break;
+       case 'm': ok = AdjustArrays (0, 1, na); break;
+       default : ok = AdjustArrays (0, 0, na);
+    }
+    if (!ok)
+    { printf("Error adjusting arrays:\nInsufficient memory\n");
+      return 0;
     }
     if(jobname) jobname = setjobname(jobname, 0);
     else jobname = setjobname(filename, 1);

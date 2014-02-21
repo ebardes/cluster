@@ -83,8 +83,8 @@ CreateMetricComboBox(Widget parent, int x, int y, char* name, char initial)
     XtSetArg(args[n], XmNx, x+65); n++;
     XtSetArg(args[n], XmNy, y); n++;
     xms = XmStringCreateSimple("Similarity Metric");
-    XtSetArg (args[n], XmNlabelString, xms); n++;
-    label = XmCreateLabel (parent, "", args, n);
+    XtSetArg(args[n], XmNlabelString, xms); n++;
+    label = XmCreateLabel(parent, "", args, n);
     XtManageChild(label);
     XmStringFree(xms);
     n = 0;
@@ -135,7 +135,7 @@ static int GetWidgetItemInt(Widget w, const char item[])
     Widget textfield = XtNameToWidget(w, item);
     if (textfield==0) return 0;
     text = XmTextGetString(textfield);
-    result = strtol (text, NULL, 0); /* returns 0 if failed */
+    result = strtol(text, NULL, 0); /* returns 0 if failed */
     XtFree(text);
     return result;
 }
@@ -153,13 +153,13 @@ static Widget Statusbar(Widget w, char* message)
         XtSetArg(args[n], XmNeditable, False); n++;
         XtSetArg(args[n], XmNmaxLength, 200); n++;
         statusbar = XmCreateTextField(w, "message", args, n);
-        XtManageChild (statusbar);
-	return statusbar;
+        XtManageChild(statusbar);
+        return statusbar;
     }
     else
     {   XmTextSetString(statusbar, message);
-	XmUpdateDisplay(statusbar);
-	return NULL;
+        XmUpdateDisplay(statusbar);
+        return NULL;
     }
 }
 
@@ -231,7 +231,7 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
             Widget widget, frame;
             XmString xms;
 
-	    page = w;
+            page = w;
             n = 0;
             XtSetArg(args[n], XmNx, 180); n++;
             widget = XmCreateLabel(page, "Calculate a Self-Organizing Map", args, n);
@@ -301,7 +301,7 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Genes");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame, NULL, args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -370,7 +370,7 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Arrays");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame, NULL, args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -382,7 +382,7 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
                           XmNactivateCallback,
                           SOM,
                           (XtPointer)&command);
-	    break;
+            break;
         }
         case ID_SOM_EXECUTE:
         {   const int Rows = GetRows();
@@ -409,6 +409,8 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
             FILE* GeneFile = NULL;
             FILE* ArrayFile = NULL;
             FILE* DataFile = NULL;
+
+            int ok;
 
             Widget notebook = XtParent(page);
             Widget work = XtParent(notebook);
@@ -453,11 +455,11 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
             strcat(path, "_SOM");
             filetag = strchr(path, '\0');
             if (ClusterGenes)
-                filetag += sprintf (filetag, "_G%d-%d", GeneXDim, GeneYDim);
+                filetag += sprintf(filetag, "_G%d-%d", GeneXDim, GeneYDim);
             if (ClusterArrays)
-                filetag += sprintf (filetag, "_A%d-%d", ArrayXDim, ArrayYDim);
+                filetag += sprintf(filetag, "_A%d-%d", ArrayXDim, ArrayYDim);
 
-            sprintf (filetag, ".txt");
+            sprintf(filetag, ".txt");
             DataFile = fopen(path, "wt");
             if (!DataFile) 
             {   free(path);
@@ -470,18 +472,18 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
                 char* error;
                 Widget widget = XtNameToWidget(page,"SOMGeneTau");
                 char* text = XmTextGetString(widget);
-                value = strtod (text, &error);
+                value = strtod(text, &error);
                 GeneTau = error ? value : 0;
                 XtFree(text);
                 widget = XtNameToWidget(page,"GeneMetric");
                 GeneMetric = GetMetric(widget);
                 GeneIters = GetWidgetItemInt(page, "SOMGeneIters");
     
-                if((GeneIters==0)||(GeneTau==0)||(GeneXDim==0)||(GeneYDim==0))
+                if ((GeneIters==0)||(GeneTau==0)||(GeneXDim==0)||(GeneYDim==0))
                 {   Statusbar(NULL, "Error starting SOM: Check options");
                     fclose(DataFile);
                     free(path);
-	            return;
+                    return;
                 }
                 sprintf(filetag, ".gnf");
                 GeneFile = fopen(path, "wt");
@@ -498,22 +500,22 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
                 char* error;
                 Widget widget = XtNameToWidget(page,"SOMArrayTau");
                 char* text = XmTextGetString(widget);
-                value = strtod (text, &error);
+                value = strtod(text, &error);
                 ArrayTau = error ? value : 0;
                 XtFree(text);
                 widget = XtNameToWidget(page,"ArrayMetric");
                 ArrayMetric = GetMetric(widget);
                 ArrayIters = GetWidgetItemInt(page, "SOMArrayIters");
 
-                if((ArrayIters==0)||(ArrayTau==0)||(ArrayXDim==0)||(ArrayYDim==0))
+                if ((ArrayIters==0)||(ArrayTau==0)||(ArrayXDim==0)||(ArrayYDim==0))
                 {   Statusbar(NULL, "Error starting SOM: Check options");
                     if (GeneFile) fclose(GeneFile);
                     fclose(DataFile);
                     free(path);
-	            return;
+                    return;
                 }
 
-                sprintf (filetag, ".anf");
+                sprintf(filetag, ".anf");
                 ArrayFile = fopen(path, "wt");
                 if (!ArrayFile) 
                 {   Statusbar(NULL, "Error: Unable to open the output file");
@@ -528,18 +530,27 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
 
             Statusbar(NULL, "Calculating Self-Organizing Map");
 
-            PerformSOM (GeneFile, GeneXDim, GeneYDim, GeneIters, GeneTau,
-                        GeneMetric, ArrayFile, ArrayXDim, ArrayYDim, ArrayIters,
-                        ArrayTau, ArrayMetric);
+            ok = PerformSOM(GeneFile, GeneXDim, GeneYDim, GeneIters, GeneTau,
+                           GeneMetric, ArrayFile, ArrayXDim, ArrayYDim,
+                           ArrayIters, ArrayTau, ArrayMetric);
             if (GeneFile) fclose(GeneFile);
             if (ArrayFile) fclose(ArrayFile);
-
-            Save(DataFile, 0, 0);
+            if (!ok)
+            {   ShowError(w, "Memory allocation error", "Insufficient memory");
+                Statusbar(NULL, "Memory allocation error");
+                break;
+            }
+            ok = Save(DataFile, 0, 0);
             fclose(DataFile);
+            if (!ok)
+            { ShowError(w, "Error saving file", "Insufficient memory");
+              Statusbar(NULL, "Error saving to file");
+              break;
+            }
             Statusbar(NULL, "Done making SOM");
-	    break;
+            break;
         }
-	case ID_SOM_UPDATE:
+        case ID_SOM_UPDATE:
         {   const int Rows = GetRows();
             const int Columns = GetColumns();
             int n;
@@ -565,7 +576,7 @@ static void SOM(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetValues(widget, args, n);
             widget = XtNameToWidget(page,"SOMArrayYDim");
             XtSetValues(widget, args, n);
-	    break;
+            break;
         }
     }
 }
@@ -721,7 +732,7 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
             static int apply_command = ID_FILTER_APPLY;
             static int accept_command = ID_FILTER_ACCEPT;
 
-	    page = w;
+            page = w;
             n = 0;
             XtSetArg(args[n], XmNx, 20); n++;
             XtSetArg(args[n], XmNy, 33); n++;
@@ -749,7 +760,7 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
             n = 0;
             XtSetArg(args[n], XmNx, 20); n++;
             XtSetArg(args[n], XmNy, 113); n++;
-            widget = XmCreateToggleButton (page, "At least", args, n);
+            widget = XmCreateToggleButton(page, "At least", args, n);
             XtManageChild(widget);
             n = 0;
             XtSetArg(args[n], XmNx, 97); n++;
@@ -805,7 +816,7 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNrecomputeSize, False); n++;
             widget = XmCreateLabel(page, "FilterResult", args, n);
             XtManageChild(widget);
-            XmStringFree (xms);
+            XmStringFree(xms);
             n = 0;
             XtSetArg(args[n], XmNwidth, 500); n++;
             XtSetArg(args[n], XmNheight, 270); n++;
@@ -816,10 +827,10 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Filter Genes");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame, NULL, args, n);
             XtManageChild(widget);
             XmStringFree(xms);
-	    break;
+            break;
         }
         case ID_FILTER_APPLY:
         {   /* Filter data. Apply user selected criteria to flag (for subsequent
@@ -828,12 +839,12 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
              * parameters to get appropriate number of rows passing
              */
             Boolean bStd, bPercent, bAbsVal, bMaxMin;
-	    Widget label, button, textfield;
+            Widget label, button, textfield;
             Arg args[1];
             int n = 0;
             const int Rows = GetRows();
             char buffer[128];
-	    char* text;
+            char* text;
             char* errorchar;
             double value;
             double absVal, percent, std;
@@ -844,9 +855,9 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
 
             XmString xms = XmStringGenerate("result", XmFONTLIST_DEFAULT_TAG, XmCHARSET_TEXT, NULL);
             label = XtNameToWidget(page,"FilterResult");
-            XtSetArg (args[n], XmNlabelString, xms); n++;
-            XtSetValues (label, args, n);
-            XmStringFree (xms);
+            XtSetArg(args[n], XmNlabelString, xms); n++;
+            XtSetValues(label, args, n);
+            XmStringFree(xms);
             button = XtNameToWidget(page,"Accept Filter");
             XtSetSensitive(button, True);
             button = XtNameToWidget(page,"SD (Gene Vector)");
@@ -860,31 +871,31 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
 
             /* Read information from the edit boxes */
             textfield = XtNameToWidget(page,"FilterObservationValue");
-	    text = XmTextGetString(textfield);
-            value = strtod (text, &errorchar);
+            text = XmTextGetString(textfield);
+            value = strtod(text, &errorchar);
             absVal = (*errorchar==0) ? value : 0;
             XtFree(text);
             textfield = XtNameToWidget(page,"FilterPercent");
-	    text = XmTextGetString(textfield);
-            value = strtod (text, &errorchar);
+            text = XmTextGetString(textfield);
+            value = strtod(text, &errorchar);
             percent = (*errorchar==0) ? value : 0;
             XtFree(text);
             textfield = XtNameToWidget(page,"FilterStd");
-	    text = XmTextGetString(textfield);
-            value = strtod (text, &errorchar);
+            text = XmTextGetString(textfield);
+            value = strtod(text, &errorchar);
             std = (*errorchar==0) ? value : 0;
             XtFree(text);
             numberAbs = GetWidgetItemInt(page, "FilterNumber");
             textfield = XtNameToWidget(page,"FilterMaxMin");
-	    text = XmTextGetString(textfield);
-            value = strtod (text, &errorchar);
+            text = XmTextGetString(textfield);
+            value = strtod(text, &errorchar);
             maxmin = (*errorchar==0) ? value : 0;
             XtFree(text);
 
-	    Filter(page, (XtPointer)&command, NULL);
+            Filter(page, (XtPointer)&command, NULL);
 
             /* Store results in boolean use */
-            if(use) free(use);
+            if (use) free(use);
             use = malloc(Rows*sizeof(int));
             if (!use)
             {   Statusbar(NULL, "Memory allocation failure");
@@ -894,16 +905,16 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
             useRows = 0;
 
             for (Row = 0; Row < Rows; Row++)
-	    {   sprintf (buffer, "Assessing filters for gene %d", Row);
-		Statusbar(NULL, buffer);
-                use[Row] = FilterRow (Row,bStd,bPercent,bAbsVal,bMaxMin,
-                                          absVal,percent,std,numberAbs,maxmin);
+            {   sprintf(buffer, "Assessing filters for gene %d", Row);
+                Statusbar(NULL, buffer);
+                use[Row] = FilterRow(Row, bStd, bPercent, bAbsVal, bMaxMin,
+                                     absVal, percent, std, numberAbs, maxmin);
                 /* Count how many passed */
                 if (use[Row]) useRows++;
             }
 
             /* Tell user how many rows passed */
-            sprintf (buffer, "%d passed out of %d", useRows, Rows);
+            sprintf(buffer, "%d passed out of %d", useRows, Rows);
             xms = XmStringCreateSimple(buffer);
             label = XtNameToWidget(page, "FilterResult");
             n = 0;
@@ -915,25 +926,33 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNsensitive, True); n++;
             button = XtNameToWidget(page, "Accept Filter");
             XtSetValues(button, args, n);
-	    Statusbar(NULL, "Done Analyzing Filters");
+            Statusbar(NULL, "Done Analyzing Filters");
             break;
-	}
+        }
         case ID_FILTER_ACCEPT:
         {   /* Accept results of last filtering */
             int update;
+            int ok;
             XtSetSensitive(w, False);
-            SelectSubset(useRows, use);
+            ok = SelectSubset(useRows, use);
+            if (!ok)
+            {   ShowError(w,
+                          "Insufficient memory",
+                          "Failed to apply filtering");
+                Statusbar(NULL, "Filtering failed");
+                return;
+            }
             update = ID_FILEMANAGER_UPDATE_ROWS_COLUMNS;
             FileManager(NULL, (XtPointer)&update, NULL);
             update = ID_SOM_UPDATE;
-	    SOM(w, (XtPointer)&update, NULL);
-	    break;
-	}
-	case ID_FILTER_RESET:
+            SOM(w, (XtPointer)&update, NULL);
+            break;
+        }
+        case ID_FILTER_RESET:
         {   Arg args[1];
             int n;
             Widget widget;
-	    XmString xms;
+            XmString xms;
             n = 0;
             xms = XmStringCreateSimple("");
             widget = XtNameToWidget(page, "FilterResult");
@@ -944,11 +963,11 @@ static void Filter(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNsensitive, False); n++;
             widget = XtNameToWidget(page, "Accept Filter");
             XtSetValues(widget, args, n);
-	    break;
+            break;
         }
         case ID_FILTER_FREE:
-        {   if(use) free(use);
-	    break;
+        {   if (use) free(use);
+            break;
         }
     }
 }
@@ -962,7 +981,7 @@ SwitchEnableDisable(Widget w, XtPointer client_data, XtPointer call_data)
     Widget median = NULL;
     Widget page = XtParent(w);
     XmToggleButtonCallbackStruct* tbs =
-	(XmToggleButtonCallbackStruct*) call_data;
+        (XmToggleButtonCallbackStruct*) call_data;
     if (strcmp(name,"CenterGenes")==0)
     {   box = XtNameToWidget(page,"CenterGenesBox");
         mean = XtNameToWidget(box, "AdjustMeanGenes");
@@ -986,7 +1005,7 @@ static void Adjust(Widget w, XtPointer client_data, XtPointer call_data)
 {   
     static Widget page = 0;
     int* which = (int*) client_data;
-    switch(*which)
+    switch (*which)
     {   case ID_ADJUST_INIT:
         {   Arg args[6];
             int n;
@@ -994,7 +1013,7 @@ static void Adjust(Widget w, XtPointer client_data, XtPointer call_data)
             static int command = ID_ADJUST_EXECUTE;
 
             XmString xms;
-	    page = w;
+            page = w;
 
             n = 0;
             XtSetArg(args[n], XmNx, 30); n++;
@@ -1137,13 +1156,14 @@ static void Adjust(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Adjust Data");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame, NULL, args, n);
             XtManageChild(widget);
             XmStringFree(xms);
-	    break;
+            break;
         }
         case ID_ADJUST_EXECUTE:
-        {   int bLogTransform;
+        {   int ok;
+            int bLogTransform;
             int GeneMeanCenter = False;
             int GeneMedianCenter = False;
             int GeneNormalize;
@@ -1152,7 +1172,7 @@ static void Adjust(Widget w, XtPointer client_data, XtPointer call_data)
             int ArrayNormalize;
             Widget button;
 
-	    Statusbar(NULL, "Adjusting data");
+            Statusbar(NULL, "Adjusting data");
 
             button = XtNameToWidget(page,"Log transform data");
             bLogTransform = XmToggleButtonGetState(button);
@@ -1168,7 +1188,14 @@ static void Adjust(Widget w, XtPointer client_data, XtPointer call_data)
             }
             button = XtNameToWidget(page,"AdjustNormalizeGenes");
             GeneNormalize = XmToggleButtonGetState(button);
-            AdjustGenes(GeneMeanCenter, GeneMedianCenter, GeneNormalize);
+            ok = AdjustGenes(GeneMeanCenter,
+                             GeneMedianCenter,
+                             GeneNormalize);
+            if (!ok)
+            {   ShowError(w, "Memory allocation error", "Insufficient memory");
+                Statusbar(NULL, "Memory allocation error");
+                return;
+            }
 
             button = XtNameToWidget(page, "CenterArrays");
             if (XmToggleButtonGetState(button))
@@ -1180,10 +1207,17 @@ static void Adjust(Widget w, XtPointer client_data, XtPointer call_data)
             }
             button = XtNameToWidget(page, "AdjustNormalizeArrays");
             ArrayNormalize = XmToggleButtonGetState(button);
-            AdjustArrays(ArrayMeanCenter, ArrayMedianCenter, ArrayNormalize);
+            ok = AdjustArrays(ArrayMeanCenter,
+                              ArrayMedianCenter, 
+                              ArrayNormalize);
+            if (!ok)
+            {   ShowError(w, "Memory allocation error", "Insufficient memory");
+                Statusbar(NULL, "Memory allocation error");
+                return;
+            }
 
-	    Statusbar(NULL, "Done adjusting data");
-	    break;
+            Statusbar(NULL, "Done adjusting data");
+            break;
         }
     }
 }
@@ -1193,7 +1227,7 @@ SwitchGeneWeight(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget page = XtParent(w);
     XmToggleButtonCallbackStruct* tbs =
-	(XmToggleButtonCallbackStruct*) call_data;
+        (XmToggleButtonCallbackStruct*) call_data;
     Widget widget = XtNameToWidget(page,"GeneWeight");
     if (tbs->set == XmUNSET) XtManageChild(widget);
     else XtUnmanageChild(widget);
@@ -1204,7 +1238,7 @@ SwitchArrayWeight(Widget w, XtPointer client_data, XtPointer call_data)
 {
     Widget page = XtParent(w);
     XmToggleButtonCallbackStruct* tbs =
-	(XmToggleButtonCallbackStruct*) call_data;
+        (XmToggleButtonCallbackStruct*) call_data;
     Widget widget = XtNameToWidget(page,"ArrayWeight");
     if (tbs->set == XmUNSET) XtManageChild(widget);
     else XtUnmanageChild(widget);
@@ -1222,7 +1256,7 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             XmString xms;
             static int command = ID_KMEANS_EXECUTE;
 
-	    page = w;
+            page = w;
             n = 0;
             XtSetArg(args[n], XmNx, 20); n++;
             XtSetArg(args[n], XmNy, 40); n++;
@@ -1262,10 +1296,10 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             XtManageChild(frame);
             n = 0;
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
-            widget = XmCreateLabel (frame,"Method",args,n);
+            widget = XmCreateLabel(frame, "Method", args, n);
             XtManageChild(widget);
             n = 0;
-            GeneMethod = XmCreateRadioBox (frame, "GeneMethod", args, n);
+            GeneMethod = XmCreateRadioBox(frame, "GeneMethod", args, n);
             XtManageChild(GeneMethod);
             n = 0;
             XtSetArg(args[n], XmNx, 20); n++;
@@ -1289,7 +1323,7 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Genes");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame, NULL, args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -1331,10 +1365,10 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             XtManageChild(frame);
             n = 0;
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
-            widget = XmCreateLabel (frame,"Method",args,n);
+            widget = XmCreateLabel(frame, "Method", args, n);
             XtManageChild(widget);
             n = 0;
-            ArrayMethod = XmCreateRadioBox (frame, "ArrayMethod", args, n);
+            ArrayMethod = XmCreateRadioBox(frame, "ArrayMethod", args, n);
             XtManageChild(ArrayMethod);
             n = 0;
             XtSetArg(args[n], XmNx, 20); n++;
@@ -1359,7 +1393,7 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Arrays");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame, NULL, args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -1368,12 +1402,13 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             widget = XmCreatePushButton(page, "Execute", args, n);
             XtManageChild(widget);
             XtAddCallback(widget, XmNactivateCallback, KMeans, (XtPointer)&command);
-	    break;
+            break;
         }
         case ID_KMEANS_EXECUTE:
         {   const int Rows = GetRows();
             const int Columns = GetColumns();
             int n;
+            int ok;
             char* path;
             char* filetag;
             FILE* outputfile;
@@ -1385,11 +1420,11 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             int kArrays = 0;
 
             Widget widget, button;
-	    Widget notebook = XtParent(page);
-	    Widget work = XtParent(notebook);
+            Widget notebook = XtParent(page);
+            Widget work = XtParent(notebook);
 
             if (Rows==0 || Columns==0)
-            {  	Statusbar(NULL, "No data available");
+            {   Statusbar(NULL, "No data available");
                 return;
             }
 
@@ -1408,7 +1443,7 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             n = strlen(path) + strlen("_K") + strlen(".ext") + 1;
             /* .ext represents the extension (kgg, kag, or cdt) */
 
-            if(ClusterGenes)
+            if (ClusterGenes)
             {   int dummy;
                 kGenes = GetWidgetItemInt(page, "KMeansGeneK");
                 if (kGenes==0)
@@ -1424,7 +1459,7 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 do n++; while (dummy/=10);
             }
 
-            if(ClusterArrays)
+            if (ClusterArrays)
             {   int dummy;
                 kArrays = GetWidgetItemInt(page, "KMeansArrayK");
                 if (kArrays==0)
@@ -1455,8 +1490,8 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 char buffer[256];
 
                 Widget frame = XtNameToWidget(page,"GeneMethodFrame");
-                widget = XtNameToWidget (frame, "GeneMethod");
-                button = XtNameToWidget (widget, "k-Means");
+                widget = XtNameToWidget(frame, "GeneMethod");
+                button = XtNameToWidget(widget, "k-Means");
                 method = XmToggleButtonGetState(button) ? 'a' : 'm';
                 /* 'a' is average (mean), 'm' is median */
 
@@ -1471,10 +1506,15 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 nTrials = GetWidgetItemInt(page, "KMeansGeneRuns");
 
                 ifound = GeneKCluster(kGenes, nTrials, method, dist, NodeMap);
+                if (ifound < 0)
+                {   Statusbar(NULL, "Memory allocation failure");
+                    free(path);
+                    return;
+                }
                 sprintf(buffer, "Solution was found %d times", ifound);
                 Statusbar(NULL, buffer);
 
-                sprintf (filetag, "_K_G%d.kgg", kGenes);
+                sprintf(filetag, "_K_G%d.kgg", kGenes);
                 outputfile = fopen(path, "wt");
                 if (!outputfile)
                 {   Statusbar(NULL, "Error: Unable to open the output file");
@@ -1483,9 +1523,14 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                     return;
                 }
 
-                SaveGeneKCluster(outputfile, kGenes, NodeMap);
+                ok = SaveGeneKCluster(outputfile, kGenes, NodeMap);
                 fclose(outputfile);
                 free(NodeMap);
+                if (!ok)
+                {   Statusbar(NULL, "Error: Failed to allocate memory while saving");
+                    free(path);
+                    return;
+                }
             }
 
             if (ClusterArrays)
@@ -1498,8 +1543,8 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 char buffer[256];
  
                 Widget frame = XtNameToWidget(page,"ArrayMethodFrame");
-                widget = XtNameToWidget (frame, "ArrayMethod");
-                button = XtNameToWidget (widget, "k-Means");
+                widget = XtNameToWidget(frame, "ArrayMethod");
+                button = XtNameToWidget(widget, "k-Means");
                 method = XmToggleButtonGetState(button) ? 'a' : 'm';
                 /* 'a' is average, 'm' is median */
 
@@ -1513,10 +1558,15 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 }
                 nTrials = GetWidgetItemInt(page, "KMeansArrayRuns");
                 ifound = ArrayKCluster(kArrays, nTrials, method, dist, NodeMap);
+                if (ifound < 0)
+                {   Statusbar(NULL, "Memory allocation failure");
+                    free(path);
+                    return;
+                }
                 sprintf(buffer, "Solution was found %d times", ifound);
-		Statusbar(NULL, buffer);
+                Statusbar(NULL, buffer);
 
-                sprintf (filetag, "_K_A%d.kag", kArrays);
+                sprintf(filetag, "_K_A%d.kag", kArrays);
                 outputfile = fopen(path, "wt");
                 if (!outputfile)
                 {   Statusbar(NULL, "Error: Unable to open the output file");
@@ -1525,9 +1575,14 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                     return;
                 }
 
-                SaveArrayKCluster(outputfile, kArrays, NodeMap);
+                ok = SaveArrayKCluster(outputfile, kArrays, NodeMap);
                 fclose(outputfile);
                 free(NodeMap);
+                if (!ok)
+                {   Statusbar(NULL, "Error: Failed to allocate memory while saving");
+                    free(path);
+                    return;
+                }
             }
 
             /* Now write the data file */
@@ -1542,9 +1597,14 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             {   Statusbar(NULL, "Error: Unable to open the output file");
                 return;
             }
-            Save(outputfile, 0, 0);
+            ok = Save(outputfile, 0, 0);
             fclose(outputfile);
-	    break;
+            if (ok) Statusbar(NULL, "Done clustering");
+            else
+            { ShowError(w, "Error saving file", "Insufficient memory");
+              Statusbar(NULL, "Error saving to file");
+            }
+            break;
         }
     }
 }
@@ -1561,7 +1621,7 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
             XmString xms;
             static int command = ID_PCA_EXECUTE;
 
-	    page = w;
+            page = w;
             n = 0;
             XtSetArg(args[n], XmNx, 180); n++;
             widget = XmCreateLabel(page, "Principal Component Analysis", args, n);
@@ -1582,7 +1642,7 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Genes");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame, NULL, args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -1602,7 +1662,7 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Arrays");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame, NULL, args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -1611,9 +1671,9 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
             widget = XmCreatePushButton(page, "Execute", args, n);
             XtManageChild(widget);
             XtAddCallback(widget, XmNactivateCallback, PCA, (XtPointer)&command);
-	    break;
+            break;
         }
-	case ID_PCA_EXECUTE:
+        case ID_PCA_EXECUTE:
         {   Boolean DoGenePCA;
             Boolean DoArrayPCA;
             Widget button;
@@ -1626,8 +1686,8 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
             char* extension;
             FILE* coordinatefile;
             FILE* pcfile;
-	    Widget notebook = XtParent(page);
-	    Widget work = XtParent(notebook);
+            Widget notebook = XtParent(page);
+            Widget work = XtParent(notebook);
 
             button = XtNameToWidget(page, "Apply PCA to genes");
             DoGenePCA = XmToggleButtonGetState(button);
@@ -1636,7 +1696,7 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
 
             if (Rows==0 || Columns==0)
             {   Statusbar(NULL, "No data available");
-	        return;
+                return;
             }
 
             base = GetBaseName(work);
@@ -1645,18 +1705,18 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
             if (!path)
             {   Statusbar(NULL, "Memory allocation failure");
                 if (base) free(base);
-	        return;
+                return;
             }
             extension = strchr(path, '\0');
  
             if (DoGenePCA)
             {
                 Statusbar(NULL, "Calculating PCA");
-                sprintf (extension, "_pca_gene.coords.txt");
+                sprintf(extension, "_pca_gene.coords.txt");
                 coordinatefile = fopen(path, "wt");
-                sprintf (extension, "_pca_gene.pc.txt");
+                sprintf(extension, "_pca_gene.pc.txt");
                 pcfile = fopen(path, "wt");
-                if(!coordinatefile || !pcfile)
+                if (!coordinatefile || !pcfile)
                 { Statusbar(NULL, "Error: Unable to open the output file");
                   if (coordinatefile) fclose(coordinatefile);
                   if (pcfile) fclose(pcfile);
@@ -1676,11 +1736,11 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
             if (DoArrayPCA)
             {
                 Statusbar(NULL, "Calculating PCA");
-                sprintf (extension, "_pca_array.coords.txt");
+                sprintf(extension, "_pca_array.coords.txt");
                 coordinatefile = fopen(path, "wt");
-                sprintf (extension, "_pca_array.pc.txt");
+                sprintf(extension, "_pca_array.pc.txt");
                 pcfile = fopen(path, "wt");
-                if(!coordinatefile || !pcfile)
+                if (!coordinatefile || !pcfile)
                 { Statusbar(NULL, "Error: Unable to open the output file");
                   if (coordinatefile) fclose(coordinatefile);
                   if (pcfile) fclose(pcfile);
@@ -1698,7 +1758,7 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
                 Statusbar(NULL, "Finished Principal Component Analysis");
             }
             free(path);
-	    break;
+            break;
         }
     }
 }
@@ -1710,7 +1770,7 @@ static void PCA(Widget w, XtPointer client_data, XtPointer call_data)
 static void OpenFile(Widget w, XtPointer client_data, XtPointer call_data)
 {   char* filename = NULL;
     char** directory = (char**)client_data;
-    char* error;
+    char* result;
     struct stat filestat;
     FILE* inputfile;
     XmFileSelectionBoxCallbackStruct* cbs;
@@ -1730,7 +1790,7 @@ static void OpenFile(Widget w, XtPointer client_data, XtPointer call_data)
         return;
     }
     /* Save the directory name based on the file name */
-    if(*directory) free(*directory);
+    if (*directory) free(*directory);
     *directory = (char*)XmStringUnparse(cbs->dir,
                                         NULL,
                                         XmCHARSET_TEXT,
@@ -1742,30 +1802,16 @@ static void OpenFile(Widget w, XtPointer client_data, XtPointer call_data)
     inputfile = fopen(filename, "rt");
     if (!inputfile) Statusbar(NULL,"Error opening file");
     /* Read file */
-    error = Load(inputfile);
+    result = Load(inputfile);
     fclose(inputfile);
-    if (error)
-    {   char buffer[256];
-        int command;
-        ShowError(w, error, "Error in data file");
-        free(error);
-        sprintf (buffer, "Error reading file %s", filename);
-        Statusbar(NULL, buffer);
-        command = ID_FILEMANAGER_SET_FILEMEMO;
-        FileManager(NULL, (XtPointer)&command, "");
-        command = ID_FILEMANAGER_SET_JOBNAME;
-        FileManager(NULL, (XtPointer)&command, "");
-        command = ID_FILEMANAGER_UPDATE_ROWS_COLUMNS;
-        FileManager(NULL, (XtPointer)&command, NULL);
-    }
-    else
+    if (result && strcmp(result, "ok")==0)
     {   /* Extract job name from file name */
         int command;
-        char* jobname = strrchr (filename,'/') + 1;
+        char* jobname = strrchr(filename,'/') + 1;
         char* extension = strrchr(jobname,'.');
         command = ID_FILEMANAGER_SET_FILEMEMO;
         FileManager(NULL, (XtPointer)&command, filename);
-        if(extension) *extension = '\0';
+        if (extension) *extension = '\0';
         command = ID_FILEMANAGER_SET_JOBNAME;
         FileManager(NULL, (XtPointer)&command, jobname);
         command = ID_FILEMANAGER_UPDATE_ROWS_COLUMNS;
@@ -1776,11 +1822,29 @@ static void OpenFile(Widget w, XtPointer client_data, XtPointer call_data)
         SOM(w, (XtPointer)&command, NULL);
         Statusbar(NULL, "Done loading data");
     }
+    else
+    {   char buffer[256];
+        int command;
+        if (result)
+        {   ShowError(w, result, "Error in data file");
+            free(result);
+        }
+        else ShowError(w, "Insufficient memory", "Error reading file");
+        sprintf(buffer, "Error reading file %s", filename);
+        Statusbar(NULL, buffer);
+        command = ID_FILEMANAGER_SET_FILEMEMO;
+        FileManager(NULL, (XtPointer)&command, "");
+        command = ID_FILEMANAGER_SET_JOBNAME;
+        FileManager(NULL, (XtPointer)&command, "");
+        command = ID_FILEMANAGER_UPDATE_ROWS_COLUMNS;
+        FileManager(NULL, (XtPointer)&command, NULL);
+    }
     XtFree(filename);
 }
 
 static void SaveFile(Widget w, XtPointer client_data, XtPointer call_data)
-{   char* filename = NULL;
+{   int ok;
+    char* filename = NULL;
     struct stat filestat;
     XmFileSelectionBoxCallbackStruct* cbs = NULL;
     FILE* outputfile;
@@ -1796,7 +1860,7 @@ static void SaveFile(Widget w, XtPointer client_data, XtPointer call_data)
                                       NULL,
                                       0,
                                       XmOUTPUT_ALL);
-    if(*directory) free(*directory);
+    if (*directory) free(*directory);
     *directory = (char*)XmStringUnparse(cbs->dir,
                                         NULL,
                                         XmCHARSET_TEXT,
@@ -1815,9 +1879,13 @@ static void SaveFile(Widget w, XtPointer client_data, XtPointer call_data)
     {   Statusbar(NULL, "Error: Unable to open the output file");
         return;
     }
-    Save(outputfile, 0, 0);
+    ok = Save(outputfile, 0, 0);
     fclose(outputfile);
-    Statusbar(NULL, "Finished saving file");
+    if (ok) Statusbar(NULL, "Finished saving file");
+    else
+    {   ShowError(w, "Insufficient memory", "Error saving file"),
+        Statusbar(NULL, "Error saving to file");
+    }
 }
 
 static void Cancel(Widget w, XtPointer client_data, XtPointer call_data)
@@ -1835,15 +1903,15 @@ static void MenuFile(Widget w, XtPointer client_data, XtPointer call_data)
     switch (*which)
     {   case CMD_FILE_OPEN:
         /* User will select a data file (*.txt) */
-	{   Widget dialog, parent, widget;
-	    Arg args[4];
-	    int n;
+        {   Widget dialog, parent, widget;
+            Arg args[4];
+            int n;
 
-	    XmString mask = XmStringCreateSimple("*.txt");
-	    XmString title = XmStringCreateSimple("Select data file to open");
+            XmString mask = XmStringCreateSimple("*.txt");
+            XmString title = XmStringCreateSimple("Select data file to open");
             XmString initdir = XmStringCreateSimple(directory);
 
-	    n = 0;
+            n = 0;
             XtSetArg(args[n], XmNwidth, 300); n++;
             XtSetArg(args[n], XmNdirMask, mask); n++;
             XtSetArg(args[n], XmNdialogTitle, title); n++;
@@ -1851,64 +1919,64 @@ static void MenuFile(Widget w, XtPointer client_data, XtPointer call_data)
 
             parent = XtParent(w);
             dialog = XmCreateFileSelectionDialog(parent, "FileOpen", args, n);
-	    widget = XmSelectionBoxGetChild(dialog, XmDIALOG_HELP_BUTTON);
-	    XtUnmanageChild(widget);
+            widget = XmSelectionBoxGetChild(dialog, XmDIALOG_HELP_BUTTON);
+            XtUnmanageChild(widget);
 
-	    XmStringFree(mask);
-	    XmStringFree(title);
-	    XtAddCallback(dialog, XmNokCallback, OpenFile, &directory);
+            XmStringFree(mask);
+            XmStringFree(title);
+            XtAddCallback(dialog, XmNokCallback, OpenFile, &directory);
             XtAddCallback(dialog, XmNcancelCallback, Cancel, NULL);
             XtManageChild(dialog);
             Statusbar(NULL, "Opening file");
             break;
-	}
+        }
         case CMD_FILE_SAVE:
-	{   static Widget dialog = NULL;
-	    Arg args[4];
-	    int n;
+        {   static Widget dialog = NULL;
+            Arg args[4];
+            int n;
             char buffer[256];
-	    XmString filename;
+            XmString filename;
             Widget menubar = XtParent(XtParent(XtParent(w)));
             Widget main_w = XtParent(menubar);
             Widget work = XtNameToWidget(main_w,"work");
             Widget widget = XtNameToWidget(work,"Jobname");
-	    char* jobname = XmTextGetString(widget);
-	    sprintf(buffer,"%s.txt",jobname);
-	    XtFree(jobname);
-	    filename = XmStringCreateSimple(buffer);
-	    if (!dialog)
-	    {   XmString mask = XmStringCreateSimple("*.txt");
-	        XmString title = XmStringCreateSimple("Select file name to save to");
-	        XmString initdir = XmStringCreateSimple(directory);
-	        n = 0;
+            char* jobname = XmTextGetString(widget);
+            sprintf(buffer,"%s.txt",jobname);
+            XtFree(jobname);
+            filename = XmStringCreateSimple(buffer);
+            if (!dialog)
+            {   XmString mask = XmStringCreateSimple("*.txt");
+                XmString title = XmStringCreateSimple("Select file name to save to");
+                XmString initdir = XmStringCreateSimple(directory);
+                n = 0;
                 XtSetArg(args[n], XmNwidth, 300); n++;
                 XtSetArg(args[n], XmNdirMask, mask); n++;
                 XtSetArg(args[n], XmNdialogTitle, title); n++;
                 XtSetArg(args[n], XmNdirectory, initdir); n++;
-	
+
                 dialog = XmCreateFileSelectionDialog(XtParent(w), "FileSave", args, n);
-	        XtUnmanageChild(XmSelectionBoxGetChild(dialog, XmDIALOG_HELP_BUTTON));
-	        XmStringFree(mask);
-	        XmStringFree(title);
-	        XmStringFree(initdir);
-	        XtAddCallback(dialog, XmNokCallback, SaveFile, (XtPointer)&directory);
+                XtUnmanageChild(XmSelectionBoxGetChild(dialog, XmDIALOG_HELP_BUTTON));
+                XmStringFree(mask);
+                XmStringFree(title);
+                XmStringFree(initdir);
+                XtAddCallback(dialog, XmNokCallback, SaveFile, (XtPointer)&directory);
                 XtAddCallback(dialog, XmNcancelCallback, Cancel, NULL);
             }
-	    n = 0;
+            n = 0;
             XtSetArg(args[n], XmNdirSpec, filename); n++;
             XtSetValues(dialog, args, n);
-	    XmStringFree(filename);
+            XmStringFree(filename);
             XtManageChild(dialog);
             Statusbar(NULL, "Saving data to file");
             break;
-	}
+        }
         case CMD_FILE_QUIT:
         {   int command;
-            if(directory) free(directory);
+            if (directory) free(directory);
             Free();
             command = ID_FILTER_FREE;
             Filter(NULL, (XtPointer)&command, NULL);
-	    exit(0);
+            exit(0);
             break;
         }
     }
@@ -1923,24 +1991,24 @@ static void MenuHelp(Widget w, XtPointer client_data, XtPointer call_data)
     switch (*item_no)
     {   case CMD_HELP_HTMLHELP:
         {   system("firefox "PREFIX"/cluster/html/index.html &");
-	    break;
-	}
+            break;
+        }
         case CMD_HELP_MANUAL:
         {   system("acroread "PREFIX"/cluster/doc/cluster3.pdf &");
-	    break;
-	}
+            break;
+        }
         case CMD_HELP_DOWNLOAD:
         {   system("firefox http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/manual/index.html &");
-	    break;
-	}
+            break;
+        }
         case CMD_HELP_FILEFORMAT:
-	{   Arg args[6];
-	    int n = 0;
-	    Widget dialog, widget;
-	    Pixmap pixmap;
-	    /* Text is split up for ANSI compliance */
+        {   Arg args[6];
+            int n = 0;
+            Widget dialog, widget;
+            Pixmap pixmap;
+            /* Text is split up for ANSI compliance */
             char* helplines[12];
-	    char* helptext;
+            char* helptext;
             int nchars = 1; /* One for the final \0 */
             XmString xms;
             helplines[0] = \
@@ -1974,51 +2042,53 @@ static void MenuHelp(Widget w, XtPointer client_data, XtPointer call_data)
                 return;
             }
 
-	    helptext[0] = '\0';
+            helptext[0] = '\0';
             for (n=0; n<12; n++) strcat(helptext, helplines[n]);
-	    n = 0;
+            n = 0;
             xms = XmStringCreateSimple("File Format");
             XtSetArg(args[n], XmNdialogTitle, xms); n++;
-	    dialog = XmCreateBulletinBoardDialog(XtParent(w), "FileFormat",args,n);
-	    XtManageChild(dialog);
+            w = XtParent(w);
+            dialog = XmCreateBulletinBoardDialog(w, "FileFormat", args, n);
+            XtManageChild(dialog);
             XmStringFree(xms);
             n = 0;
-	    XtSetArg(args[n], XmNx, 60); n++;
-	    XtSetArg(args[n], XmNy, 10); n++;
+            XtSetArg(args[n], XmNx, 60); n++;
+            XtSetArg(args[n], XmNy, 10); n++;
             XtSetArg(args[n], XmNwidth, 500); n++;
             XtSetArg(args[n], XmNheight, 390); n++;
             XtSetArg(args[n], XmNeditable, False); n++;
             XtSetArg(args[n], XmNvalue, helptext); n++;
             widget = XmCreateText(dialog, "", args, n);
-	    XtManageChild(widget);
-            free(helptext);
-	    n = 0;
-	    pixmap = XmGetPixmap(XtScreen(dialog),PREFIX"/cluster/format.xpm",0,0);
-	    XtSetArg(args[n], XmNx, 10); n++;
-	    XtSetArg(args[n], XmNy, 410); n++;
-	    XtSetArg(args[n],XmNlabelType, XmPIXMAP); n++;
-	    XtSetArg(args[n],XmNlabelPixmap, pixmap); n++;
-	    widget = XmCreateLabel(dialog, "LabelPixmap", args, n);
             XtManageChild(widget);
-	    break;
-	}
+            free(helptext);
+            n = 0;
+            pixmap = XmGetPixmap(XtScreen(dialog),PREFIX"/cluster/format.xpm",0,0);
+            XtSetArg(args[n], XmNx, 10); n++;
+            XtSetArg(args[n], XmNy, 410); n++;
+            XtSetArg(args[n],XmNlabelType, XmPIXMAP); n++;
+            XtSetArg(args[n],XmNlabelPixmap, pixmap); n++;
+            widget = XmCreateLabel(dialog, "LabelPixmap", args, n);
+            XtManageChild(widget);
+            break;
+        }
         case CMD_HELP_ABOUT:
-	{   Arg args[3];
-	    int n = 0;
-	    Widget dialog, widget;
+        {   Arg args[3];
+            int n = 0;
+            Widget dialog, widget;
             XmString xms = XmStringCreateSimple("About Cluster");
             XtSetArg(args[n], XmNdialogTitle, xms); n++;
-	    dialog = XmCreateBulletinBoardDialog(XtParent(w),"About",args,n);
-	    XtManageChild(dialog);
+            w = XtParent(w);
+            dialog = XmCreateBulletinBoardDialog(w, "About", args, n);
+            XtManageChild(dialog);
             XmStringFree(xms);
             n = 0;
-	    XtSetArg(args[n], XmNx, 10); n++;
-	    XtSetArg(args[n], XmNy, 10); n++;
+            XtSetArg(args[n], XmNx, 10); n++;
+            XtSetArg(args[n], XmNy, 10); n++;
             XtSetArg(args[n], XmNalignment, XmALIGNMENT_BEGINNING); n++;
-	    widget = XmCreateLabel(dialog, "Cluster 3.0\nusing the C Clustering Library version " CLUSTERVERSION ".\n\nCluster was originally written by Michael Eisen\n(eisen 'AT' rana.lbl.gov)\nCopyright 1998-99 Stanford University\n\nCluster version 3.0 for X11/Motif was created\nby Michiel de Hoon (mdehoon 'AT' gsc.riken.jp),\ntogether with Seiya Imoto and Satoru Miyano.\n\nType 'cluster --help' for information about\nrunning Cluster 3.0 as a command-line program.\n\nUniversity of Tokyo, Human Genome Center\nJune 2002", args, n);
+            widget = XmCreateLabel(dialog, "Cluster 3.0\nusing the C Clustering Library version " CLUSTERVERSION ".\n\nCluster was originally written by Michael Eisen\n(eisen 'AT' rana.lbl.gov)\nCopyright 1998-99 Stanford University\n\nCluster version 3.0 for X11/Motif was created\nby Michiel de Hoon (mdehoon 'AT' gsc.riken.jp),\ntogether with Seiya Imoto and Satoru Miyano.\n\nType 'cluster --help' for information about\nrunning Cluster 3.0 as a command-line program.\n\nUniversity of Tokyo, Human Genome Center\nJune 2002", args, n);
             XtManageChild(widget);
-	    break;
-	}
+            break;
+        }
     }
 }
 
@@ -2026,7 +2096,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
 {
     static Widget page = 0;
     int* which = (int*) client_data;
-    switch(*which)
+    switch (*which)
     {   case ID_HIERARCHICAL_INIT:
         {   Arg args[5];
             int n;
@@ -2068,7 +2138,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Weight Options");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (geneweight,NULL,args,n);
+            widget = XmCreateLabel(geneweight,NULL,args,n);
             XtManageChild(widget);
             XmStringFree(xms);
             GeneWeightPage = XtCreateManagedWidget("GeneWeightPage",xmBulletinBoardWidgetClass,geneweight,NULL,0);
@@ -2077,7 +2147,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNy, 16); n++;
             xms = XmStringCreateSimple("Cutoff");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (GeneWeightPage, "", args, n);
+            widget = XmCreateLabel(GeneWeightPage, "", args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -2092,7 +2162,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNy, 51); n++;
             xms = XmStringCreateSimple("Exponent");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (GeneWeightPage, "", args, n);
+            widget = XmCreateLabel(GeneWeightPage, "", args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -2112,7 +2182,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Genes");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame,NULL,args,n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -2144,7 +2214,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Weight Options");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (arrayweight,NULL,args,n);
+            widget = XmCreateLabel(arrayweight,NULL,args,n);
             XtManageChild(widget);
             XmStringFree(xms);
             ArrayWeightPage = XtCreateManagedWidget("ArrayWeightPage",xmBulletinBoardWidgetClass,arrayweight,NULL,0);
@@ -2153,7 +2223,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNy, 16); n++;
             xms = XmStringCreateSimple("Cutoff");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (ArrayWeightPage, "", args, n);
+            widget = XmCreateLabel(ArrayWeightPage, "", args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -2168,7 +2238,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNy, 51); n++;
             xms = XmStringCreateSimple("Exponent");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (ArrayWeightPage, "", args, n);
+            widget = XmCreateLabel(ArrayWeightPage, "", args, n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -2195,7 +2265,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Arrays");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame,NULL,args,n);
             XtManageChild(widget);
             XmStringFree(xms);
             n = 0;
@@ -2234,11 +2304,11 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNchildType, XmFRAME_TITLE_CHILD); n++;
             xms = XmStringCreateSimple("Clustering method");
             XtSetArg(args[n], XmNlabelString, xms); n++;
-            widget = XmCreateLabel (frame,NULL,args,n);
+            widget = XmCreateLabel(frame,NULL,args,n);
             XtManageChild(widget);
             XmStringFree(xms);
-	    break;
-	}
+            break;
+        }
         case ID_HIERARCHICAL_CENTROID:
         case ID_HIERARCHICAL_SINGLE:
         case ID_HIERARCHICAL_COMPLETE:
@@ -2246,7 +2316,8 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
         {   Widget widget, button;
             char method = 'e';
             /* So the compiler won't complain about method
-	     * not being initialized */
+             * not being initialized */
+            int ok;
             const int Rows = GetRows();
             const int Columns = GetColumns();
             Boolean ClusterGenes;
@@ -2259,8 +2330,8 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             char* extension;
             FILE* outputfile;
 
-	    Widget notebook = XtParent(page);
-	    Widget work = XtParent(notebook);
+            Widget notebook = XtParent(page);
+            Widget work = XtParent(notebook);
 
             if (Rows==0 || Columns==0)
             {   Statusbar(NULL, "No data available");
@@ -2273,7 +2344,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             button = XtNameToWidget(page,"ClusterArrays");
             ClusterArrays = XmToggleButtonGetState(button);
 
-            if(!ClusterGenes && !ClusterArrays) return;
+            if (!ClusterGenes && !ClusterArrays) return;
             /* Nothing to do here */
 
             button = XtNameToWidget(page,"CalculateGeneWeights");
@@ -2315,7 +2386,7 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
                     Widget arrayweightpage = XtNameToWidget(arrayweight,"ArrayWeightPage");
                     textfield = XtNameToWidget(arrayweightpage,"ArrayWeightCutoff");
                     text = XmTextGetString(textfield);
-                    array_cutoff = strtod (text, NULL);
+                    array_cutoff = strtod(text, NULL);
                     XtFree(text);
                     textfield = XtNameToWidget(arrayweightpage,"ArrayWeightExp");
                     text = XmTextGetString(textfield);
@@ -2329,11 +2400,11 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
                     Widget geneweightpage = XtNameToWidget(geneweight,"GeneWeightPage");
                     textfield = XtNameToWidget(geneweightpage,"GeneWeightCutoff");
                     text = XmTextGetString(textfield);
-                    gene_cutoff = strtod (text, NULL);
+                    gene_cutoff = strtod(text, NULL);
                     XtFree(text);
                     textfield = XtNameToWidget(geneweightpage,"GeneWeightExp");
                     text = XmTextGetString(textfield);
-                    gene_exponent = strtod (text, NULL);
+                    gene_exponent = strtod(text, NULL);
                     XtFree(text);
                 }
                 error = CalculateWeights(gene_cutoff, gene_exponent, genemetric,
@@ -2345,40 +2416,39 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
                 }
             }
 
-            switch(*which)
+            switch (*which)
             {   case ID_HIERARCHICAL_CENTROID:
                 {   method = 'c';
                     Statusbar(NULL, "Performing centroid linkage hierarchical clustering");
                     break;
                 }
                 case ID_HIERARCHICAL_SINGLE:
-	        {   method = 's';
+                {   method = 's';
                     Statusbar(NULL, "Performing single linkage hierarchical clustering");
                     break;
                 }
                 case ID_HIERARCHICAL_COMPLETE:
-	        {   method = 'm';
+                {   method = 'm';
                     Statusbar(NULL, "Performing complete linkage hierarchical clustering");
                     break;
                 }
                 case ID_HIERARCHICAL_AVERAGE:
-	        {   method = 'a';
+                {   method = 'a';
                     Statusbar(NULL, "Performing average linkage hierarchical clustering");
                     break;
                 }
             }
             if (ClusterGenes)
-            {   int result;
-                sprintf(extension, ".gtr");
+            {   sprintf(extension, ".gtr");
                 outputfile = fopen(path, "wt");
                 if (!outputfile)
                 {   free(path);
                     Statusbar(NULL, "Error: Unable to open the output file");
                     return;
                 }
-                result = HierarchicalCluster(outputfile, genemetric, False, method);
+                ok = HierarchicalCluster(outputfile, genemetric, False, method);
                 fclose(outputfile);
-                if (!result)
+                if (!ok)
                 {   free(path);
                     Statusbar(NULL, "Error: Insufficient memory");
                     return;
@@ -2386,17 +2456,16 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             }
 
             if (ClusterArrays)
-            {   int result;
-                sprintf (extension, ".atr");
+            {   sprintf(extension, ".atr");
                 outputfile = fopen(path, "wt");
                 if (!outputfile)
                 {   free(path);
                     Statusbar(NULL, "Error: Unable to open the output file");
                     return;
                 }
-                result = HierarchicalCluster(outputfile, arraymetric, True, method);
+                ok = HierarchicalCluster(outputfile, arraymetric, True, method);
                 fclose(outputfile);
-                if (!result)
+                if (!ok)
                 {   free(path);
                     Statusbar(NULL, "Error: Insufficient memory");
                     return;
@@ -2414,9 +2483,13 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
                 return;
             }
             Save(outputfile, ClusterGenes, ClusterArrays);
-            fclose(outputfile);
-            Statusbar(NULL, "Done Clustering");
-	    break;
+            ok = fclose(outputfile);
+            if (ok) Statusbar(NULL, "Done clustering");
+            else
+            {   ShowError(w, "Insufficient memory", "Error saving to file");
+                Statusbar(NULL, "Error saving to file");
+            }
+            break;
         }
     }
 }
@@ -2442,42 +2515,42 @@ static void InitTabpages(Widget work)
     /* Create the "pages" */
     for (i = 0; i < 6; i++) {
         int command;
-	Widget tab;
+        Widget tab;
         page = XtCreateManagedWidget(names[i],xmBulletinBoardWidgetClass,notebook,NULL,0);
-	switch (i) {
-	    case 0:
+        switch (i) {
+            case 0:
                 command = ID_FILTER_INIT;
                 Filter(page, (XtPointer)&command, NULL);
                 break;
-	    case 1:
+            case 1:
                 command = ID_ADJUST_INIT;
                 Adjust(page, (XtPointer)&command, NULL);
                 break;
-	    case 2:
+            case 2:
                 command = ID_HIERARCHICAL_INIT;
                 Hierarchical(page, (XtPointer)&command, NULL);
                 break;
-	    case 3:
+            case 3:
                 command = ID_KMEANS_INIT;
                 KMeans(page, (XtPointer)&command, NULL);
                 break;
-	    case 4:
+            case 4:
                 command = ID_SOM_INIT;
                 SOM(page, (XtPointer)&command, NULL);
                 break;
-	    case 5:
+            case 5:
                 command = ID_PCA_INIT;
                 PCA(page, (XtPointer)&command, NULL);
                 break;
-	}
-	n = 0;
-	XtSetArg (args[n], XmNnotebookChildType, XmMAJOR_TAB); n++;
-	tab = XmCreatePushButton (notebook, labels[i], args, n);
-        XtManageChild (tab);
-        XtManageChild (page);
+        }
+        n = 0;
+        XtSetArg(args[n], XmNnotebookChildType, XmMAJOR_TAB); n++;
+        tab = XmCreatePushButton(notebook, labels[i], args, n);
+        XtManageChild(tab);
+        XtManageChild(page);
     }
 
-    scroller = XtNameToWidget (notebook, "PageScroller");
+    scroller = XtNameToWidget(notebook, "PageScroller");
     XtUnmanageChild(scroller);
     XtManageChild(notebook);
 }
@@ -2614,24 +2687,29 @@ int guimain(int argc, char *argv[])
     int command;
 
     /* Initialize toolkit */
-    Widget top = XtVaAppInitialize(&app,"top",NULL,0,&argc,argv,NULL,NULL);
-
-    Widget main_w = XtCreateWidget("main",xmMainWindowWidgetClass,top,NULL,0);
-
+    Widget top = XtVaAppInitialize(&app,
+                                   "top",
+                                   NULL,
+                                   0,
+                                   &argc,
+                                   argv,
+                                   NULL,
+                                   NULL);
+    Widget main_w = XtCreateWidget("main", xmMainWindowWidgetClass,top,NULL,0);
     Widget menubar = CreateMenu(main_w);
 
     n = 0;
-    XtSetArg (args[n], XmNwidth, 570); n++;
-    XtSetArg (args[n], XmNheight, 570); n++;
+    XtSetArg(args[n], XmNwidth, 570); n++;
+    XtSetArg(args[n], XmNheight, 570); n++;
     work = XtCreateManagedWidget("work",xmBulletinBoardWidgetClass,main_w,args,n);
 
     statusbar = Statusbar(main_w, NULL);
 
-    XtVaSetValues (top, XmNtitle, "Gene Cluster 3.0", NULL);
-    XtVaSetValues (main_w,
-		   XmNmenuBar, menubar,
-		   XmNworkWindow, work,
-		   XmNmessageWindow, statusbar, NULL);
+    XtVaSetValues(top, XmNtitle, "Gene Cluster 3.0", NULL);
+    XtVaSetValues(main_w,
+                  XmNmenuBar, menubar,
+                  XmNworkWindow, work,
+                  XmNmessageWindow, statusbar, NULL);
 
     command = ID_FILEMANAGER_INIT;
     FileManager(work, (XtPointer)&command, NULL);
