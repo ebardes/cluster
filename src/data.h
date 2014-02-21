@@ -36,11 +36,11 @@ int GetRows(void);
 int GetColumns(void);
 char* Load(FILE* file);
 /* Load in data from tab-delimited text file */
-void Save(FILE* outputfile, int geneID, int arrayID);
-void SelectSubset(int useRows, const int use[]);
+int Save(FILE* outputfile, int geneID, int arrayID);
+int SelectSubset(int n, const int use[]);
 void LogTransform(void);
-void AdjustGenes(int MeanCenter, int MedianCenter, int Normalize);
-void AdjustArrays(int MeanCenter, int MedianCenter, int Normalize);
+int AdjustGenes(int MeanCenter, int MedianCenter, int Normalize);
+int AdjustArrays(int MeanCenter, int MedianCenter, int Normalize);
 int FilterRow(int Row, int bStd, int bPercent, int bAbsVal, int bMaxMin,
   double absVal, double percent, double std, int numberAbs, double maxmin);
 const char* CalculateWeights(double GeneCutoff, double GeneExponent,
@@ -48,9 +48,9 @@ const char* CalculateWeights(double GeneCutoff, double GeneExponent,
 int HierarchicalCluster(FILE* file, char metric, int transpose, char method);
 int GeneKCluster(int k, int nTrials, char method, char dist, int* NodeMap);
 int ArrayKCluster(int k, int nTrials, char method, char dist, int* NodeMap);
-void SaveGeneKCluster(FILE* outputfile, int k, const int* NodeMap);
-void SaveArrayKCluster(FILE* outputfile, int k, const int* NodeMap);
-void PerformSOM(FILE* GeneFile, int GeneXDim, int GeneYDim, int GeneIters,
+int SaveGeneKCluster(FILE* outputfile, int k, const int* NodeMap);
+int SaveArrayKCluster(FILE* outputfile, int k, const int* NodeMap);
+int PerformSOM(FILE* GeneFile, int GeneXDim, int GeneYDim, int GeneIters,
   double GeneTau, char GeneMetric, FILE* ArrayFile, int ArrayXDim,
   int ArrayYDim, int ArrayIters, double ArrayTau, char ArrayMetric);
 const char* PerformGenePCA(FILE* coordinatefile, FILE* pcfile);

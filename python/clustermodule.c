@@ -1,4 +1,5 @@
 #include "Python.h"
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "numpy/arrayobject.h"
 #include <stdio.h>
 #include <string.h>
@@ -878,7 +879,11 @@ static int*
 parse_index(PyObject* object, PyArrayObject** array, int* n)
 { int* index;
   /* Check if the user specified a single item as an integer */
+#if PY_MAJOR_VERSION < 3
+  if(!object || PyInt_Check(object) || PyLong_Check(object))
+#else
   if(!object || PyLong_Check(object))
+#endif
   { *array = NULL;
     index = malloc(sizeof(int));
     if (!object) index[0] = 0;
@@ -924,7 +929,7 @@ parse_index(PyObject* object, PyArrayObject** array, int* n)
     *n = 0;
     return NULL;
   }
-  if(PyArray_NDIM(*array) != 1 && (PyArray_NDIM(*array) > 0 || *n != 1))
+  if(PyArray_NDIM(*array) != 1)
   { PyErr_Format(PyExc_ValueError,
                  "index argument has incorrect rank (%d expected 1)",
                  PyArray_NDIM(*array));
@@ -2141,140 +2146,6 @@ py_somcluster(PyObject* self, PyObject* args, PyObject* keywords)
 } 
 /* end of wrapper for somcluster */
 
-/* median */
-static char median__doc__[] =
-"median(data) -> median value of the 1D array data\n"
-"Note: data will be partially ordered upon return.\n";
-
-static PyObject*
-py_median(PyObject* unused, PyObject* args)
-{ double result;
-  PyObject* DATA = NULL;
-  PyArrayObject* aDATA = NULL;
-
-  /* -- Read the input variables ----------------------------------------- */
-  if(!PyArg_ParseTuple(args, "O", &DATA)) return NULL;
-
-  /* -- Check the input variable ----------------------------------------- */
-  if (PyFloat_Check(DATA) || PyLong_Check(DATA))
-  { Py_INCREF(DATA);
-    return DATA;
-  }
-  if(!PyArray_Check(DATA))
-  { aDATA = (PyArrayObject *) PyArray_ContiguousFromObject(DATA, PyArray_NOTYPE, 0, 0);
-    if (!aDATA)
-    { PyErr_SetString(PyExc_TypeError,
-                     "Argument cannot be converted to needed array.");
-      return NULL;
-    }
-  }
-  else
-  { aDATA = (PyArrayObject*) DATA;
-    Py_INCREF(DATA);
-  }
-  if (PyArray_TYPE(aDATA) != NPY_DOUBLE)
-  { PyObject* av = PyArray_Cast(aDATA, NPY_DOUBLE);
-    Py_DECREF((PyObject*) aDATA);
-    aDATA = (PyArrayObject*) av;
-    if (!aDATA)
-    { PyErr_SetString(PyExc_ValueError,
-                     "Argument cannot be cast to needed type.");
-      return NULL;
-    }
-  } 
-  if (PyArray_NDIM(aDATA) != 1 && (PyArray_NDIM(aDATA) > 0 || PyArray_DIM(aDATA, 0) != 1))
-  { PyErr_Format(PyExc_ValueError,
-                 "median: Argument has incorrect rank (%d expected 1).",
-                 PyArray_NDIM(aDATA));
-    Py_DECREF((PyObject*) aDATA);
-    return NULL;
-  }
-  if (!PyArray_ISCONTIGUOUS(aDATA))
-  { PyObject* av =
-      PyArray_ContiguousFromObject((PyObject*) aDATA, PyArray_TYPE(aDATA), 0, 0);
-    Py_DECREF((PyObject*)aDATA);
-    if(!av)
-    { PyErr_SetString(PyExc_ValueError, "Failed making argument contiguous.");
-      return NULL;
-    }
-    aDATA = (PyArrayObject*) av;
-  }
-  /* --------------------------------------------------------------------- */
-  result = median(PyArray_DIM(aDATA, 0), PyArray_DATA(aDATA));
-  /* --------------------------------------------------------------------- */
-  Py_DECREF((PyObject*) aDATA);
-  /* --------------------------------------------------------------------- */
-  return PyFloat_FromDouble(result);
-} 
-/* end of wrapper for median */
-
-/* mean */
-static char mean__doc__[] =
-"mean(data) -> arithmetic mean of the 1D array data.\n";
-
-static PyObject*
-py_mean(PyObject* unused, PyObject* args)
-{ double result;
-  PyObject* DATA = NULL;
-  PyArrayObject* aDATA = NULL;
-
-  /* -- Read the input variables ----------------------------------------- */
-  if(!PyArg_ParseTuple(args, "O", &DATA)) return NULL;
-
-  /* -- Check the input variable ----------------------------------------- */
-  if (PyFloat_Check(DATA) || PyLong_Check(DATA))
-  { Py_INCREF(DATA);
-    return DATA;
-  }
-  if(!PyArray_Check(DATA))
-  { aDATA = (PyArrayObject *) PyArray_ContiguousFromObject(DATA, PyArray_NOTYPE, 0, 0);
-    if (!aDATA)
-    { PyErr_SetString(PyExc_TypeError,
-                      "Argument cannot be converted to needed array.");
-      return NULL;
-    }
-  }
-  else
-  { aDATA = (PyArrayObject*) DATA;
-    Py_INCREF(DATA);
-  }
-  if (PyArray_TYPE(aDATA) != NPY_DOUBLE)
-  { PyObject* av = PyArray_Cast(aDATA, NPY_DOUBLE);
-    Py_DECREF((PyObject*) aDATA);
-    aDATA = (PyArrayObject*) av;
-    if (!aDATA)
-    { PyErr_SetString(PyExc_ValueError,
-                      "Argument cannot be cast to needed type.");
-      return NULL;
-    }
-  } 
-  if (PyArray_NDIM(aDATA) != 1 && (PyArray_NDIM(aDATA) > 0 || PyArray_DIM(aDATA, 0) != 1))
-  { PyErr_Format(PyExc_ValueError,
-                 "Argument has incorrect rank (%d expected 1).",
-                 PyArray_NDIM(aDATA));
-    Py_DECREF((PyObject*) aDATA);
-    return NULL;
-  }
-  if (!PyArray_ISCONTIGUOUS(aDATA))
-  { PyObject* av =
-      PyArray_ContiguousFromObject((PyObject*) aDATA, PyArray_TYPE(aDATA), 0, 0);
-    Py_DECREF((PyObject*)aDATA);
-    if(!av)
-    { PyErr_SetString(PyExc_ValueError,
-                      "mean: Failed making argument contiguous.");
-      return NULL;
-    }
-    aDATA = (PyArrayObject*) av;
-  }
-  /* --------------------------------------------------------------------- */
-  result = mean(PyArray_DIM(aDATA, 0), PyArray_DATA(aDATA));
-  /* --------------------------------------------------------------------- */
-  Py_DECREF((PyObject*) aDATA);
-  /* --------------------------------------------------------------------- */
-  return PyFloat_FromDouble(result);
-} 
-/* end of wrapper for mean */
-
 /* clusterdistance */
 static char clusterdistance__doc__[] =
 "clusterdistance(data, mask=None, weight=None, index1, index2, dist='e',\n"
@@ -2872,8 +2743,6 @@ static struct PyMethodDef cluster_methods[] = {
    {"kmedoids", (PyCFunction) py_kmedoids, METH_VARARGS | METH_KEYWORDS, kmedoids__doc__},
    {"treecluster", (PyCFunction) py_treecluster, METH_VARARGS | METH_KEYWORDS, treecluster__doc__},
    {"somcluster", (PyCFunction) py_somcluster, METH_VARARGS | METH_KEYWORDS, somcluster__doc__},
-   {"median", (PyCFunction) py_median, METH_VARARGS, median__doc__},
-   {"mean", (PyCFunction) py_mean, METH_VARARGS, mean__doc__},
    {"clusterdistance", (PyCFunction) py_clusterdistance, METH_VARARGS | METH_KEYWORDS, clusterdistance__doc__},
    {"clustercentroids", (PyCFunction) py_clustercentroids, METH_VARARGS | METH_KEYWORDS, clustercentroids__doc__},
    {"distancematrix", (PyCFunction) py_distancematrix, METH_VARARGS | METH_KEYWORDS, distancematrix__doc__},

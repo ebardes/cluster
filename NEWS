@@ -1,4 +1,9 @@
-2010.12.27
-Modified Pycluster/Bio.Cluster to be able to compile and run with Python 3.
-Changed the number of passes in perl/t/14_kmedoids to avoid spurious test
-failures. Some minor updates in the documentation.
+2013.08.03
+Added checks for all calls to malloc in src/data.c, and corresponding error
+messages in the GUI and command line programs.
+Using MinGW instead of Cygwin to create the installer for Windows.
+Using productbuild instead of productbuild to create the installer for Mac.
+Removed the mean and median functions from Pycluster, as anyway these are
+available from Numerical Python. This also avoids problems with deprecated
+API usage.
+Added checks for calls to malloc in Algorithm::Cluster.

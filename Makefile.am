@@ -16,8 +16,7 @@ MACDIST = mac/main.m mac/Controller.h mac/Controller.m mac/cluster.icns \
   mac/English.lproj/MainMenu.nib/classes.nib \
   mac/English.lproj/MainMenu.nib/info.nib \
   mac/English.lproj/MainMenu.nib/keyedobjects.nib \
-  mac/Cluster.xcodeproj/project.pbxproj mac/Cluster.pmproj mac/Makefile \
-  mac/Info.plist
+  mac/Cluster.xcodeproj/project.pbxproj mac/Makefile mac/Info.plist
 PYTHONDIST = setup.py python/MANIFEST.python python/__init__.py \
   python/clustermodule.c python/test/README python/test/test_Cluster.py
 PERLDIST = perl/Artistic.txt perl/MANIFEST.perl \

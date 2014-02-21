@@ -6,7 +6,7 @@ build/Default/Cluster.app: $(HTMLDIR)/html.helpindex $(HTMLDIR)/html\ idx $(DOCD
 	rm -r build/Cluster.build
 
 Cluster.pkg: build/Default/Cluster.app
-	/Developer/Tools/packagemaker -build -proj Cluster.pmproj -p Cluster.pkg -v
+	productbuild --component build/Default/Cluster.app /Applications Cluster.pkg
 
 Cluster.tar: Cluster.pkg
 	tar cvf Cluster.tar Cluster.pkg
