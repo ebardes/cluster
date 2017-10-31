@@ -7,15 +7,9 @@ WINDIST = windows/cluster.hhp windows/cluster.ico windows/cluster.iss \
   windows/resources.h windows/resources.rc
 MACDIST = mac/main.m mac/Controller.h mac/Controller.m mac/cluster.icns \
   mac/English.lproj/InfoPlist.strings \
-  mac/English.lproj/AboutPanel.nib/classes.nib \
-  mac/English.lproj/AboutPanel.nib/info.nib \
-  mac/English.lproj/AboutPanel.nib/keyedobjects.nib \
-  mac/English.lproj/FileFormatPanel.nib/classes.nib \
-  mac/English.lproj/FileFormatPanel.nib/info.nib \
-  mac/English.lproj/FileFormatPanel.nib/keyedobjects.nib \
-  mac/English.lproj/MainMenu.nib/classes.nib \
-  mac/English.lproj/MainMenu.nib/info.nib \
-  mac/English.lproj/MainMenu.nib/keyedobjects.nib \
+  mac/English.lproj/AboutPanel.xib \
+  mac/English.lproj/FileFormatPanel.xib \
+  mac/English.lproj/MainMenu.xib \
   mac/Cluster.xcodeproj/project.pbxproj mac/Makefile mac/Info.plist
 PYTHONDIST = setup.py python/MANIFEST.python python/__init__.py \
   python/clustermodule.c python/test/README python/test/test_Cluster.py
@@ -31,8 +25,8 @@ PERLDIST = perl/Artistic.txt perl/MANIFEST.perl \
   perl/examples/ex5_treecluster perl/examples/ex6_clusterdistance \
   perl/examples/ex7_distancematrix perl/examples/ex8_kmedoids
 EXAMPLEDIST = example/example.c example/Makefile example/README
-HTMLDIST = html/mac.py html/Makefile
-DATADIST = data/README data/cyano.txt
+HTMLDIST = html/mac.py html/windows.py html/Makefile
+DATADIST = data/README data/cyano.txt data/demo.txt
 
 
 if MOTIF

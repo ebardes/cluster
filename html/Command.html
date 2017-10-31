@@ -1,94 +1,180 @@
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 6.4, http://www.gnu.org/software/texinfo/ -->
 <head>
-<title>Command - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
-<meta http-equiv="Content-Type" content="text/html">
-<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.13">
-<link title="Top" rel="start" href="index.html#Top">
-<link rel="prev" href="Cluster.html#Cluster" title="Cluster">
-<link rel="next" href="TreeView.html#TreeView" title="TreeView">
-<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
-<meta http-equiv="Content-Style-Type" content="text/css">
-<style type="text/css"><!--
-  pre.display { font-family:inherit }
-  pre.format  { font-family:inherit }
-  pre.smalldisplay { font-family:inherit; font-size:smaller }
-  pre.smallformat  { font-family:inherit; font-size:smaller }
-  pre.smallexample { font-size:smaller }
-  pre.smalllisp    { font-size:smaller }
-  span.sc    { font-variant:small-caps }
-  span.roman { font-family:serif; font-weight:normal; } 
-  span.sansserif { font-family:sans-serif; font-weight:normal; } 
---></style>
-</head>
-<body>
-<div class="node">
-<a name="Command"></a>
-<p>
-Next:&nbsp;<a rel="next" accesskey="n" href="TreeView.html#TreeView">TreeView</a>,
-Previous:&nbsp;<a rel="previous" accesskey="p" href="Cluster.html#Cluster">Cluster</a>,
-Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
-<hr>
-</div>
+<title>Command (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)</title>
 
+<meta name="description" content="Command (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="keywords" content="Command (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="Contents.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="TreeView.html#TreeView" rel="next" title="TreeView">
+<link href="PCA.html#PCA" rel="prev" title="PCA">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Command"></a>
+<div class="header">
+<p>
+Next: <a href="TreeView.html#TreeView" accesskey="n" rel="next">TreeView</a>, Previous: <a href="Cluster.html#Cluster" accesskey="p" rel="prev">Cluster</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Running-Cluster-3_002e0-as-a-command-line-program"></a>
 <h2 class="chapter">5 Running Cluster 3.0 as a command line program</h2>
 
-<p>Cluster 3.0 can also be run as a command line program. This may be useful if you want to run Cluster 3.0 on a remote server, and also allows automatic processing a large number of data files by running a batch script. Note, however, that the Python and Perl interfaces to the C Clustering Library may be better suited for this task, as they are more powerful than the command line program (see the manual for the C Clustering Library at <a href="http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster.pdf">http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster.pdf</a>).
-
-   <p>The GUI version of Cluster 3.0 can be used as a command line program by applying the appropriate command line parameters. You can also compile Cluster 3.0 without GUI support (if you will be using it from the command line only) by downloading the source code from <a href="http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster">http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster</a>, and running <br>
+<p>Cluster 3.0 can also be run as a command line program. This may be useful if you want to run Cluster 3.0 on a remote server, and also allows automatic processing a large number of data files by running a batch script. Note, however, that the Python and Perl interfaces to the C Clustering Library may be better suited for this task, as they are more powerful than the command line program (see the manual for the C Clustering Library at <a href="http://bonsai.hgc.jp/~mdehoon/software/cluster/cluster.pdf">http://bonsai.hgc.jp/~mdehoon/software/cluster/cluster.pdf</a>).
+</p>
+<p>The GUI version of Cluster 3.0 can be used as a command line program by applying the appropriate command line parameters. You can also compile Cluster 3.0 without GUI support (if you will be using it from the command line only) by downloading the source code from <a href="http://bonsai.hgc.jp/~mdehoon/software/cluster">http://bonsai.hgc.jp/~mdehoon/software/cluster</a>, and running <br>
 <code>configure --without-x</code> <br>
 <code>make</code> <br>
 <code>make install</code> <br>
 The executable is called <code>cluster</code>. To run this program, execute <br>
 <code>cluster [options]</code> <br>
 in which the options consist of the following command line parameters:
-     <dl>
-<dt><code>-f </code><var>filename</var><dd>File loading
-<br><dt><code>-l</code><dd>Specifies to log-transform the data before clustering (default is no log-transform)
-<br><dt><code>-cg a|m</code><dd>Specifies whether to center each row (gene) in the data set: <br>
+</p><dl compact="compact">
+<dt><code>-f <var>filename</var></code></dt>
+<dd><p>File loading
+</p></dd>
+<dt><code>-l</code></dt>
+<dd><p>Specifies to log-transform the data before clustering (default is no log-transform)
+</p></dd>
+<dt><code>-cg a|m</code></dt>
+<dd><p>Specifies whether to center each row (gene) in the data set: <br>
 <code>a</code>: Subtract the mean of each row <br>
 <code>m</code>: Subtract the median of each row <br>
 (default is no centering)
-<br><dt><code>-ng</code><dd>Specifies to normalize each row (gene) in the data set (default is no normalization)
-<br><dt><code>-ca a|m</code><dd>Specifies whether to center each column (microarray) in the data set: <br>
+</p></dd>
+<dt><code>-ng</code></dt>
+<dd><p>Specifies to normalize each row (gene) in the data set (default is no normalization)
+</p></dd>
+<dt><code>-ca a|m</code></dt>
+<dd><p>Specifies whether to center each column (microarray) in the data set: <br>
 <code>a</code>: Subtract the mean of each column <br>
 <code>m</code>: Subtract the median of each column <br>
 (default is no centering)
-<br><dt><code>-na</code><dd>Specifies to normalize each column (microarray) in the data set (default is no normalization)
-<br><dt><code>-u </code><var>jobname</var><dd>Allows you to specify a different name for the output files
+</p></dd>
+<dt><code>-na</code></dt>
+<dd><p>Specifies to normalize each column (microarray) in the data set (default is no normalization)
+</p></dd>
+<dt><code>-u <var>jobname</var></code></dt>
+<dd><p>Allows you to specify a different name for the output files
 (default is derived from the input file name)
-<br><dt><code>-g [0..9]</code><dd>Specifies the distance measure for gene clustering. 0 means no gene clustering; for the values 1 through 9, see below (default: 0)
-<br><dt><code>-e [0..9]</code><dd>Specifies the distance measure for microarray clustering. 0 means no microarray clustering; for the values 1 through 9, see below (default: 0)
-<br><dt><code>-m [msca]</code><dd>Specifies which hierarchical clustering method to use: <br>
+</p></dd>
+<dt><code>-g [0..9]</code></dt>
+<dd><p>Specifies the distance measure for gene clustering. 0 means no gene clustering; for the values 1 through 9, see below (default: 0)
+</p></dd>
+<dt><code>-e [0..9]</code></dt>
+<dd><p>Specifies the distance measure for microarray clustering. 0 means no microarray clustering; for the values 1 through 9, see below (default: 0)
+</p></dd>
+<dt><code>-m [msca]</code></dt>
+<dd><p>Specifies which hierarchical clustering method to use: <br>
 <code>m</code>: Pairwise complete- (maximum-) linkage (default) <br>
 <code>s</code>: Pairwise single-linkage <br>
 <code>c</code>: Pairwise centroid-linkage <br>
 <code>a</code>: Pairwise average-linkage
-<br><dt><code>-k </code><var>number</var><dd>Specifies whether to run
-<i>k</i>-meansclustering instead of hierarchical clustering, and the number of clusters
-<i>k</i> to use (default: 0, no <i>k</i>-means clustering)<br><dt><code>-pg</code><dd>Specifies to apply Principal Component Analysis to genes instead of clustering
-<br><dt><code>-pa</code><dd>Specifies to apply Principal Component Analysis to arrays instead of clustering
-<br><dt><code>-s</code><dd>Specifies to calculate an SOM instead of hierarchical clustering
-<br><dt><code>-x </code><var>number</var><dd>Specifies the horizontal dimension of the SOM grid (default: 2)
-<br><dt><code>-y </code><var>number</var><dd>Specifies the vertical dimension of the SOM grid (default: 1)
-<br><dt><code>-v, --version</code><dd>Display version information
-<br><dt><code>-h, --help</code><dd>Display help information
+</p></dd>
+<dt><code>-k <var>number</var></code></dt>
+<dd><p>Specifies whether to run <em>k</em>-means clustering instead of hierarchical clustering, and the number of clusters
+<i>k</i> to use (default: 0, no <i>k</i>-means clustering)
+</p></dd>
+<dt><code>-pg</code></dt>
+<dd><p>Specifies to apply Principal Component Analysis to genes instead of clustering
+</p></dd>
+<dt><code>-pa</code></dt>
+<dd><p>Specifies to apply Principal Component Analysis to arrays instead of clustering
+</p></dd>
+<dt><code>-s</code></dt>
+<dd><p>Specifies to calculate an SOM instead of hierarchical clustering
+</p></dd>
+<dt><code>-x <var>number</var></code></dt>
+<dd><p>Specifies the horizontal dimension of the SOM grid (default: 2)
+</p></dd>
+<dt><code>-y <var>number</var></code></dt>
+<dd><p>Specifies the vertical dimension of the SOM grid (default: 1)
+</p></dd>
+<dt><code>-v, --version</code></dt>
+<dd><p>Display version information
+</p></dd>
+<dt><code>-h, --help</code></dt>
+<dd><p>Display help information
+</p></dd>
 </dl>
 
-   <p>For the command line options <samp><span class="option">-g</span></samp>, <samp><span class="option">-e</span></samp>, the following integers can be used to specify the distance measure:
-     <dl>
-<dt><code>0</code><dd>No clustering
-<br><dt><code>1</code><dd>Uncentered correlation
-<br><dt><code>2</code><dd>Pearson correlation
-<br><dt><code>3</code><dd>Uncentered correlation, absolute value
-<br><dt><code>4</code><dd>Pearson correlation, absolute value
-<br><dt><code>5</code><dd>Spearman's rank correlation
-<br><dt><code>6</code><dd>Kendall's tau
-<br><dt><code>7</code><dd>Euclidean distance
-<br><dt><code>8</code><dd>City-block distance
+<p>For the command line options <samp>-g</samp>, <samp>-e</samp>, the following integers can be used to specify the distance measure:
+</p><dl compact="compact">
+<dt><code>0</code></dt>
+<dd><p>No clustering
+</p></dd>
+<dt><code>1</code></dt>
+<dd><p>Uncentered correlation
+</p></dd>
+<dt><code>2</code></dt>
+<dd><p>Pearson correlation
+</p></dd>
+<dt><code>3</code></dt>
+<dd><p>Uncentered correlation, absolute value
+</p></dd>
+<dt><code>4</code></dt>
+<dd><p>Pearson correlation, absolute value
+</p></dd>
+<dt><code>5</code></dt>
+<dd><p>Spearman&rsquo;s rank correlation
+</p></dd>
+<dt><code>6</code></dt>
+<dd><p>Kendall&rsquo;s
+<i>&tau;</i>
+</p></dd>
+<dt><code>7</code></dt>
+<dd><p>Euclidean distance
+</p></dd>
+<dt><code>8</code></dt>
+<dd><p>City-block distance
+</p></dd>
 </dl>
 
-   <p>By default, no clustering is done, allowing you to use <code>cluster</code> for normalizing a data set only.
+<p>By default, no clustering is done, allowing you to use <code>cluster</code> for normalizing a data set only.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="TreeView.html#TreeView" accesskey="n" rel="next">TreeView</a>, Previous: <a href="Cluster.html#Cluster" accesskey="p" rel="prev">Cluster</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
 
-   </body></html>
 
+
+</body>
+</html>

@@ -2,7 +2,7 @@ DOCDIR = ../doc
 HTMLDIR = ../html
 
 build/Default/Cluster.app: $(HTMLDIR)/html.helpindex $(HTMLDIR)/html\ idx $(DOCDIR)/cluster3.pdf
-	xcodebuild
+	xcodebuild -sdk macosx10.13
 	rm -r build/Cluster.build
 
 Cluster.pkg: build/Default/Cluster.app
@@ -15,7 +15,7 @@ $(HTMLDIR)/index.html: $(DOCDIR)/cluster3.texinfo
 	$(MAKE) -C $(HTMLDIR)
 
 $(HTMLDIR)/html.helpindex $(HTMLDIR)/html\ idx: $(HTMLDIR)/index.html
-	/Developer/Applications/Utilities/Help\ Indexer.app/Contents/MacOS/Help\ Indexer ../html -ShowProgress YES -LogStyle 2 -PantherIndexing YES
+	hiutil -Caf $(HTMLDIR)/html.helpindex $(HTMLDIR)
 
 $(DOCDIR)/cluster3.pdf: $(DOCDIR)/cluster3.texinfo
 	$(MAKE) -C $(DOCDIR)

@@ -12,13 +12,13 @@
 		40CDB5410A2ABD9100E334F0 /* Controller.h in Headers */ = {isa = PBXBuildFile; fileRef = F5E3644B035912F601000082 /* Controller.h */; };
 		40CDB5420A2ABD9100E334F0 /* data.h in Headers */ = {isa = PBXBuildFile; fileRef = F54D6BC40359C83001000082 /* data.h */; };
 		40CDB5430A2ABD9100E334F0 /* cluster.h in Headers */ = {isa = PBXBuildFile; fileRef = F54D6BC60359C85801000082 /* cluster.h */; };
-		40CDB5460A2ABD9100E334F0 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.nib */; };
+		40CDB5460A2ABD9100E334F0 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 29B97318FDCFA39411CA2CEA /* MainMenu.xib */; };
 		40CDB5470A2ABD9100E334F0 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		40CDB5480A2ABD9100E334F0 /* cluster.icns in Resources */ = {isa = PBXBuildFile; fileRef = F5E3644903589B6901000082 /* cluster.icns */; };
 		40CDB5490A2ABD9100E334F0 /* cluster3.pdf in Resources */ = {isa = PBXBuildFile; fileRef = F54CD24A035FAD1001000082 /* cluster3.pdf */; };
-		40CDB54A0A2ABD9100E334F0 /* FileFormatPanel.nib in Resources */ = {isa = PBXBuildFile; fileRef = F594A11F035FB72001000082 /* FileFormatPanel.nib */; };
+		40CDB54A0A2ABD9100E334F0 /* FileFormatPanel.xib in Resources */ = {isa = PBXBuildFile; fileRef = F594A11F035FB72001000082 /* FileFormatPanel.xib */; };
 		40CDB54B0A2ABD9100E334F0 /* format.bmp in Resources */ = {isa = PBXBuildFile; fileRef = F594A122035FBA6801000082 /* format.bmp */; };
-		40CDB54C0A2ABD9100E334F0 /* AboutPanel.nib in Resources */ = {isa = PBXBuildFile; fileRef = F594A126035FE6D101000082 /* AboutPanel.nib */; };
+		40CDB54C0A2ABD9100E334F0 /* AboutPanel.xib in Resources */ = {isa = PBXBuildFile; fileRef = F594A126035FE6D101000082 /* AboutPanel.xib */; };
 		40CDB54D0A2ABD9100E334F0 /* html in Resources */ = {isa = PBXBuildFile; fileRef = F564D3E2035EF29C01000082 /* html */; };
 		40CDB54F0A2ABD9100E334F0 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		40CDB5500A2ABD9100E334F0 /* Controller.m in Sources */ = {isa = PBXBuildFile; fileRef = F5E3644C035912F601000082 /* Controller.m */; };
@@ -31,12 +31,12 @@
 		089C165DFE840E0CC02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
+		29B97319FDCFA39411CA2CEA /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
 		40BF80960D78432B002D71C0 /* command.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = command.c; path = ../src/command.c; sourceTree = SOURCE_ROOT; };
 		40BF809C0D784354002D71C0 /* command.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = command.h; path = ../src/command.h; sourceTree = SOURCE_ROOT; };
-		40CDB55C0A2ABD9100E334F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Info.plist; sourceTree = "<group>"; };
+		40CDB55C0A2ABD9100E334F0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		40CDB55D0A2ABD9100E334F0 /* Cluster.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Cluster.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F54CD24A035FAD1001000082 /* cluster3.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; name = cluster3.pdf; path = ../doc/cluster3.pdf; sourceTree = "<group>"; };
 		F54D6BC20359C81501000082 /* data.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = data.c; path = ../src/data.c; sourceTree = "<group>"; };
@@ -44,9 +44,9 @@
 		F54D6BC60359C85801000082 /* cluster.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = cluster.h; path = ../src/cluster.h; sourceTree = "<group>"; };
 		F54D6BC80359C86A01000082 /* cluster.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; name = cluster.c; path = ../src/cluster.c; sourceTree = "<group>"; };
 		F564D3E2035EF29C01000082 /* html */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; name = html; path = ../html; sourceTree = "<group>"; };
-		F594A120035FB72001000082 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FileFormatPanel.nib; sourceTree = "<group>"; };
+		F594A120035FB72001000082 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/FileFormatPanel.xib; sourceTree = "<group>"; };
 		F594A122035FBA6801000082 /* format.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; name = format.bmp; path = ../windows/format.bmp; sourceTree = "<group>"; };
-		F594A127035FE6D101000082 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/AboutPanel.nib; sourceTree = "<group>"; };
+		F594A127035FE6D101000082 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/AboutPanel.xib; sourceTree = "<group>"; };
 		F5E3644903589B6901000082 /* cluster.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = cluster.icns; sourceTree = "<group>"; };
 		F5E3644B035912F601000082 /* Controller.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Controller.h; sourceTree = "<group>"; };
 		F5E3644C035912F601000082 /* Controller.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Controller.m; sourceTree = "<group>"; };
@@ -129,13 +129,13 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				29B97318FDCFA39411CA2CEA /* MainMenu.nib */,
+				29B97318FDCFA39411CA2CEA /* MainMenu.xib */,
 				089C165CFE840E0CC02AAC07 /* InfoPlist.strings */,
 				F564D3E2035EF29C01000082 /* html */,
 				F54CD24A035FAD1001000082 /* cluster3.pdf */,
-				F594A11F035FB72001000082 /* FileFormatPanel.nib */,
+				F594A11F035FB72001000082 /* FileFormatPanel.xib */,
 				F594A122035FBA6801000082 /* format.bmp */,
-				F594A126035FE6D101000082 /* AboutPanel.nib */,
+				F594A126035FE6D101000082 /* AboutPanel.xib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -190,10 +190,18 @@
 /* Begin PBXProject section */
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 40CDB5390A2ABD8800E334F0 /* Build configuration list for PBXProject "Cluster" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
 			hasScannedForEncodings = 1;
+			knownRegions = (
+				en,
+			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* Cluster */;
 			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				40CDB53F0A2ABD9100E334F0 /* Cluster */,
 			);
@@ -205,13 +213,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				40CDB5460A2ABD9100E334F0 /* MainMenu.nib in Resources */,
+				40CDB5460A2ABD9100E334F0 /* MainMenu.xib in Resources */,
 				40CDB5470A2ABD9100E334F0 /* InfoPlist.strings in Resources */,
 				40CDB5480A2ABD9100E334F0 /* cluster.icns in Resources */,
 				40CDB5490A2ABD9100E334F0 /* cluster3.pdf in Resources */,
-				40CDB54A0A2ABD9100E334F0 /* FileFormatPanel.nib in Resources */,
+				40CDB54A0A2ABD9100E334F0 /* FileFormatPanel.xib in Resources */,
 				40CDB54B0A2ABD9100E334F0 /* format.bmp in Resources */,
-				40CDB54C0A2ABD9100E334F0 /* AboutPanel.nib in Resources */,
+				40CDB54C0A2ABD9100E334F0 /* AboutPanel.xib in Resources */,
 				40CDB54D0A2ABD9100E334F0 /* html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -242,28 +250,28 @@
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
-		29B97318FDCFA39411CA2CEA /* MainMenu.nib */ = {
+		29B97318FDCFA39411CA2CEA /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				29B97319FDCFA39411CA2CEA /* English */,
 			);
-			name = MainMenu.nib;
+			name = MainMenu.xib;
 			sourceTree = "<group>";
 		};
-		F594A11F035FB72001000082 /* FileFormatPanel.nib */ = {
+		F594A11F035FB72001000082 /* FileFormatPanel.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				F594A120035FB72001000082 /* English */,
 			);
-			name = FileFormatPanel.nib;
+			name = FileFormatPanel.xib;
 			sourceTree = "<group>";
 		};
-		F594A126035FE6D101000082 /* AboutPanel.nib */ = {
+		F594A126035FE6D101000082 /* AboutPanel.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
 				F594A127035FE6D101000082 /* English */,
 			);
-			name = AboutPanel.nib;
+			name = AboutPanel.xib;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -301,6 +309,7 @@
 		40CDB5590A2ABD9100E334F0 /* Development */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -311,9 +320,11 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Cluster;
+				SDKROOT = macosx10.9;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -328,6 +339,7 @@
 		40CDB55A0A2ABD9100E334F0 /* Deployment */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
@@ -335,9 +347,11 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Cluster;
+				SDKROOT = macosx10.9;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",
@@ -352,14 +366,17 @@
 		40CDB55B0A2ABD9100E334F0 /* Default */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
 				FRAMEWORK_SEARCH_PATHS = "";
 				HEADER_SEARCH_PATHS = ../src;
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(HOME)/Applications";
 				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.4;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = Cluster;
+				SDKROOT = macosx10.9;
 				SECTORDER_FLAGS = "";
 				WARNING_CFLAGS = (
 					"-Wmost",

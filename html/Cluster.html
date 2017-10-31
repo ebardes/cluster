@@ -1,50 +1,83 @@
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 6.4, http://www.gnu.org/software/texinfo/ -->
 <head>
-<title>Cluster - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
-<meta http-equiv="Content-Type" content="text/html">
-<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.13">
-<link title="Top" rel="start" href="index.html#Top">
-<link rel="prev" href="Distance.html#Distance" title="Distance">
-<link rel="next" href="Command.html#Command" title="Command">
-<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
-<meta http-equiv="Content-Style-Type" content="text/css">
-<style type="text/css"><!--
-  pre.display { font-family:inherit }
-  pre.format  { font-family:inherit }
-  pre.smalldisplay { font-family:inherit; font-size:smaller }
-  pre.smallformat  { font-family:inherit; font-size:smaller }
-  pre.smallexample { font-size:smaller }
-  pre.smalllisp    { font-size:smaller }
-  span.sc    { font-variant:small-caps }
-  span.roman { font-family:serif; font-weight:normal; } 
-  span.sansserif { font-family:sans-serif; font-weight:normal; } 
---></style>
-</head>
-<body>
-<div class="node">
-<a name="Cluster"></a>
-<p>
-Next:&nbsp;<a rel="next" accesskey="n" href="Command.html#Command">Command</a>,
-Previous:&nbsp;<a rel="previous" accesskey="p" href="Distance.html#Distance">Distance</a>,
-Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
-<hr>
-</div>
+<title>Cluster (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)</title>
 
+<meta name="description" content="Cluster (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="keywords" content="Cluster (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="Contents.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Hierarchical.html#Hierarchical" rel="next" title="Hierarchical">
+<link href="Distance.html#Distance" rel="prev" title="Distance">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Cluster"></a>
+<div class="header">
+<p>
+Next: <a href="Command.html#Command" accesskey="n" rel="next">Command</a>, Previous: <a href="Distance.html#Distance" accesskey="p" rel="prev">Distance</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Clustering-techniques"></a>
 <h2 class="chapter">4 Clustering techniques</h2>
 
 <p>The Cluster program provides several clustering algorithms. Hierarchical clustering methods organizes genes in a tree structure, based on their similarity. Four variants of hierarchical clustering are available in Cluster. In
-<i>k</i>-means clustering, genes are organized into
-<i>k</i> clusters, where the number of clusters
-<i>k</i> needs to be chosen in advance. 
+<i>k</i>-means
+ clustering, genes are organized into
+<i>k</i>
+ clusters, where the number of clusters
+<i>k</i>
+ needs to be chosen in advance.
 Self-Organizing Maps create clusters of genes on a two-dimensional rectangular grid, where neighboring clusters are similar. For each of these methods, one of the eight different distance meaures can be used. Finally, in Principal Component Analysis, clusters are organized based on the principal component axes of the distance matrix.
+</p>
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top">&bull; <a href="Hierarchical.html#Hierarchical" accesskey="1">Hierarchical</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Pairwise single-, maximum-, average-, and centroid-linkage hierarchical clustering
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="KMeans.html#KMeans" accesskey="2">KMeans</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top"><em>k</em>-means and <em>k</em>-medoids clustering
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="SOM.html#SOM" accesskey="3">SOM</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Self-Organizing Maps
+</td></tr>
+<tr><td align="left" valign="top">&bull; <a href="PCA.html#PCA" accesskey="4">PCA</a>:</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">Principal Component Analysis
+</td></tr>
+</table>
 
-<ul class="menu">
-<li><a accesskey="1" href="Hierarchical.html#Hierarchical">Hierarchical</a>:  Pairwise single-, maximum-, average-, and centroid-linkage hierarchical clustering
-<li><a accesskey="2" href="KMeans.html#KMeans">KMeans</a>:  <i>k</i>-means and <i>k</i>-medoids clusteringclustering
-<li><a accesskey="3" href="SOM.html#SOM">SOM</a>:  Self-Organizing Maps
-<li><a accesskey="4" href="PCA.html#PCA">PCA</a>:  Principal Component Analysis
-</ul>
 
-   </body></html>
 
+
+</body>
+</html>

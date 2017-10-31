@@ -42,11 +42,11 @@ class test_Pycluster(Command):
 
 
 setup(name="Pycluster",
-      version="1.52",
+      version="1.54",
       description="The C Clustering Library",
       author="Michiel de Hoon",
-      author_email="mdehoon 'AT' gsc.riken.jp",
-      url="http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/software.html",
+      author_email="michiel.dehoon 'AT' riken.jp",
+      url="http://bonsai.hgc.jp/~mdehoon/software/software.html",
       license="Python License",
       package_dir = {'Pycluster':'python'},
       packages = ['Pycluster'],

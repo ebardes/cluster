@@ -6,9 +6,9 @@
 @c %**end of header
 
 @titlepage
-@title{Cluster 3.0 Manual}
-@subtitle{for Windows, Mac OS X, Linux, Unix}
-@author{Michael Eisen; updated by Michiel de Hoon}
+@title Cluster 3.0 Manual
+@subtitle for Windows, Mac OS X, Linux, Unix
+@author Michael Eisen; updated by Michiel de Hoon
 
 @c The following two commands start the copyright page.
 @page
@@ -69,10 +69,12 @@ The bibliography also contains citations for recent publications in the
 biological sciences, especially genomics, that employ
 methods similar to those used here.
 
-@node Data, Distance, Introduction, top
+@node Data, Distance, Introduction, Top
 @chapter Loading, filtering, and adjusting data
 
+@float
 @image{images/cluster}
+@end float
 
 Data can be loaded into Cluster by choosing Load data file under the File menu.
 A number of options are provided for adjusting and
@@ -107,7 +109,7 @@ When Cluster 3.0 opens the data file, the number of columns in each row is check
 @heading Demo data
 
 A demo datafile, which will be used in all of the examples here, is available
-at @uref{http://rana.lbl.gov/downloads/data/demo.txt} and is mirrored at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/demo.txt}.
+at @uref{http://rana.lbl.gov/downloads/data/demo.txt} and is mirrored at @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster/demo.txt}.
 
 The datafile contains yeast gene expression data
 described in Eisen @emph{et al.} (1998) [see references at end]. Download this data and load it
@@ -294,7 +296,7 @@ median values are close to zero) and normal (i.e. all row and column magnitudes 
 close to 1.0) dataset.
 After performing these operations you should save the dataset.
 
-@node Distance, Cluster, Data, top
+@node Distance, Cluster, Data, Top
 @chapter Distance/Similarity measures
 
 The first choice that must be made is how similarity (or alternatively, distance) between gene expression data is to be defined. There are many
@@ -638,7 +640,7 @@ The Spearman rank correlation and Kendall's
 $\tau$
 @end tex
 @html
-&tau;
+<i>&tau;</i>
 @end html
  are two additional metrics, which are non-parametric versions of the Pearson correlation coefficient. These methods are more robust against outliers.
 
@@ -694,7 +696,7 @@ Kendall's
 $\tau$
 @end tex
 @html
-&tau;
+<i>&tau;</i>
 @end html
  goes a step further by using only the relative ordering of
 @tex
@@ -708,7 +710,7 @@ $x$ and $y$
 $\tau$,
 @end tex
 @html
-&tau;,
+<i>&tau;</i>,
 @end html
  consider all pairs of data points
 @tex
@@ -1039,7 +1041,7 @@ $N$).
 <i>N</i>).
 @end html
 
-@node Cluster, Command, Distance, top
+@node Cluster, Command, Distance, Top
 @chapter Clustering techniques
 
 The Cluster program provides several clustering algorithms. Hierarchical clustering methods organizes genes in a tree structure, based on their similarity. Four variants of hierarchical clustering are available in Cluster. In
@@ -1068,13 +1070,7 @@ Self-Organizing Maps create clusters of genes on a two-dimensional rectangular g
 
 @menu
 * Hierarchical:: Pairwise single-, maximum-, average-, and centroid-linkage hierarchical clustering
-@tex
-* KMeans:: $k$-means and $k$-medoids clustering
-@end tex
-@html
-* KMeans:: <i>k</i>-means and <i>k</i>-medoids clustering
-@end html
-clustering
+* KMeans:: @math{k}-means and @math{k}-medoids clustering
 * SOM:: Self-Organizing Maps
 * PCA:: Principal Component Analysis
 @end menu
@@ -1579,12 +1575,7 @@ corresponding @file{.cdt} file.
 
 @node KMeans, SOM, Hierarchical, Cluster
 
-@tex
-@section The \math{k}-means Clustering Algorithm
-@end tex
-@html
-@section The <i>k</i>-means Clustering Algorithm
-@end html
+@section The @math{k}-means Clustering Algorithm
 
 @image{images/kmeans}
 
@@ -1923,9 +1914,9 @@ Note that the coordinate file @file{@var{JobName}_pca_gene.coords.txt} is a vali
 @node Command, TreeView, Cluster, Top
 @chapter Running Cluster 3.0 as a command line program
 
-Cluster 3.0 can also be run as a command line program. This may be useful if you want to run Cluster 3.0 on a remote server, and also allows automatic processing a large number of data files by running a batch script. Note, however, that the Python and Perl interfaces to the C Clustering Library may be better suited for this task, as they are more powerful than the command line program (see the manual for the C Clustering Library at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster.pdf}).
+Cluster 3.0 can also be run as a command line program. This may be useful if you want to run Cluster 3.0 on a remote server, and also allows automatic processing a large number of data files by running a batch script. Note, however, that the Python and Perl interfaces to the C Clustering Library may be better suited for this task, as they are more powerful than the command line program (see the manual for the C Clustering Library at @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster/cluster.pdf}).
 
-The GUI version of Cluster 3.0 can be used as a command line program by applying the appropriate command line parameters. You can also compile Cluster 3.0 without GUI support (if you will be using it from the command line only) by downloading the source code from @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}, and running @*
+The GUI version of Cluster 3.0 can be used as a command line program by applying the appropriate command line parameters. You can also compile Cluster 3.0 without GUI support (if you will be using it from the command line only) by downloading the source code from @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster}, and running @*
 @code{configure --without-x} @*
 @code{make} @*
 @code{make install} @*
@@ -1965,14 +1956,7 @@ Specifies which hierarchical clustering method to use: @*
 @code{c}: Pairwise centroid-linkage @*
 @code{a}: Pairwise average-linkage
 @item -k @var{number}
-Specifies whether to run
-@tex
-$k$-means
-@end tex
-@html
-<i>k</i>-means
-@end html
-clustering instead of hierarchical clustering, and the number of clusters
+Specifies whether to run @math{k}-means clustering instead of hierarchical clustering, and the number of clusters
 @tex
 $k$ to use (default: 0, no $k$-means clustering)
 @end tex
@@ -2010,7 +1994,13 @@ Pearson correlation, absolute value
 @item 5
 Spearman's rank correlation
 @item 6
-Kendall's tau
+Kendall's
+@tex
+$\tau$
+@end tex
+@html
+<i>&tau;</i>
+@end html
 @item 7
 Euclidean distance
 @item 8
@@ -2036,7 +2026,7 @@ results.
 @chapter Code Development Information
 
 In previous versions of Cluster, the proprietary Numerical Recipes routines were heavily used. We have replaced these routines by the C clustering library, which was released under the Python License. Accordingly, the complete source code of Cluster is now open.
-It can be downloaded from @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}. We used the GNU C compiler in order to enable anybody to compile the code. No commercial compiler is required. The GNU C compiler is available at @uref{http://www.gnu.org}.
+It can be downloaded from @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster}. We used the GNU C compiler in order to enable anybody to compile the code. No commercial compiler is required. The GNU C compiler is available at @uref{http://www.gnu.org}.
 There you can also find texinfo, which was used to generate the printed and the HTML documentation. To convert the picture files to EPS files for the printed documentation, we used @code{pngtopnm} and @code{pnmtops} of Netpbm, which can be found at @uref{http://netpbm.sourceforge.net}.
 The HTML Help file was generated using the HTML Help Workshop, which is freely available at @uref{http://msdn.microsoft.com, the Microsoft site}.
 The Windows Installer was created with the Inno Setup Compiler, which is available at @uref{http://www.innosetup.com}.

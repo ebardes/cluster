@@ -1,8 +1,42 @@
+2017.09.23
+Fixed the kmedoids function, which may count the number of solutions
+incorrectly (and report an error message) if the initial clustering is given by the user.
+Using the C11-standard definition of "int main", where argv is not a const char* array.
+Save the Interface Builder files for the Mac version in XIB format.
+Update Controller.m in the Mac version to avoid warnings converting Objective-C
+strings to plain C strings.
+
+2017.08.19
+Include Michael Eisen's original demo.txt example data in the distribution.
+For k-means clustering, show the number of solutions found separately for genes
+and arrays.
+Let cuttree number the clusters incrementally in the left-to-right order of
+the leaves in the hierarchical clustering tree.
+Algorithm::Cluster::cuttree now returns an array.
+Removed mean, median from the Python tests.
+Updates for Unicode handling in Python3.
+Fix slice bug in Pycluster's Tree class.
+Write a new function sorttree that reorders a hierarchical clustering tree
+such that the nodes are ordered according to a user-specified order, while
+maintaining the structure of the hierarchical clustering tree. The sorttree
+function is used in the HierarchicalCluster function, and can also be called
+from Pycluster and from Algorithm::Cluster.
+
+2014.10.11
+Show the number of solutions found in kcluster in the GUI programs.
+Fixed a bug in X11/gui.c in which the result of fclose was checked instead of
+the result of Save, causing spurious error messages.
+Fixed a bug in python/clustermodule.c that caused integer overflows for large
+data sizes. Fixed Unicode issues for single characters.
+Removed the mean, median tests for Pycluster.
+Fixed a bug in command.c that caused meaningless files to be written if no
+clustering was requested.
+
 2013.08.03
 Added checks for all calls to malloc in src/data.c, and corresponding error
 messages in the GUI and command line programs.
 Using MinGW instead of Cygwin to create the installer for Windows.
-Using productbuild instead of productbuild to create the installer for Mac.
+Using productbuild instead of packagemaker to create the installer for Mac.
 Removed the mean and median functions from Pycluster, as anyway these are
 available from Numerical Python. This also avoids problems with deprecated
 API usage.

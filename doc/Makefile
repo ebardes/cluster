@@ -5,11 +5,11 @@ all: cluster3.pdf cluster.pdf
 
 cluster3.pdf: cluster3.texinfo $(patsubst $(imagesrc)/%.png,images/%.eps,$(figures))
 	tex cluster3.texinfo
-	dvipdfm cluster3
+	dvipdf cluster3
 
 cluster.pdf: cluster.texinfo
 	tex cluster.texinfo
-	dvipdfm cluster
+	dvipdf cluster
 
 $(patsubst $(imagesrc)/%.png,images/%.eps,$(figures)): images/%.eps: $(imagesrc)/%.png
 	mkdir -p images

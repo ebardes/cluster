@@ -37,9 +37,9 @@ result.
 
 /*
 This program was modified by Michiel de Hoon of the University of Tokyo,
-Human Genome Center (mdehoon 'AT' gsc.riken.jp). The core numerical routines are
-now located in the C Clustering Library. This file implements a command-line
-interface to the clustering routines in the C Clustering Library.
+Human Genome Center (michiel.dehoon 'AT' riken.jp). The core numerical
+routines are now located in the C Clustering Library. This file implements a
+command-line interface to the clustering routines in the C Clustering Library.
 MdH 2003.07.17.
 */
 
@@ -171,10 +171,10 @@ static void display_version(void)
 "Copyright 1998-99 Stanford University.\n");
   printf ("\n"
 "The command line version of Cluster version 3.0 was created by Michiel de Hoon\n"
-"(mdehoon 'AT' gsc.riken.jp), together with Seiya Imoto and Satoru Miyano,\n"
+"(michiel.dehoon 'AT' riken.jp), together with Seiya Imoto and Satoru Miyano,\n"
 "University of Tokyo, Institute of Medical Science, Human Genome Center.\n"
 "\n"
-"Visit our website at http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster\n"
+"Visit our website at http://bonsai.hgc.jp/~mdehoon/software/cluster\n"
 "for GUI-versions of Cluster 3.0 for Windows, Mac OS X, Unix, and Linux,\n"
 "as well as Python and Perl interfaces to the C Clustering Library.\n"
 "\n");
@@ -226,7 +226,12 @@ Hierarchical(char genemetric, char arraymetric, char method, char* jobname)
 { int ok;
   FILE* outputfile;
   const int n = strlen(jobname) + strlen(".ext") + 1;
-  char* const filename = malloc(n*sizeof(char));
+  char* filename;
+  if (!genemetric && !arraymetric)
+  { printf("ERROR: No clustering requested\n");
+    return;
+  }
+  filename = malloc(n*sizeof(char));
   if (!filename)
   { printf("ERROR: Failed to allocate memory for file name\n");
     return;
@@ -294,6 +299,10 @@ static void KMeans(char genemetric, char arraymetric, int k, int r,
 { FILE* outputfile;
   char* filename;
   int n = 1 + strlen(jobname) + strlen("_K") + strlen(".ext");
+  if (!genemetric && !arraymetric)
+  { printf("ERROR: No clustering requested\n");
+    return;
+  }
   if (genemetric && Rows < k)
   { printf("ERROR: More clusters than genes available\n");
     return;

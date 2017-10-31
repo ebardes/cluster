@@ -1412,12 +1412,16 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             char* path;
             char* filetag;
             FILE* outputfile;
+            char buffer[256];
 
             Boolean ClusterGenes;
             Boolean ClusterArrays;
 
             int kGenes = 0;
             int kArrays = 0;
+
+            int iFoundGenes;
+            int iFoundArrays;
 
             Widget widget, button;
             Widget notebook = XtParent(page);
@@ -1485,9 +1489,6 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 char dist;
                 int* NodeMap;
                 int nTrials;
-                int ifound;
-
-                char buffer[256];
 
                 Widget frame = XtNameToWidget(page,"GeneMethodFrame");
                 widget = XtNameToWidget(frame, "GeneMethod");
@@ -1505,14 +1506,12 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 }
                 nTrials = GetWidgetItemInt(page, "KMeansGeneRuns");
 
-                ifound = GeneKCluster(kGenes, nTrials, method, dist, NodeMap);
-                if (ifound < 0)
+                iFoundGenes = GeneKCluster(kGenes, nTrials, method, dist, NodeMap);
+                if (iFoundGenes < 0)
                 {   Statusbar(NULL, "Memory allocation failure");
                     free(path);
                     return;
                 }
-                sprintf(buffer, "Solution was found %d times", ifound);
-                Statusbar(NULL, buffer);
 
                 sprintf(filetag, "_K_G%d.kgg", kGenes);
                 outputfile = fopen(path, "wt");
@@ -1538,10 +1537,7 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                 char dist;
                 int* NodeMap;
                 int nTrials;
-                int ifound;
 
-                char buffer[256];
- 
                 Widget frame = XtNameToWidget(page,"ArrayMethodFrame");
                 widget = XtNameToWidget(frame, "ArrayMethod");
                 button = XtNameToWidget(widget, "k-Means");
@@ -1557,14 +1553,12 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
                     return;
                 }
                 nTrials = GetWidgetItemInt(page, "KMeansArrayRuns");
-                ifound = ArrayKCluster(kArrays, nTrials, method, dist, NodeMap);
-                if (ifound < 0)
+                iFoundArrays = ArrayKCluster(kArrays, nTrials, method, dist, NodeMap);
+                if (iFoundArrays < 0)
                 {   Statusbar(NULL, "Memory allocation failure");
                     free(path);
                     return;
                 }
-                sprintf(buffer, "Solution was found %d times", ifound);
-                Statusbar(NULL, buffer);
 
                 sprintf(filetag, "_K_A%d.kag", kArrays);
                 outputfile = fopen(path, "wt");
@@ -1599,7 +1593,15 @@ static void KMeans(Widget w, XtPointer client_data, XtPointer call_data)
             }
             ok = Save(outputfile, 0, 0);
             fclose(outputfile);
-            if (ok) Statusbar(NULL, "Done clustering");
+            if (ok) {
+                if (ClusterGenes && ClusterArrays)
+                    sprintf(buffer, "Finished; solution for genes was found %d times, for arrays %d times", iFoundGenes, iFoundArrays);
+                else if (ClusterGenes)
+                    sprintf(buffer, "Finished; solution was found %d times", iFoundGenes);
+                else if (ClusterArrays)
+                    sprintf(buffer, "Finished; solution was found %d times", iFoundArrays);
+                Statusbar(NULL, buffer);
+            }
             else
             { ShowError(w, "Error saving file", "Insufficient memory");
               Statusbar(NULL, "Error saving to file");
@@ -1998,7 +2000,7 @@ static void MenuHelp(Widget w, XtPointer client_data, XtPointer call_data)
             break;
         }
         case CMD_HELP_DOWNLOAD:
-        {   system("firefox http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/manual/index.html &");
+        {   system("firefox http://bonsai.hgc.jp/~mdehoon/software/cluster/manual/index.html &");
             break;
         }
         case CMD_HELP_FILEFORMAT:
@@ -2085,7 +2087,7 @@ static void MenuHelp(Widget w, XtPointer client_data, XtPointer call_data)
             XtSetArg(args[n], XmNx, 10); n++;
             XtSetArg(args[n], XmNy, 10); n++;
             XtSetArg(args[n], XmNalignment, XmALIGNMENT_BEGINNING); n++;
-            widget = XmCreateLabel(dialog, "Cluster 3.0\nusing the C Clustering Library version " CLUSTERVERSION ".\n\nCluster was originally written by Michael Eisen\n(eisen 'AT' rana.lbl.gov)\nCopyright 1998-99 Stanford University\n\nCluster version 3.0 for X11/Motif was created\nby Michiel de Hoon (mdehoon 'AT' gsc.riken.jp),\ntogether with Seiya Imoto and Satoru Miyano.\n\nType 'cluster --help' for information about\nrunning Cluster 3.0 as a command-line program.\n\nUniversity of Tokyo, Human Genome Center\nJune 2002", args, n);
+            widget = XmCreateLabel(dialog, "Cluster 3.0\nusing the C Clustering Library version " CLUSTERVERSION ".\n\nCluster was originally written by Michael Eisen\n(eisen 'AT' rana.lbl.gov)\nCopyright 1998-99 Stanford University\n\nCluster version 3.0 for X11/Motif was created\nby Michiel de Hoon (michiel.dehoon 'AT' riken.jp),\ntogether with Seiya Imoto and Satoru Miyano.\n\nType 'cluster --help' for information about\nrunning Cluster 3.0 as a command-line program.\n\nUniversity of Tokyo, Human Genome Center\nJune 2002", args, n);
             XtManageChild(widget);
             break;
         }
@@ -2482,8 +2484,8 @@ static void Hierarchical(Widget w, XtPointer client_data, XtPointer call_data)
             {   Statusbar(NULL, "Error: Unable to open the output file");
                 return;
             }
-            Save(outputfile, ClusterGenes, ClusterArrays);
-            ok = fclose(outputfile);
+            ok = Save(outputfile, ClusterGenes, ClusterArrays);
+            fclose(outputfile);
             if (ok) Statusbar(NULL, "Done clustering");
             else
             {   ShowError(w, "Insufficient memory", "Error saving to file");

@@ -4,7 +4,7 @@
  * This library was written at the Laboratory of DNA Information Analysis,
  * Human Genome Center, Institute of Medical Science, University of Tokyo,
  * 4-6-1 Shirokanedai, Minato-ku, Tokyo 108-8639, Japan.
- * Contact: mdehoon 'AT' gsc.riken.jp
+ * Contact: michiel.dehoon 'AT' riken.jp
  * 
  * Permission to use, copy, modify, and distribute this software and its
  * documentation with or without modifications and for any purpose and
@@ -31,7 +31,7 @@
  * located in windows/gui.c (Microsoft Windows), in mac/Controller.m (Mac OS X),
  * and in x11/gui.c (X11 using Motif).
  * 
- * Michiel de Hoon, (mdehoon 'AT' gsc.riken.jp).
+ * Michiel de Hoon, (michiel.dehoon 'AT' riken.jp).
  * University of Tokyo, Human Genome Center.
  * 2003.01.10.
 */
@@ -184,62 +184,6 @@ static int SetClusterIndex(char which, int k, int* clusterid)
     }
   }
   free(index);
-  return 1;
-}
-
-static int
-TreeSort(const char which, const int nNodes, const double* order,
-  const double* nodeorder, const int* nodecounts, Node* tree)
-{ const int nElements = nNodes + 1;
-  int i;
-  double* neworder = calloc(nElements, sizeof(double)); /* initialized to 0.0 */
-  int* clusterids = malloc(nElements*sizeof(int));
-  if (!neworder || !clusterids)
-  { if (neworder) free(neworder);
-    if (clusterids) free(clusterids);
-    return 0;
-  }
-  for (i = 0; i < nElements; i++) clusterids[i] = i;
-  for (i = 0; i < nNodes; i++)
-  { const int i1 = tree[i].left;
-    const int i2 = tree[i].right;
-    const double order1 = (i1<0) ? nodeorder[-i1-1] : order[i1];
-    const double order2 = (i2<0) ? nodeorder[-i2-1] : order[i2];
-    const int count1 = (i1<0) ? nodecounts[-i1-1] : 1;
-    const int count2 = (i2<0) ? nodecounts[-i2-1] : 1;
-    /* If order1 and order2 are equal, their order is determined by 
-     * the order in which they were clustered */
-    if (i1<i2)
-    { const double increase = (order1<order2) ? count1 : count2;
-      int j;
-      for (j = 0; j < nElements; j++)
-      { const int clusterid = clusterids[j];
-        if (clusterid==i1 && order1>=order2) neworder[j] += increase;
-        if (clusterid==i2 && order1<order2) neworder[j] += increase;
-        if (clusterid==i1 || clusterid==i2) clusterids[j] = -i-1;
-      }
-    }
-    else
-    { const double increase = (order1<=order2) ? count1 : count2;
-      int j;
-      for (j = 0; j < nElements; j++)
-      { const int clusterid = clusterids[j];
-        if (clusterid==i1 && order1>order2) neworder[j] += increase;
-        if (clusterid==i2 && order1<=order2) neworder[j] += increase;
-        if (clusterid==i1 || clusterid==i2) clusterids[j] = -i-1;
-      }
-    }
-  }
-  free(clusterids);
-  if (which=='g')
-  { for (i=0; i<_rows; i++) _geneindex[i] = i;
-    sort(_rows, neworder, _geneindex);
-  }
-  if (which=='a')
-  { for (i=0; i<_columns; i++) _arrayindex[i] = i;
-    sort(_columns, neworder, _arrayindex);
-  }
-  free(neworder);
   return 1;
 }
 
@@ -1120,20 +1064,17 @@ int HierarchicalCluster(FILE* file, char metric, int transpose, char method)
 { int i;
   int ok = 0;
   const int nNodes = (transpose ? _columns : _rows) - 1;
+  int* index = (transpose==0) ? _geneindex : _arrayindex;
   const double* order = (transpose==0) ? _geneorder : _arrayorder;
   double* weight = (transpose==0) ? _arrayweight : _geneweight;
   const char* keyword = (transpose==0) ? "GENE" : "ARRY";
  
-  double* nodeorder = malloc(nNodes*sizeof(double));
-  int* nodecounts = malloc(nNodes*sizeof(int));
   char** nodeID = calloc(nNodes, sizeof(char*));
   /* Perform hierarchical clustering. */
   Node* tree = treecluster(_rows, _columns, _data, _mask, weight, transpose,
                            metric, method, NULL);
-  if (!tree || !nodeorder || !nodecounts || !nodeID)
+  if (!tree || !nodeID)
   { if (tree) free(tree);
-    if (nodeorder) free(nodeorder);
-    if (nodecounts) free(nodecounts);
     if (nodeID) free(nodeID);
     return 0;
   }
@@ -1151,38 +1092,24 @@ int HierarchicalCluster(FILE* file, char metric, int transpose, char method)
   { int min1 = tree[i].left;
     int min2 = tree[i].right;
     /* min1 and min2 are the elements that are to be joined */
-    double order1;
-    double order2;
-    int counts1;
-    int counts2;
     char* ID1;
     char* ID2;
     nodeID[i] = MakeID("NODE",i+1);
     if (!nodeID[i]) break;
     if (min1 < 0)
     { int index1 = -min1-1;
-      order1 = nodeorder[index1];
-      counts1 = nodecounts[index1];
       ID1 = nodeID[index1];
       tree[i].distance = max(tree[i].distance, tree[index1].distance);
     }
     else
-    { order1 = order[min1];
-      counts1 = 1;
       ID1 = MakeID(keyword, min1);
-    }
     if (min2 < 0)
     { int index2 = -min2-1;
-      order2 = nodeorder[index2];
-      counts2 = nodecounts[index2];
       ID2 = nodeID[index2];
       tree[i].distance = max(tree[i].distance, tree[index2].distance);
     }
     else
-    { order2 = order[min2];
-      counts2 = 1;
       ID2 = MakeID(keyword, min2);
-    }
  
     if (ID1 && ID2)
     { fprintf(file, "%s\t%s\t%s\t", nodeID[i], ID1, ID2);
@@ -1191,18 +1118,11 @@ int HierarchicalCluster(FILE* file, char metric, int transpose, char method)
     if (ID1 && min1>=0) free(ID1);
     if (ID2 && min2>=0) free(ID2);
     if (!ID1 || !ID2) break;
-
-    nodecounts[i] = counts1 + counts2;
-    nodeorder[i] = (counts1*order1 + counts2*order2) / (counts1 + counts2);
   }
 
+  /* Now set up order based on the tree structure */
   if (i==nNodes) /* Otherwise we encountered the break */
-  { /* Now set up order based on the tree structure */
-    const char which = (transpose==0) ? 'g' : 'a';
-    ok = TreeSort(which, nNodes, order, nodeorder, nodecounts, tree);
-  }
-  free(nodecounts);
-  free(nodeorder);
+    ok = sorttree(nNodes, tree, order, index);
   for (i = 0; i < nNodes; i++) if (nodeID[i]) free(nodeID[i]);
   free(nodeID);
   free(tree);
