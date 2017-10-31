@@ -1,9 +1,7 @@
-2013.08.03
-Added checks for all calls to malloc in src/data.c, and corresponding error
-messages in the GUI and command line programs.
-Using MinGW instead of Cygwin to create the installer for Windows.
-Using productbuild instead of productbuild to create the installer for Mac.
-Removed the mean and median functions from Pycluster, as anyway these are
-available from Numerical Python. This also avoids problems with deprecated
-API usage.
-Added checks for calls to malloc in Algorithm::Cluster.
+2017.09.23
+Fixed the kmedoids function, which may count the number of solutions
+incorrectly (and report an error message) if the initial clustering is given by the user.
+Using the C11-standard definition of "int main", where argv is not a const char* array.
+Save the Interface Builder files for the Mac version in XIB format.
+Update Controller.m in the Mac version to avoid warnings converting Objective-C
+strings to plain C strings.

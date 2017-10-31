@@ -64,15 +64,14 @@ $(HTMLDIR)/index.html: $(DOCDIR)/cluster3.texinfo
 	$(MAKE) -C $(HTMLDIR)
 
 cluster.chm: cluster.hhp $(HTMLDIR)/index.html
-	mv cluster.hhp $(HTMLDIR)
-	cd $(HTMLDIR)
+	cp cluster.hhp $(HTMLDIR)
+	python $(HTMLDIR)/windows.py $(HTMLDIR)/*.html
 	-hhc $(HTMLDIR)/cluster.hhp
-	mv $(HTMLDIR)/cluster.chm $(HTMLDIR)/cluster.hhp ../windows
-	rm $(HTMLDIR)/toc.hhc
-	cd ../windows
+	mv $(HTMLDIR)/cluster.chm ../windows
+	rm $(HTMLDIR)/toc.hhc $(HTMLDIR)/cluster.hhp
 
 $(DOCDIR)/cluster3.pdf: $(DOCDIR)/cluster3.texinfo
 	$(MAKE) -C $(DOCDIR)
 
 clean:
-	rm -f *.o *.a *.dll *.exe *.chm *.hhc
+	rm -f *.o *.a *.dll *.exe *.chm *.hhc $(HTMLDIR)/*.html

@@ -1,134 +1,173 @@
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 6.4, http://www.gnu.org/software/texinfo/ -->
 <head>
-<title>Data - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
-<meta http-equiv="Content-Type" content="text/html">
-<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.13">
-<link title="Top" rel="start" href="index.html#Top">
-<link rel="prev" href="Introduction.html#Introduction" title="Introduction">
-<link rel="next" href="Distance.html#Distance" title="Distance">
-<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
-<meta http-equiv="Content-Style-Type" content="text/css">
-<style type="text/css"><!--
-  pre.display { font-family:inherit }
-  pre.format  { font-family:inherit }
-  pre.smalldisplay { font-family:inherit; font-size:smaller }
-  pre.smallformat  { font-family:inherit; font-size:smaller }
-  pre.smallexample { font-size:smaller }
-  pre.smalllisp    { font-size:smaller }
-  span.sc    { font-variant:small-caps }
-  span.roman { font-family:serif; font-weight:normal; } 
-  span.sansserif { font-family:sans-serif; font-weight:normal; } 
---></style>
-</head>
-<body>
-<div class="node">
-<a name="Data"></a>
-<p>
-Next:&nbsp;<a rel="next" accesskey="n" href="Distance.html#Distance">Distance</a>,
-Previous:&nbsp;<a rel="previous" accesskey="p" href="Introduction.html#Introduction">Introduction</a>,
-Up:&nbsp;<a rel="up" accesskey="u" href="index.html#Top">Top</a>
-<hr>
-</div>
+<title>Data (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)</title>
 
+<meta name="description" content="Data (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="keywords" content="Data (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="Contents.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="index.html#Top" rel="up" title="Top">
+<link href="Distance.html#Distance" rel="next" title="Distance">
+<link href="Introduction.html#Introduction" rel="prev" title="Introduction">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Data"></a>
+<div class="header">
+<p>
+Next: <a href="Distance.html#Distance" accesskey="n" rel="next">Distance</a>, Previous: <a href="Introduction.html#Introduction" accesskey="p" rel="prev">Introduction</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Loading_002c-filtering_002c-and-adjusting-data"></a>
 <h2 class="chapter">2 Loading, filtering, and adjusting data</h2>
 
-<div class="block-image"><img src="images/cluster.png" alt="images/cluster.png"></div>
+<img src="images/cluster.png" alt="images/cluster">
 
-   <p>Data can be loaded into Cluster by choosing Load data file under the File menu. 
+<p>Data can be loaded into Cluster by choosing Load data file under the File menu.
 A number of options are provided for adjusting and
 filtering the data you have loaded. These functions are accessed via the Filter Data and
 Adjust Data tabs.
-
+</p>
+<a name="Loading-Data"></a>
 <h3 class="section">2.1 Loading Data</h3>
 
 <p>The first step in using Cluster is to import data. Currently, Cluster only reads tab-delimited text files in a particular format, described below. Such tab-delimited text files can be created and exported in any standard spreadsheet program, such as Microsoft Excel. An example datafile can be found under the File format help item in the Help menu. This contains all the information you need for making a Cluster input file.
-
-   <p>By convention, in Cluster input tables rows represent genes and columns represent samples or observations (e.g. a single microarray hybridization). For a simple timecourse, a minimal Cluster input file would look like this:<br>
-
-   <div class="block-image"><img src="images/minifile.png" alt="images/minifile.png"></div>
+</p>
+<p>By convention, in Cluster input tables rows represent genes and columns represent samples or observations (e.g. a single microarray hybridization). For a simple timecourse, a minimal Cluster input file would look like this:<br>
+</p>
+<img src="images/minifile.png" alt="images/minifile">
 <br>
-Each row (gene) has an identifier (in green) that always goes in the first column. Here we are using yeast open reading frame codes. Each column (sample) has a label (in blue) that is always in the first row; here the labels describe the time at which a sample was taken. The first column of the first row contains a special field (in red) that tells the program what kind of objects are in each row. In this case, YORF stands for yeast open reading frame. This field can be any alpha-numeric value. It is used in TreeView to specify how rows are linked to external websites.
-
-   <p>The remaining cells in the table contain data for the appropriate gene and sample. The 5.8 in row 2 column 4 means that the observed data value for gene YAL001C at 2 hours was 5.8. Missing values are acceptable and are designated by empty cells (e.g.  YAL005C at 2 hours).
-
-   <p>It is possible to have additional information in the input file. A maximal Cluster input file would look like this:<br>
-
-   <div class="block-image"><img src="images/maxifile.png" alt="images/maxifile.png"></div>
+<p>Each row (gene) has an identifier (in green) that always goes in the first column. Here we are using yeast open reading frame codes. Each column (sample) has a label (in blue) that is always in the first row; here the labels describe the time at which a sample was taken. The first column of the first row contains a special field (in red) that tells the program what kind of objects are in each row. In this case, YORF stands for yeast open reading frame. This field can be any alpha-numeric value. It is used in TreeView to specify how rows are linked to external websites.
+</p>
+<p>The remaining cells in the table contain data for the appropriate gene and sample. The 5.8 in row 2 column 4 means that the observed data value for gene YAL001C at 2 hours was 5.8. Missing values are acceptable and are designated by empty cells (e.g.  YAL005C at 2 hours).
+</p>
+<p>It is possible to have additional information in the input file. A maximal Cluster input file would look like this:<br>
+</p>
+<img src="images/maxifile.png" alt="images/maxifile">
 <br>
-The yellow columns and rows are optional. By default, TreeView uses the ID in column
+<p>The yellow columns and rows are optional. By default, TreeView uses the ID in column
 1 as a label for each gene. The NAME column allows you to specify a label for each gene
 that is distinct from the ID in column 1. The other rows and columns will be described
 later in this text.
+</p>
+<p>When Cluster 3.0 opens the data file, the number of columns in each row is checked. If a given row contains less or more columns than needed, an error message is displayed.<br>
+</p>
+<img src="images/fileerror.png" alt="images/fileerror">
 
-   <p>When Cluster 3.0 opens the data file, the number of columns in each row is checked. If a given row contains less or more columns than needed, an error message is displayed.<br>
-
-   <div class="block-image"><img src="images/fileerror.png" alt="images/fileerror.png"></div>
-
+<a name="Demo-data"></a>
 <h3 class="heading">Demo data</h3>
 
 <p>A demo datafile, which will be used in all of the examples here, is available
-at <a href="http://rana.lbl.gov/downloads/data/demo.txt">http://rana.lbl.gov/downloads/data/demo.txt</a> and is mirrored at <a href="http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/demo.txt">http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/demo.txt</a>.
-
-   <p>The datafile contains yeast gene expression data
+at <a href="http://rana.lbl.gov/downloads/data/demo.txt">http://rana.lbl.gov/downloads/data/demo.txt</a> and is mirrored at <a href="http://bonsai.hgc.jp/~mdehoon/software/cluster/demo.txt">http://bonsai.hgc.jp/~mdehoon/software/cluster/demo.txt</a>.
+</p>
+<p>The datafile contains yeast gene expression data
 described in Eisen <em>et al.</em> (1998) [see references at end]. Download this data and load it
 into Cluster. Cluster will give you information about the loaded datafile. <br>
+</p>
+<img src="images/filemanager.png" alt="images/filemanager">
 
-   <div class="block-image"><img src="images/filemanager.png" alt="images/filemanager.png"></div>
-
+<a name="Filtering-Data"></a>
 <h3 class="section">2.2 Filtering Data</h3>
 
-<div class="block-image"><img src="images/filter.png" alt="images/filter.png"></div>
+<img src="images/filter.png" alt="images/filter">
 
-   <p>The Filter Data tab allows you to remove genes that do not have certain desired
+<p>The Filter Data tab allows you to remove genes that do not have certain desired
 properties from your dataset. The currently available properties that can be used to filter
 data are
-     <ul>
-<li><strong>% Present &gt;= X</strong>. This removes all genes that have missing values in greater than
-(100-<i>X</i>) percent of the columns. 
-<li><strong>SD (Gene Vector) &gt;= X</strong>. This removes all genes that have standard deviations of
+</p><ul>
+<li> <strong>% Present &gt;= X</strong>. This removes all genes that have missing values in greater than
+(100-<i>X</i>)
+ percent of the columns.
+</li><li> <strong>SD (Gene Vector) &gt;= X</strong>. This removes all genes that have standard deviations of
 observed values less than
-<i>X</i>. <li><strong>At least X Observations with abs(Val) &gt;= Y</strong>. This removes all genes that do not have at least
-<i>X</i> observations with absolute values greater than
-<i>Y</i>. <li><strong>MaxVal-MinVal &gt;= X</strong>. This removes all genes whose maximum minus minimum values
+<i>X</i>.
+</li><li> <strong>At least X Observations with abs(Val) &gt;= Y</strong>. This removes all genes that do not have at least
+<i>X</i>
+ observations with absolute values greater than
+<i>Y</i>.
+</li><li> <strong>MaxVal-MinVal &gt;= X</strong>. This removes all genes whose maximum minus minimum values
 are less than
-<i>X</i>. </ul>
-   These are fairly self-explanatory. When you press filter, the filters are not immediately
+<i>X</i>.
+</li></ul>
+<p>These are fairly self-explanatory. When you press filter, the filters are not immediately
 applied to the dataset. You are first told how many genes would have passed the filter. If
-you want to accept the filter, you press Accept, otherwise no changes are made. 
+you want to accept the filter, you press Accept, otherwise no changes are made.
 <br>
+</p>
+<img src="images/accept.png" alt="images/accept">
 
-   <div class="block-image"><img src="images/accept.png" alt="images/accept.png"></div>
-
+<a name="Adjusting-Data"></a>
 <h3 class="section">2.3 Adjusting Data</h3>
 
-<div class="block-image"><img src="images/adjust.png" alt="images/adjust.png"></div>
+<img src="images/adjust.png" alt="images/adjust">
 
-   <p>From the Adjust Data tab, you can perform a number of operations that alter the
+<p>From the Adjust Data tab, you can perform a number of operations that alter the
 underlying data in the imported table. These operations are
-     <ul>
-<li><strong>Log Transform Data</strong>: replace all data values
-<i>x</i> by
-log<SUB>2</SUB> (<i>x</i>). <li><strong>Center genes [mean or median]</strong>: Subtract the row-wise mean or median from the values in each row of data, so that the mean or median value of each row is 0. 
-<li><strong>Center arrays [mean or median]</strong>: Subtract the column-wise mean or median from the values in each column of data, so that the mean or median value of each column is 0. 
-<li><strong>Normalize genes</strong>: Multiply all values in each row of data by a scale factor
-<i>S</i> so that the sum of the squares of the values in each row is 1.0 (a separate
-<i>S</i> is computed for each row). 
-<li><strong>Normalize arrays</strong>: Multiply all values in each column of data by a scale factor
-<i>S</i> so that the sum of the squares of the values in each column is 1.0 (a separate
-<i>S</i> is computed for each column). 
-</ul>
-   These operations are not associative, so the order in which these operations is applied is
-very important, and you should consider it carefully before you apply these operations. 
+</p><ul>
+<li> <strong>Log Transform Data</strong>: replace all data values
+<i>x</i>
+ by
+log<SUB>2</SUB> (<i>x</i>).
+</li><li> <strong>Center genes [mean or median]</strong>: Subtract the row-wise mean or median from the values in each row of data, so that the mean or median value of each row is 0.
+</li><li> <strong>Center arrays [mean or median]</strong>: Subtract the column-wise mean or median from the values in each column of data, so that the mean or median value of each column is 0.
+</li><li> <strong>Normalize genes</strong>: Multiply all values in each row of data by a scale factor
+<i>S</i>
+ so that the sum of the squares of the values in each row is 1.0 (a separate
+<i>S</i>
+ is computed for each row).
+</li><li> <strong>Normalize arrays</strong>: Multiply all values in each column of data by a scale factor
+<i>S</i>
+ so that the sum of the squares of the values in each column is 1.0 (a separate
+<i>S</i>
+ is computed for each column).
+</li></ul>
+<p>These operations are not associative, so the order in which these operations is applied is
+very important, and you should consider it carefully before you apply these operations.
 The order of operations is (only checked operations are performed):
-     <ul>
-<li>Log transform all values. 
-<li>Center rows by subtracting the mean or median. 
-<li>Normalize rows. 
-<li>Center columns by subtracting the mean or median. 
-<li>Normalize columns. 
-</ul>
+</p><ul>
+<li> Log transform all values.
+</li><li> Center rows by subtracting the mean or median.
+</li><li> Normalize rows.
+</li><li> Center columns by subtracting the mean or median.
+</li><li> Normalize columns.
+</li></ul>
 
+<a name="Log-transformation"></a>
 <h4 class="subsection">2.3.1 Log transformation</h4>
 
 <p>The results of many DNA microarray experiments are fluorescent
@@ -145,7 +184,8 @@ as the 2-fold down change. Usually, you do not want this. In log space (we use l
 for simplicity) the data points become 0,1.0,-1.0.With these values, 2-fold up and 2-fold
 down are symmetric about 0. For most applications, we recommend you work in log
 space.
-
+</p>
+<a name="Mean_002fMedian-Centering"></a>
 <h4 class="subsection">2.3.2 Mean/Median Centering</h4>
 
 <p>Consider a now common experimental design where you are
@@ -157,8 +197,8 @@ to be independent of the amount of a gene present in the reference sample. This 
 achieved by adjusting the values of each gene to reflect their variation from some
 property of the series of observed values such as the mean or median. This is what mean
 and/or median centering of genes does. Centering makes less sense in experiments where
-the reference sample is part of the experiment, as it is many timecourses. 
-Centering the data for columns/arrays can also be used to remove certain types of biases. 
+the reference sample is part of the experiment, as it is many timecourses.
+Centering the data for columns/arrays can also be used to remove certain types of biases.
 The results of many two-color fluorescent hybridization experiments are not corrected for
 systematic biases in ratios that are the result of differences in RNA amounts, labeling
 efficiency and image acquisition parameters. Such biases have the effect of multiplying
@@ -166,28 +206,37 @@ ratios for all genes by a fixed scalar. Mean or median centering the data in log
 the effect of correcting this bias, although it should be noted that an assumption is being
 made in correcting this bias, which is that the average gene in a given experiment is
 expected to have a ratio of 1.0 (or log-ratio of 0).
-
-   <p>In general, I recommend the use of median rather than mean centering, as it is more robust against outliers.
-
+</p>
+<p>In general, I recommend the use of median rather than mean centering, as it is more robust against outliers.
+</p>
+<a name="Normalization"></a>
 <h4 class="subsection">2.3.3 Normalization</h4>
 
 <p>Normalization sets the magnitude (sum of the squares of the values) of a row/column
 vector to 1.0. Most of the distance metrics used by Cluster work with internally
 normalized data vectors, but the data are output as they were originally entered. If you
-want to output normalized vectors, you should select this option. 
+want to output normalized vectors, you should select this option.
 A sample series of operations for raw data would be:
-     <ul>
-<li>Adjust Cycle 1) log transform
-<li>Adjust Cycle 2) median center genes and arrays
-<li>repeat (2) five to ten times
-<li>Adjust Cycle 3) normalize genes and arrays
-<li>repeat (3) five to ten times
-</ul>
+</p><ul>
+<li> Adjust Cycle 1) log transform
+</li><li> Adjust Cycle 2) median center genes and arrays
+</li><li> repeat (2) five to ten times
+</li><li> Adjust Cycle 3) normalize genes and arrays
+</li><li> repeat (3) five to ten times
+</li></ul>
 
-   <p>This results in a log-transformed, median polished (i.e. all row-wise and column-wise
+<p>This results in a log-transformed, median polished (i.e. all row-wise and column-wise
 median values are close to zero) and normal (i.e. all row and column magnitudes are
-close to 1.0) dataset. 
+close to 1.0) dataset.
 After performing these operations you should save the dataset.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="Distance.html#Distance" accesskey="n" rel="next">Distance</a>, Previous: <a href="Introduction.html#Introduction" accesskey="p" rel="prev">Introduction</a>, Up: <a href="index.html#Top" accesskey="u" rel="up">Top</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
 
-   </body></html>
 
+
+</body>
+</html>

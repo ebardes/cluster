@@ -37,11 +37,11 @@ result.
 
 /*
 This program was modified by Michiel de Hoon of the University of Tokyo,
-Human Genome Center (currently at the RIKEN Genomic Sciences Center;
-mdehoon 'AT' gsc.riken.jp). The core numerical routines are now located in the
-C clustering library; this program mainly constains gui-related routines.
-Instead of the Borland C++ Builder, the GNU C compiler under Cygwin/MinGW
-was used.
+Human Genome Center (currently at the RIKEN Center for Life Science
+Technologies; michiel.dehoon 'AT' riken.jp). The core numerical routines are
+now located in the C clustering library; this program mainly constains
+gui-related routines. Instead of the Borland C++ Builder, the GNU C compiler
+under Cygwin/MinGW was used.
 MdH 2002.06.13.
 */
 
@@ -92,7 +92,7 @@ BOOL SetDlgItemDouble(HWND hwndDlg, int idControl, double dValue)
 { TCHAR szBuffer[32];
   /* Note: wsprintf does not handle floating point values. */
 #ifdef UNICODE
-  swprintf(szBuffer, TEXT("%4g"), dValue);
+  swprintf(szBuffer, 32, TEXT("%4g"), dValue);
 #else
   sprintf(szBuffer, "%4g", dValue);
 #endif
@@ -881,6 +881,11 @@ KmeansDialogProc(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
             int kArrays = 0;
             int ok;
       
+            int iFoundGenes;
+            int iFoundArrays;
+
+            TCHAR buffer[256];
+
             if (!hGeneMetric || !hArrayMetric)
             { MessageBox(NULL,
                          TEXT("Program initialization failed"),
@@ -915,9 +920,7 @@ KmeansDialogProc(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
               char dist;
               int* NodeMap;
               int nGeneTrials;
-              int ifound;
               ok = 1;
-              TCHAR buffer[256];
 
               kGenes = GetDlgItemInt(hWnd, ID_KMEANS_GENE_K, NULL, FALSE);
               if (kGenes==0)
@@ -954,16 +957,10 @@ KmeansDialogProc(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
                                           ID_KMEANS_GENE_RUNS, 
                                           NULL, 
                                           FALSE);
-              ifound = GeneKCluster(kGenes, nGeneTrials, method, dist, NodeMap);
-              if (ifound < 0) ok = 0;
+              iFoundGenes = GeneKCluster(kGenes, nGeneTrials, method, dist, NodeMap);
+              if (iFoundGenes < 0) ok = 0;
               if (ok)
-              { wsprintf(buffer, TEXT("Solution was found %d times"), ifound);
-                SendMessage(hWndMain,
-                            IDM_SETSTATUSBAR,
-                            (WPARAM)buffer,
-                            0);
-
-                wsprintf(filetag, TEXT("_K_G%d.kgg"), kGenes);
+              { wsprintf(filetag, TEXT("_K_G%d.kgg"), kGenes);
                 outputfile = _tfopen(filename, TEXT("wt"));
                 if (!outputfile)
                 { MessageBox(NULL,
@@ -993,9 +990,7 @@ KmeansDialogProc(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
               char dist;
               int nArrayTrials;
               int* NodeMap;
-              int ifound;
               ok = 1;
-              TCHAR buffer[256];
 
               kArrays = GetDlgItemInt(hWnd, ID_KMEANS_ARRAY_K, NULL, FALSE);
               if (kArrays==0)
@@ -1030,16 +1025,14 @@ KmeansDialogProc(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
                             0);
                 return TRUE;
               }
-              ifound = ArrayKCluster(kArrays,
-                                     nArrayTrials,
-                                     method,
-                                     dist,
-                                     NodeMap);
-              if (ifound < 0) ok = 0;
+              iFoundArrays = ArrayKCluster(kArrays,
+                                           nArrayTrials,
+                                           method,
+                                           dist,
+                                           NodeMap);
+              if (iFoundArrays < 0) ok = 0;
               if (ok)
-              { wsprintf(buffer, TEXT("Solution was found %d times"), ifound);
-                SendMessage(hWndMain, IDM_SETSTATUSBAR, (WPARAM)buffer, 0);
-                wsprintf(filetag, TEXT("_K_A%d.kag"), kArrays);
+              { wsprintf(filetag, TEXT("_K_A%d.kag"), kArrays);
                 outputfile = _tfopen(filename, TEXT("wt"));
                 if (!outputfile)
                 { MessageBox(NULL,
@@ -1083,10 +1076,17 @@ KmeansDialogProc(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
             ok = Save(outputfile, 0, 0);
             fclose(outputfile);
             if (ok)
+            { if (ClusterGenes && ClusterArrays)
+                wsprintf(buffer, TEXT("Finished; solution for genes was found %d times, for arrays %d times"), iFoundGenes, iFoundArrays);
+              else if (ClusterGenes)
+                wsprintf(buffer, TEXT("Finished; solution was found %d times"), iFoundGenes);
+              else if (ClusterArrays)
+                wsprintf(buffer, TEXT("Finished; solution was found %d times"), iFoundArrays);
               SendMessage(hWndMain,
                           IDM_SETSTATUSBAR,
-                          (WPARAM)TEXT("Done clustering"),
+                          (WPARAM)buffer,
                           0);
+            }
             else
             { MessageBox(NULL,
                          TEXT("Insufficient memory"),
@@ -1818,7 +1818,7 @@ MainDialogProc(HWND hWnd, UINT nMsg, WPARAM wParam, LPARAM lParam)
         { /* Open Cluster Manual in Browser Window */
           ShellExecute(hWnd,
                        TEXT("open"),
-TEXT("http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/manual"),
+TEXT("http://bonsai.hgc.jp/~mdehoon/software/cluster/manual"),
                        NULL,
                        NULL,
                        SW_SHOWNORMAL);
@@ -1948,7 +1948,7 @@ TEXT("http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/manual"),
 /*  Main                                                                      */
 /*============================================================================*/
 
-int STDCALL
+int WINAPI
 WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nShow)
 { /* Show the main window */
   return DialogBox(hInst,

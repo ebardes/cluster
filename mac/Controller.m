@@ -134,8 +134,11 @@ static void CloseFile(FileHandle file)
         }
         else if (strcmp(result, "ok")!=0)
         {
+            NSString* message;
+            message = [NSString stringWithCString: result
+                                         encoding: NSASCIIStringEncoding];
             NSRunCriticalAlertPanel(@"Error in data file",
-                                    [NSString stringWithCString: result],
+                                    @"%@", message,
                                     @"OK",
                                     nil,
                                     nil);
@@ -207,7 +210,7 @@ static void CloseFile(FileHandle file)
 
 - (IBAction)ShowHelpDownload:(id)sender
 {
-    [[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/manual"]];
+    [[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"http://bonsai.hgc.jp/~mdehoon/software/cluster/manual"]];
 }
 
 - (IBAction)FilterApply:(id)sender
@@ -395,7 +398,7 @@ static void CloseFile(FileHandle file)
     int ok;
     const int rows = GetRows();
     const int columns = GetColumns();
-    const char method = *([method_string cString]);
+    const char method = *([method_string UTF8String]);
     if (rows==0 || columns==0) {
         [statusbar setStringValue: @"No data available"];
         return;
@@ -443,7 +446,8 @@ static void CloseFile(FileHandle file)
         error = CalculateWeights(gene_cutoff, gene_exponent, genemetric,
                                  array_cutoff, array_exponent, arraymetric);
         if (error) {
-            [statusbar setStringValue: [NSString stringWithCString: error]];
+            [statusbar setStringValue: [NSString stringWithCString: error
+                                        encoding: NSASCIIStringEncoding]];
             return;
         }
     }
@@ -554,6 +558,9 @@ static void CloseFile(FileHandle file)
     int kGenes = 0;
     int kArrays = 0;
 
+    int iFoundGenes;
+    int iFoundArrays;
+
     if (ClusterGenes) {
         kGenes = [KMeansGeneK intValue];
         if (kGenes==0) {
@@ -573,11 +580,9 @@ static void CloseFile(FileHandle file)
         const int nGeneTrials = [KMeansGeneRuns intValue];
         ok = 1;
         NSString* filename = nil;
-        int ifound = GeneKCluster(kGenes, nGeneTrials, method, dist, NodeMap);
-        if (ifound < 0) ok = 0;
+        iFoundGenes = GeneKCluster(kGenes, nGeneTrials, method, dist, NodeMap);
+        if (iFoundGenes < 0) ok = 0;
         if (ok) {
-            [statusbar setStringValue: [NSString stringWithFormat: @"Solution was found %d times", ifound]];
-        
             filename = [jobname stringByAppendingFormat: @"_K_G%d.kgg", kGenes];
             [[NSFileManager defaultManager] createFileAtPath: filename
                                                     contents: nil
@@ -624,11 +629,9 @@ static void CloseFile(FileHandle file)
 
         ok = 1;
         NSString* filename = nil;
-        int ifound = ArrayKCluster(kArrays, nArrayTrials, method, dist, NodeMap);
-        if (ifound < 0) ok = 0;
+        iFoundArrays = ArrayKCluster(kArrays, nArrayTrials, method, dist, NodeMap);
+        if (iFoundArrays < 0) ok = 0;
         if (ok) {
-            [statusbar setStringValue: [NSString stringWithFormat: @"Solution was found %d times", ifound]];
-        
             filename = [jobname stringByAppendingFormat: @"_K_A%d.kag", kArrays];
             [[NSFileManager defaultManager] createFileAtPath: filename
                                                     contents: nil
@@ -673,7 +676,16 @@ static void CloseFile(FileHandle file)
     }
     ok = Save(outputfile.pointer, 0, 0);
     CloseFile(outputfile);
-    if (!ok)
+    if (ok)
+    {
+        if (ClusterGenes && ClusterArrays)
+            [statusbar setStringValue: [NSString stringWithFormat: @"Finished; solution for genes was found %d times, for arrays %d times", iFoundGenes, iFoundArrays]];
+        else if (ClusterGenes)
+            [statusbar setStringValue: [NSString stringWithFormat: @"Finished; solution was found %d times", iFoundGenes]];
+        else if (ClusterArrays)
+            [statusbar setStringValue: [NSString stringWithFormat: @"Finished; solution was found %d times", iFoundArrays]];
+    }
+    else
     {
         NSRunCriticalAlertPanel(@"Error saving file",
                                 @"Insufficient memory",
@@ -682,8 +694,6 @@ static void CloseFile(FileHandle file)
                                 nil);
         [statusbar setStringValue: @"Error saving to file"];
     }
-    else
-        [statusbar setStringValue: @"Finished saving file"];
 }
 
 - (IBAction)SOMExecute:(id)sender
@@ -866,7 +876,8 @@ static void CloseFile(FileHandle file)
         CloseFile(coordinatefile);
         CloseFile(pcfile);
         if (error) {
-            [statusbar setStringValue: [NSString stringWithCString: error]];
+            [statusbar setStringValue: [NSString stringWithCString: error
+                                        encoding: NSASCIIStringEncoding]];
             return;
         }
         [statusbar setStringValue: @"Finished Principal Component Analysis"];
@@ -901,7 +912,8 @@ static void CloseFile(FileHandle file)
         CloseFile(coordinatefile);
         CloseFile(pcfile);
         if (error) {
-            [statusbar setStringValue: [NSString stringWithCString: error]];
+            [statusbar setStringValue: [NSString stringWithCString: error
+                                        encoding: NSASCIIStringEncoding]];
             return;
         }
         [statusbar setStringValue: @"Finished Principal Component Analysis"];

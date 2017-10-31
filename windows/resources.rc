@@ -28,7 +28,7 @@ ID_ABOUT DIALOGEX 0, 0, 200, 130
 STYLE DS_MODALFRAME | WS_SYSMENU | WS_POPUP | WS_CAPTION
 FONT 8, "MS Sans Serif"
 CAPTION "About Cluster"
-{ LTEXT "Cluster 3.0\nusing the C Clustering Library version " CLUSTERVERSION "\n\nCluster was originally written by Michael Eisen\n(eisen 'AT' rana.lbl.gov)\nCopyright 1998-99 Stanford University\n\nCluster version 3.0 was created by Michiel de Hoon\n(mdehoon 'AT' gsc.riken.jp),\ntogether with Seiya Imoto and Satoru Miyano.\n\nUniversity of Tokyo, Human Genome Center\nJune 2002", -1, 20, 10, 200, 120
+{ LTEXT "Cluster 3.0\nusing the C Clustering Library version " CLUSTERVERSION "\n\nCluster was originally written by Michael Eisen\n(eisen 'AT' rana.lbl.gov)\nCopyright 1998-99 Stanford University\n\nCluster version 3.0 was created by Michiel de Hoon\n(michiel.dehoon 'AT' riken.jp),\ntogether with Seiya Imoto and Satoru Miyano.\n\nUniversity of Tokyo, Human Genome Center\nJune 2002", -1, 20, 10, 200, 120
 }
 
 ID_FILEFORMAT DIALOGEX 0, 0, 325, 341

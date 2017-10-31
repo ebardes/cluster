@@ -1,74 +1,99 @@
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 6.4, http://www.gnu.org/software/texinfo/ -->
 <head>
-<title>SOM - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
-<meta http-equiv="Content-Type" content="text/html">
-<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.13">
-<link title="Top" rel="start" href="index.html#Top">
-<link rel="up" href="Cluster.html#Cluster" title="Cluster">
-<link rel="prev" href="KMeans.html#KMeans" title="KMeans">
-<link rel="next" href="PCA.html#PCA" title="PCA">
-<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
-<meta http-equiv="Content-Style-Type" content="text/css">
-<style type="text/css"><!--
-  pre.display { font-family:inherit }
-  pre.format  { font-family:inherit }
-  pre.smalldisplay { font-family:inherit; font-size:smaller }
-  pre.smallformat  { font-family:inherit; font-size:smaller }
-  pre.smallexample { font-size:smaller }
-  pre.smalllisp    { font-size:smaller }
-  span.sc    { font-variant:small-caps }
-  span.roman { font-family:serif; font-weight:normal; } 
-  span.sansserif { font-family:sans-serif; font-weight:normal; } 
---></style>
-</head>
-<body>
-<div class="node">
-<a name="SOM"></a>
-<p>
-Next:&nbsp;<a rel="next" accesskey="n" href="PCA.html#PCA">PCA</a>,
-Previous:&nbsp;<a rel="previous" accesskey="p" href="KMeans.html#KMeans">KMeans</a>,
-Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
-<hr>
-</div>
+<title>SOM (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)</title>
 
+<meta name="description" content="SOM (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="keywords" content="SOM (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="Contents.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Cluster.html#Cluster" rel="up" title="Cluster">
+<link href="PCA.html#PCA" rel="next" title="PCA">
+<link href="KMeans.html#KMeans" rel="prev" title="KMeans">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="SOM"></a>
+<div class="header">
+<p>
+Next: <a href="PCA.html#PCA" accesskey="n" rel="next">PCA</a>, Previous: <a href="KMeans.html#KMeans" accesskey="p" rel="prev">KMeans</a>, Up: <a href="Cluster.html#Cluster" accesskey="u" rel="up">Cluster</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Self_002dOrganizing-Maps"></a>
 <h3 class="section">4.3 Self-Organizing Maps</h3>
 
-<div class="block-image"><img src="images/som.png" alt="images/som.png"></div>
+<img src="images/som.png" alt="images/som">
 
-   <p>Self-Organizing Maps (SOMs) is a method of cluster analysis that are somewhat related to
-<i>k</i>-meansclustering. SOMs were invented in by Teuvo Kohonen in the early 1980s, and
+<p>Self-Organizing Maps (SOMs) is a method of cluster analysis that are somewhat related to
+<i>k</i>-means
+clustering. SOMs were invented in by Teuvo Kohonen in the early 1980s, and
 have recently been used in genomic analysis (see Chu 1998, Tamayo 1999 and Golub
 1999 in references). The Tamayo paper contains a simple explanation of the methods. A
 more detailed description is available in the book by Kohonen, Self-Organizing Maps,
 1997.
-
-   <p>The current implementation varies slightly from that of Tamayo et al., in that it restricts
+</p>
+<p>The current implementation varies slightly from that of Tamayo et al., in that it restricts
 the analysis one-dimensional SOMs along each axis, as opposed to a two-dimensional
 network. The one-dimensional SOM is used to reorder the elements on whichever axes
 are selected. The result is similar to the result of k-means clustering, except that, unlike in k-means clustering,
 the nodes in a SOM are ordered. This tends to result in a relatively smooth
 transition between groups.
+</p>
+<p>The options for SOMs are
+</p><ul>
+<li> whether or not you will organize each axis;
+</li><li> the number of nodes for each axis (the default is
+<i>n</i><SUP>1/4</SUP>,
+where
+<i>n</i>
+is the number of items; the total number of clusters is then equal to the square root of the number of items);
+</li><li> the number of iterations to be run.
+</li></ul>
 
-   <p>The options for SOMs are
-     <ul>
-<li>whether or not you will organize each axis;
-<li>the number of nodes for each axis (the default is
-<i>n</i><SUP>1/4</SUP>,where
-<i>n</i>is the number of items; the total number of clusters is then equal to the square root of the number of items);
-<li>the number of iterations to be run. 
-</ul>
-
-   <p>The output file is of the form <samp><var>JobName</var><span class="file">_SOM_GXg-Yg_AXa-Ya.txt</span></samp>, where <samp><span class="file">GXg-Yg</span></samp> is
-included if genes were organized, and <samp><span class="file">AXg-Yg</span></samp> is included if arrays were organized. <samp><span class="file">X</span></samp> and
-<samp><span class="file">Y</span></samp> represent the dimensions of the corresponding SOM. 
-Up to two additional files (<samp><span class="file">.gnf</span></samp> and <samp><span class="file">.anf</span></samp>) are written containing the vectors for
+<p>The output file is of the form <samp><var>JobName</var>_SOM_GXg-Yg_AXa-Ya.txt</samp>, where <samp>GXg-Yg</samp> is
+included if genes were organized, and <samp>AXg-Yg</samp> is included if arrays were organized. <samp>X</samp> and
+<samp>Y</samp> represent the dimensions of the corresponding SOM.
+Up to two additional files (<samp>.gnf</samp> and <samp>.anf</samp>) are written containing the vectors for
 the SOM nodes.
-
-   <p>In previous versions of Cluster, only one-dimensional SOMs were supported. 
+</p>
+<p>In previous versions of Cluster, only one-dimensional SOMs were supported.
 The current version of the Cluster introduces two-dimensional SOMs.
-
-   <p>SOMs and hierarchical clustering:
+</p>
+<p>SOMs and hierarchical clustering:
 Our original use of SOMs (see Chu et al., 1998) was
 motivated by the desire to take advantage of the properties of both SOMs and hierarchical
 clustering. This was accomplished by first computing a one dimensional SOM, and using
@@ -77,6 +102,14 @@ Cluster, after a SOM is run on a dataset, the GORDER and/or EORDER fields are se
 the ordering from the SOM so that, for subsequent hierarchical clustering runs, the output
 ordering will come as close as possible to the ordering in the SOM without violating the
 structure of the tree.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="PCA.html#PCA" accesskey="n" rel="next">PCA</a>, Previous: <a href="KMeans.html#KMeans" accesskey="p" rel="prev">KMeans</a>, Up: <a href="Cluster.html#Cluster" accesskey="u" rel="up">Cluster</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
 
-   </body></html>
 
+
+</body>
+</html>

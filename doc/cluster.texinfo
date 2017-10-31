@@ -26,7 +26,7 @@ Copyright @copyright{} 2002-2005 Michiel Jan Laurens de Hoon
 This library was written at the Laboratory of DNA Information Analysis,
 Human Genome Center, Institute of Medical Science, University of Tokyo,
 4-6-1 Shirokanedai, Minato-ku, Tokyo 108-8639, Japan.@*
-Contact: @email{mdehoon "AT" gsc.riken.jp}@*
+Contact: @email{michiel.dehoon "AT" riken.jp}@*
 
 Permission to use, copy, modify, and distribute this software and its
 documentation with or without modifications and for any purpose and
@@ -77,18 +77,12 @@ To measure the similarity or distance between gene expression data, eight distan
 @item Uncentered Pearson correlation (equivalent to the cosine of the angle between two data vectors);
 @item Absolute uncentered Pearson correlation (equivalent to the cosine of the smallest angle between two data vectors);
 @item Spearman's rank correlation;
-@item Kendall's
-@tex
-$\tau$;
-@end tex
-@html
-<i>&tau;</i>;
-@end html
+@item Kendall's rank correlation @math{\tau};
 @item Euclidean distance;
 @item City-block distance.
 @end itemize
 
-This library was written in ANSI C and can therefore be easily linked to other C/C++ programs. @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster,Cluster 3.0} is an example of such a program. This library may be particularly useful when called from a scripting language such as @uref{http://www.python.org,Python}, @uref{http://www.perl.org,Perl}, or @uref{http://www.ruby.org,Ruby}. The C Clustering Library contains wrappers for Python and Perl; interfaces to other scripting languages may be generated using @uref{http://www.swig.org,SWIG}.
+This library was written in ANSI C and can therefore be easily linked to other C/C++ programs. @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster,Cluster 3.0} is an example of such a program. This library may be particularly useful when called from a scripting language such as @uref{http://www.python.org,Python}, @uref{http://www.perl.org,Perl}, or @uref{http://www.ruby.org,Ruby}. The C Clustering Library contains wrappers for Python and Perl; interfaces to other scripting languages may be generated using @uref{http://www.swig.org,SWIG}.
 
 This manual contains a description of clustering techniques, their implementation in the C Clustering Library, the Python and Perl modules that give access to the C Clustering Library, and information on how to use the routines in the library from other C or C++ programs.
 
@@ -97,7 +91,7 @@ The C Clustering Library was released under the Python License.
 
 @*
 @noindent
-@email{mdehoon "AT" gsc.riken.jp; mdehoon "AT" cal.berkeley.edu, Michiel de Hoon}, Seiya Imoto, Satoru Miyano@*
+@email{michiel.dehoon "AT" riken.jp; mdehoon "AT" cal.berkeley.edu, Michiel de Hoon}, Seiya Imoto, Satoru Miyano@*
 Laboratory of DNA Information Analysis, 
 Human Genome Center,
 Institute of Medical Science,
@@ -120,13 +114,7 @@ Absolute uncentered Pearson correlation;
 @item s
 Spearman's rank correlation;
 @item k
-Kendall's
-@tex
-$\tau$;
-@end tex
-@html
-<i>&tau;</i>;
-@end html
+Kendall's rank correlation @math{\tau};
 @item e
 Euclidean distance;
 @item b
@@ -209,14 +197,7 @@ $w_i$
 <i>w<SUB>i</SUB></i>
 @end html
 times in the data. The weight do not have to be integers.
-For the Spearman rank correlation and Kendall's
-@tex
-$\tau$,
-@end tex
-@html
-<i>&tau;</i>,
-@end html
-discussed below, the weights do not have a well-defined meaning and are therefore not implemented.
+For the Spearman rank correlation and Kendall's rank correlation @math{\tau}, discussed below, the weights do not have a well-defined meaning and are therefore not implemented.
 
 @section Missing Values
 
@@ -492,18 +473,13 @@ $r_{@rm{S}}$
 @end html
 is the Spearman rank correlation.
 
+@section Kendall's rank correlation
+Kendall's rank correlation, usually referred to as Kendall's
 @tex
-@section Kendall's @math{\tau}
+$\tau$,
 @end tex
 @html
-@section Kendall's <i>&tau;</i>
-@end html
-
-@tex
-Kendall's @math{\tau}
-@end tex
-@html
-Kendall's <i>&tau;</i>
+<i>&tau;</i>,
 @end html
 is another example of a non-parametric similarity measure. It is similar to the Spearman rank correlation, but instead of the ranks themselves only the relative ranks are used to calculate
 @tex
@@ -1092,6 +1068,41 @@ the distance matrix is not available, it can be passed as @code{NULL}. In that c
 @subsubheading Return value
 A pointer to a newly allocated @code{tree} structure that describes the calculated hierarchical clustering solution. If @code{treecluster} fails due to a memory allocation error, it returns @code{NULL}.
 
+@section Sorting a hierarchical clustering tree: @code{sorttree}
+
+A hierarchical clustering solution of @emph{n} elements can be drawn as
+@tex
+$2^{n-1}$
+@end tex
+@html
+2<SUP>n-1</SUP>
+@end html
+different trees. While all of these trees represent the same hierarchical clustering solution, they differ from each other by the ordering of the left and right subnode at each node, which is arbitrary. The routine @code{sorttree} sorts a hierarchical clustering tree by visiting each node and if needed switching the left and right subnode such that the average order value of the left node is less than or equal to the average order value of the right node. Here, the order value of the elements is specified by the user. Effectively, the @code{sorttree} routine finds the dendrogram such that the left-to-right order of the elements tend to have increasing order values, while remaining consistent with the hierarchical clustering solution.
+
+@subsubheading Prototype
+@noindent
+@code{int sorttree(const int @var{nnodes}, Node* @var{tree}, const double @var{order}[], int @var{indices}[]);}
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{int @var{nnodes};} @*
+The number of nodes in the hierarchical clustering tree.
+
+@item @code{Node* @var{tree};} @*
+The hierarchical clustering solution. Each node @code{@var{tree}[@var{i}]} in the array describes one linking event, with @code{@var{tree}[@var{i}].left} and @code{@var{tree}[@var{i}].right} containing the numbers of the nodes that were joined. The original elements are numbered @{@code{0}, @dots{}, @code{@var{nelements}-1}@}, nodes are numbered @{@code{-1}, @dots{}, @code{-(@var{nelements}-1)}@}. Note that the number of nodes is one less than the number of elements. The @code{sorttree} function performs no error checking of the @var{tree} structure. Dimension: @code{[@var{nnodes}]}.
+
+@item @code{const double @var{order}[];} @*
+The order values of the items. Dimension: @code{[@var{nnodes}+1]}. If @code{@var{order}} is @code{NULL}, the tree is not reordered, and the @code{@var{indices}[]} of the current tree are calculated.
+
+@item @code{int @var{indices}[];} @*
+The indices of each item after sorting, with item @code{@var{indices}[@var{i}]} appearing at position @emph{i} (counting left-to-right) in the hierarchical clustering tree after sorting. Memory space for @code{@var{indices}} should be allocated before @code{sorttree} is called. Dimension: @code{[@var{nnodes}+1]}.
+ 
+@end itemize
+
+@subsubheading Return value
+The @code{sorttree} routine returns 1 if successful, and 0 in case of a memory allocation error.
+
 @section Cutting a hierarchical clustering tree: @code{cuttree}
 
 The tree structure generated by the hierachical clustering routine @code{treecluster} can be further analyzed by dividing the genes or microarrays into @emph{n} clusters, where @emph{n} is some positive integer less than or equal to the number of items that were clustered. This can be achieved by ignoring the top
@@ -1102,26 +1113,33 @@ $n-1$
 <i>n</i>-1
 @end html
 linking events in the tree structure, resulting in @emph{n} separated subnodes. The items in each subnode are then assigned to the same cluster.
-The routine @code{cuttree} determines to which cluster each item is assigned, based on the hierarchical clustering result stored in the tree structure.
+The routine @code{cuttree} determines to which cluster each item is assigned, based on the hierarchical clustering result stored in the tree structure. Clusters are numbered from 0 to
+@tex
+$n-1$
+@end tex
+@html
+<i>n</i>-1
+@end html
+in the left-to-right order in which they appear in the hierarchical clustering tree.
 
 @subsubheading Prototype
 @noindent
-@code{void cuttree (int @var{nelements}, Node* @var{tree}, int @var{nclusters}, int @var{clusterid}[]);}
+@code{void cuttree (int @var{nelements}, Node* @var{tree}, unsigned int @var{nclusters}, int @var{clusterid}[]);}
 
 @subsubheading Arguments
 
 @itemize @bullet
 @item @code{int @var{nelements};} @*
-The number of elements whose clustering results are stored in the hierarchical clustering result @var{tree}.
+The number of elements for which the clustering results are stored in the hierarchical clustering result @var{tree}.
 
 @item @code{Node* @var{tree};} @*
 The hierarchical clustering solution. Each node @code{@var{tree}[@var{i}]} in the array describes one linking event, with @code{@var{tree}[@var{i}].left} and @code{@var{tree}[@var{i}].right} containing the numbers of the nodes that were joined. The original elements are numbered @{@code{0}, @dots{}, @code{@var{nelements}-1}@}, nodes are numbered @{@code{-1}, @dots{}, @code{-(@var{nelements}-1)}@}. Note that the number of nodes is one less than the number of elements. The @code{cuttree} function performs no error checking of the @var{tree} structure. Dimension: @code{[@var{nelements}-1]}.
 
-@item @code{int @var{nclusters};} @*
+@item @code{unsigned int @var{nclusters};} @*
 The desired number of clusters. The number of clusters should be positive, and less than or equal to @var{nelements}.
 
 @item @code{int @var{clusterid}[];} @*
-The cluster number to which each element is assigned. Memory space for @var{clusterid} should be allocated before @code{cuttree} is called. Dimension: @code{[@var{nelements}]}.
+The cluster number to which each element is assigned. Memory space for @code{@var{clusterid}} should be allocated before @code{cuttree} is called. Dimension: @code{[@var{nelements}]}.
 @end itemize
 
 @node SOM, PCA, Hierarchical, ,
@@ -1649,20 +1667,46 @@ To display a hierarchical clustering solution with Java TreeView, it is better t
 @code{@var{tree}.scale()} @*
 scales the distances in the hierarchical clustering tree such that they are all between zero and one. This function takes no arguments, and returns @code{None}.
 
+@subsection Sorting a hierarchical clustering tree: @code{@var{tree}.sort}
+
+@noindent
+@code{@var{indices} = @var{tree}.sort(order)} @*
+sorts the hierarchical clustering tree such that the elements tend to increase in the order value from left to right in the dendrogram, where the order value of each element is specified by the user. This is accomplished by visting each node in the hierarchical clustering tree, verifying if the average order value of the left node is less than or equal to the average order value of the right node, and switching the left and right node otherwise. The method returns the indices of the elements in the left-to-right order after sorting.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{@var{tree}} @*
+The @code{Tree} object @code{@var{tree}} contains the hierarchical clustering result generated by @code{treecluster}.
+
+@item @code{order}  @*
+The order values of the elements. If @code{order} is @code{None}, the tree is not reordered, and the @code{@var{indices}} of the current tree are calculated.
+
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the array @code{@var{indices}}.
+
+@itemize @bullet
+@item @code{@var{indices}} @*
+An array indicating the order of the elements in the dendogram after sorting, with element @code{@var{indices}[@var{i}]} occurring at position @math{i} in the left-to-right order in the dendogram.
+@end itemize
+
 @subsection Cutting a hierarchical clustering tree: @code{@var{tree}.cut}
 
 @noindent
-@code{@var{clusterid} = @var{tree}.cut(nclusters=1)} @*
+@code{@var{clusterid} = @var{tree}.cut([nclusters])} @*
 groups the items into @code{nclusters} clusters based on the tree structure generated by the hierarchical clustering routine @code{treecluster}.
 
 @subsubheading Arguments
 
 @itemize @bullet
 @item @code{@var{tree}} @*
-The @code{Tree} object @code{@var{tree}} contains the hierarchical clustering result generated by @code{treecluster}. Each node in this tree describes a pairwise linking event, where the node attributes @code{left} and @code{right} contain the number of the two items or subnodes. Items are numbered from 0 to (@code{@emph{number of elements}} - 1), while clusters are numbered -1 to -(@code{@emph{number of elements}}-1).
+The @code{Tree} object @code{@var{tree}} contains the hierarchical clustering result generated by @code{treecluster}.
 
 @item @code{nclusters} @*
-The desired number of clusters; @code{nclusters} should be positive, and less than or equal to the number of elements.
+The desired number of clusters. If specified, @code{nclusters} should be positive, and less than or equal to the number of elements. If @code{nclusters} is not specified, the number of elements is used as the default value.
 @end itemize
 
 @subsubheading Return values
@@ -1671,7 +1715,7 @@ This function returns the array @code{@var{clusterid}}.
 
 @itemize @bullet
 @item @code{@var{clusterid}} @*
-An array containing the number of the cluster to which each gene/microarray is assigned.
+An array containing the number of the cluster to which each gene/microarray is assigned. Clusters are numbered from 0 through @code{nclusters}-1 in the left-to-right order in which they appear in the hierarchical clustering tree.
 @end itemize
 
 @section Self-Organizing Maps: @code{somcluster}
@@ -1781,7 +1825,7 @@ This matrix stores which values in @code{@var{cdata}} are missing. If @code{@var
 @section The distance between two clusters: @code{clusterdistance}
 
 @noindent
-@code{@var{distance} = clusterdistance(data, mask=None, weight=None, index1=[0], index2=[0], method='a', dist='e', transpose=0)} @*
+@code{@var{distance} = clusterdistance(data, mask=None, weight=None, index1=0, index2=0, method='a', dist='e', transpose=0)} @*
 calculates the distance between two clusters.
 
 @subsubheading Arguments
@@ -1970,7 +2014,7 @@ If you're using the C Clustering Library from Biopython, you should use:
 >>> @var{record} = Cluster.read(@var{handle}) @*
 }
 
-The @code{read} command reads the tab-delimited text file @code{mydatafile.txt} containing gene expression data in the format specified for Michael Eisen's Cluster/TreeView program. For a description of this file format, see the manual to Cluster/TreeView. It is available at @uref{http://rana.lbl.gov/manuals/ClusterTreeView.pdf, Michael Eisen's lab website} and at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster3.pdf, our website}.
+The @code{read} command reads the tab-delimited text file @code{mydatafile.txt} containing gene expression data in the format specified for Michael Eisen's Cluster/TreeView program. For a description of this file format, see the manual to Cluster/TreeView. It is available at @uref{http://rana.lbl.gov/manuals/ClusterTreeView.pdf, Michael Eisen's lab website} and at @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster/cluster3.pdf, our website}.
 
 A @code{Record} object stores the following information:
 
@@ -2208,7 +2252,7 @@ This matrix stores which values in @code{@var{cdata}} are missing. If @code{@var
 @subsection Calculating the distance between two clusters
 
 @noindent
-@code{@var{distance} = @var{record}.clusterdistance(index1=[0], index2=[0], method='a', dist='e', transpose=0)} @*
+@code{@var{distance} = @var{record}.clusterdistance(index1=0, index2=0, method='a', dist='e', transpose=0)} @*
 calculates the distance between two clusters.
 
 @subsubheading Arguments
@@ -2372,17 +2416,12 @@ Algorithm::Cluster is a Perl wrapper extension of the C Clustering Library writt
 Algorithm::Cluster requires Perl 5.6.0 at a minimum.  It will not compile properly with 5.005_03 or previous versions or Perl.
 It has been tested on Win32, Mac OS X, Linux, OpenBSD and Solaris. 
 
-To install Algorithm::Cluster on UNIX, Linux, Mac OS X, or Cygwin, you can download the source code from @url{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}.  You will need an ANSI C compiler; GNU's free @code{gcc} compiler will do.  Unpack the distribution and type the following familiar commands to compile, test and install the module: @*
+To install Algorithm::Cluster on UNIX, Linux, Mac OS X, or Cygwin, you can download the source code from @url{http://bonsai.hgc.jp/~mdehoon/software/cluster}.  You will need an ANSI C compiler; GNU's free @code{gcc} compiler will do.  Unpack the distribution and type the following familiar commands to compile, test and install the module: @*
 @code{perl Makefile.PL} @*
 @code{make} @*
 @code{make test} @* 
 @code{make install} @*
 You can also use the CPAN shell from within Perl to download the module and install it. 
-
-If you use ActiveState Perl on Windows, use the Perl Package Manager @code{ppm} to install Algorithm::Cluster by executing the following command from the DOS command prompt. @*
-
-@noindent
-@code{ppm install http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/Algorithm-Cluster.ppd} @*
 
 Algorithm::Cluster offers the following functions: 
 @itemize @bullet
@@ -2562,7 +2601,7 @@ This function returns a list of three items: @var{$clusterid}, @var{$error}, @va
 
 @itemize @bullet
 @item @var{$clusterid} @*
-A reference to an array whose length is equal to the number of rows in the data array. Each element in the @var{clusterid} array contains the number of the cluster to which each gene/microarray was assigned. 
+A reference to an array with a length equal to the number of rows in the data array. Each element in the @var{clusterid} array contains the number of the cluster to which each gene/microarray was assigned. 
 
 @item @var{$error} @*
 The within-cluster sum of distances of the optimal clustering solution that was found. 
@@ -2609,7 +2648,7 @@ This function returns a list of three items: @var{$clusterid}, @code{$error}, @c
 
 @itemize @bullet
 @item @code{$clusterid} @*
-@var{$clusterid} is a reference to an array whose length is equal to the number of rows of the distance matrix. Each element in the @var{clusterid} array contains the number of the cluster to which each gene/microarray was assigned. The cluster number is defined as the number of the gene/microarray that is the centroid of the cluster.
+@var{$clusterid} is a reference to an array with a length equal to the number of rows of the distance matrix. Each element in the @var{clusterid} array contains the number of the cluster to which each gene/microarray was assigned. The cluster number is defined as the number of the gene/microarray that is the centroid of the cluster.
 
 @item @code{$error} @*
 @code{$error} is the within-cluster sum of distances of the optimal clustering solution that was found. 
@@ -2692,7 +2731,6 @@ my $node2 = Algorithm::Cluster::Node->new(1,3,0.7); @*
 my @@nodes = [$node1,$node2]; @*
 my $tree = Algorithm::Cluster::Tree->new(@@nodes); @*
 }
-
 results in the following error message:
 
 @noindent
@@ -2732,7 +2770,7 @@ my $tree2 = Algorithm::Cluster::Tree->new($nodes2); @*
 @noindent
 This guarantees that any @code{Tree} object is always well-formed. 
 
-A @code{Tree} object has two methods (@code{scale} and @code{cut}, described below). The @code{treecluster} function returns @code{Tree} objects.
+A @code{Tree} object has three methods (@code{scale}, @code{sort}, and  @code{cut}, described below). The @code{treecluster} function returns @code{Tree} objects.
 
 @subsection Performing hierarchical clustering: @code{treecluster}
 
@@ -2780,7 +2818,13 @@ A one-character flag, defining the distance function to be used:
 @item @code{'u'}: uncentered correlation
 @item @code{'x'}: absolute uncentered correlation
 @item @code{'s'}: Spearman's rank correlation
-@item @code{'k'}: Kendall's tau
+@item @code{'k'}: Kendall's 
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
 @item @code{'e'}: Euclidean distance
 @item @code{'b'}: City-block distance
 @end itemize
@@ -2808,29 +2852,54 @@ To display a hierarchical clustering solution with Java TreeView, it is better t
 @code{@var{$tree}->scale} @*
 scales the distances in the hierarchical clustering tree such that they are all between zero and one. This function takes no arguments.
 
-@subsection Cutting a hierarchical clustering tree: @code{@var{$tree}.cut}
+@subsection Sorting a hierarchical clustering tree: @code{@var{$tree}->sort}
+
+@code{my @var{@@indices} = @var{$tree}->sort(@var{$order)}} @*
+sorts the hierarchical clustering tree such that the elements tend to increase in the order value from left to right in the dendrogram, where the order value of each element is specified by the user. This is accomplished by visting each node in the hierarchical clustering tree, verifying if the average order value of the left node is less than or equal to the average order value of the right node, and switching the left and right node otherwise. The method returns the indices of the elements in the left-to-right order after sorting.
+
+@subsubheading Arguments
+
+@itemize @bullet
+@item @code{@var{$tree}} @*
+The @code{Tree} object @code{@var{$tree}} contains the hierarchical clustering result generated by @code{treecluster}.
+
+@item @code{@var{$order}} @*
+The order values of the elements. If @code{@var{$order}} is not specified, the tree is not reordered, and the @code{@var{@@indices}} of the current tree are calculated.
+
+@end itemize
+
+@subsubheading Return values
+@noindent
+This function returns the array @code{@var{@@indices}}.
+
+@itemize @bullet
+@item @code{@var{@@indices}} @*
+An array indicating the order of the elements in the dendogram after sorting, with element @code{@var{$indices}[@var{$i}]} occurring at position @math{i} in the left-to-right order in the dendogram.
+@end itemize
+
+@subsection Cutting a hierarchical clustering tree: @code{@var{$tree}->cut}
 
 @noindent
-@code{@var{$clusterid} = @var{$tree}->cut(@var{$nclusters})} @*
+@code{my @var{@@clusterid} = @var{$tree}->cut(@var{$nclusters})} @*
 groups the items into @code{@var{$nclusters}} clusters based on the tree structure generated by the hierarchical clustering routine @code{treecluster}.
 
 @subsubheading Arguments
 
 @itemize @bullet
 @item @code{@var{$tree}} @*
-The @code{Tree} object @code{@var{$tree}} contains the hierarchical clustering result generated by @code{treecluster}. Each node in this tree describes a pairwise linking event, where the node attributes @code{left} and @code{right} contain the number of the two items or subnodes. Items are numbered from 0 to (@code{@emph{number of elements}} - 1), while clusters are numbered -1 to -(@code{@emph{number of elements}}-1).
+The @code{Tree} object @code{@var{$tree}} contains the hierarchical clustering result generated by @code{treecluster}.
 
 @item @code{@var{$nclusters}} @*
-The desired number of clusters; @code{@var{$nclusters}} should be positive, and less than or equal to the number of elements.
+The desired number of clusters; @code{@var{$nclusters}} should be positive, and less than or equal to the number of elements. If @code{@var{$nclusters}} is not specified, the number of elements is used as the default value.
 @end itemize
 
 @subsubheading Return values
 @noindent
-This function returns the anonymous array @code{@var{$clusterid}}.
+This function returns the array @code{@var{@@clusterid}}.
 
 @itemize @bullet
-@item @code{@var{$clusterid}} @*
-An anonymous array containing the number of the cluster to which each gene/microarray is assigned.
+@item @code{@var{@@clusterid}} @*
+Array containing the number of the cluster to which each gene/microarray is assigned. Clusters are numbered from 0 through @code{@var{$nclusters}}-1 in the left-to-right order in which they appear in the hierarchical clustering tree.
 @end itemize
 
 
@@ -2843,19 +2912,19 @@ my $node2 = Algorithm::Cluster::Node->new(2,3,0.7); @*
 my $node3 = Algorithm::Cluster::Node->new(-1,-2,0.9); @*
 my $nodes = [$node1, $node2, $node3]; @*
 my $tree = Algorithm::Cluster::Tree->new($nodes); @*
-my $a = $tree->cut(3); @*
+my @@a = $tree->cut(3); @*
 my $i = 0; @*
-foreach (@@$a) @{ @*
+foreach (@@a) @{ @*
 @ @ @ @ @ @ @ @ print "Element $i: Cluster $_\n"; @*
 @ @ @ @ @ @ @ @ $i++; @*
 @} @*
 }
 prints @*
 @noindent
-@code{Element 0: Cluster 2 @*
-Element 1: Cluster 2 @*
-Element 2: Cluster 0 @*
-Element 3: Cluster 1 @*
+@code{Element 0: Cluster 0 @*
+Element 1: Cluster 0 @*
+Element 2: Cluster 1 @*
+Element 3: Cluster 2 @*
 }
 
 
@@ -2917,7 +2986,13 @@ A one-character flag, defining the distance function to be used:
 @item @code{'u'}: uncentered correlation
 @item @code{'x'}: absolute uncentered correlation
 @item @code{'s'}: Spearman's rank correlation
-@item @code{'k'}: Kendall's tau
+@item @code{'k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
 @item @code{'e'}: Euclidean distance
 @item @code{'b'}: City-block distance
 @end itemize
@@ -3016,7 +3091,13 @@ A one-character flag, defining the distance function to be used:
 @item @code{'u'}: uncentered correlation
 @item @code{'x'}: absolute uncentered correlation
 @item @code{'s'}: Spearman's rank correlation
-@item @code{'k'}: Kendall's tau
+@item @code{'k'}: Kendall's
+@tex
+$\tau$;
+@end tex
+@html
+<i>&tau;</i>;
+@end html
 @item @code{'e'}: Euclidean distance
 @item @code{'b'}: City-block distance
 @end itemize
@@ -3150,7 +3231,7 @@ open @var{INPUT}, "mydatafile.txt"; @*
 @var{$record}->read(*@var{INPUT}); @*
 }
 
-The @code{read} command reads the tab-delimited text file @code{mydatafile.txt} containing gene expression data in the format specified for Michael Eisen's Cluster/TreeView program.  For a description of this file format, see the manual to Cluster/TreeView. It is available at @uref{http://rana.lbl.gov/manuals/ClusterTreeView.pdf, Michael Eisen's lab website} and at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster3.pdf, our website}.
+The @code{read} command reads the tab-delimited text file @code{mydatafile.txt} containing gene expression data in the format specified for Michael Eisen's Cluster/TreeView program.  For a description of this file format, see the manual to Cluster/TreeView. It is available at @uref{http://rana.lbl.gov/manuals/ClusterTreeView.pdf, Michael Eisen's lab website} and at @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster/cluster3.pdf, our website}.
 
 A @code{Record} object stores the following information:
 
@@ -3576,7 +3657,7 @@ To install the library for use with Python, use the @code{setup.py} script inste
 Pycluster is available as part of the Biopython distribution and as a separate package. As of version 1.41, Pycluster uses the ``new'' Numerical Python (version 1.1.1 or later), which you should install before installing Pycluster.
 
 To install Pycluster as a separate package, download @code{Pycluster-@emph{<version>}.tar.gz} from
-@url{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}.
+@url{http://bonsai.hgc.jp/~mdehoon/software/cluster}.
 Unpack this file: @*
 @code{gunzip Pycluster-@emph{<version>}.tar.gz} @*
 @code{tar -xvf Pycluster-@emph{<version>}.tar} @*
@@ -3587,13 +3668,13 @@ Python. To test your installation, you can run
 @code{python setup.py test} @*
 If the installation was successful, you can remove the directory
 @code{Pycluster-@emph{<version>}}.
-For Python on Windows (run from a DOS command window, or with a graphical user interface such as IDLE, PyCrust, PyShell, or PythonWin), a binary installer is available from @url{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}.
+For Python on Windows (run from a DOS command window, or with a graphical user interface such as IDLE, PyCrust, PyShell, or PythonWin), a binary installer is available from @url{http://bonsai.hgc.jp/~mdehoon/software/cluster}.
 
 Installation instructions for Biopython are available from the @uref{http://www.biopython.org, Biopython website}.
 
 @node Installing the C Clustering Library for Perl
 @section Installing the C Clustering Library for Perl
-To install the C Clustering Library for Perl, download @code{Algorithm-Cluster-@emph{<version>}.tar.gz} from @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster} or from CPAN. Next, unpack this file with @*
+To install the C Clustering Library for Perl, download @code{Algorithm-Cluster-@emph{<version>}.tar.gz} from @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster} or from CPAN. Next, unpack this file with @*
 @code{gunzip Algorithm-Cluster-@emph{<version>}.tar.gz} @*
 @code{tar -xvf Algorithm-Cluster-@emph{<version>}.tar} @*
 and change to the directory @code{Algorithm-Cluster-@emph{<version>}}. Type @*
@@ -3608,11 +3689,6 @@ to run some scripts that test the Algorithm::Cluster module.
 Some example Perl scripts can be found in the @code{perl/examples} subdirectory.
 If the installation was successful, you can remove the directory
 @code{Algorithm-Cluster-@emph{<version>}}.
-
-If you use ActiveState Perl on Windows, you can use the Perl Package Manager by
-executing @*
-@code{ppm install http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/Algorithm-Cluster.ppd} @*
-from the DOS command prompt. This assumes that you are using Perl 5.8 or 5.10 from ActiveState.
 
 @section Accessing the C Clustering Library from C/C++
 To call the routines in the C Clustering Library from your own C or C++
@@ -3633,7 +3709,7 @@ An example C program that makes use of the C Clustering Library can be found in 
 
 
 @section Installing Cluster 3.0 for Windows
-The easiest way to install Cluster 3.0 for Windows is to use the @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster, Windows installer}. The executable @code{cluster.com} can be used both as a GUI and as a command line program. To start Cluster 3.0 as a GUI program, simply double-click on @code{cluster.com}. If you want to use Cluster 3.0 from the command prompt as a command line program, you may need to give the full path to the executable (e.g., @code{C:\Program Files\Stanford University\Cluster 3.0\cluster.com}; the exact path may be different on your computer). Type @code{cluster.com --help} for an overview of all command line options.
+The easiest way to install Cluster 3.0 for Windows is to use the @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster, Windows installer}. The executable @code{cluster.com} can be used both as a GUI and as a command line program. To start Cluster 3.0 as a GUI program, simply double-click on @code{cluster.com}. If you want to use Cluster 3.0 from the command prompt as a command line program, you may need to give the full path to the executable (e.g., @code{C:\Program Files\Stanford University\Cluster 3.0\cluster.com}; the exact path may be different on your computer). Type @code{cluster.com --help} for an overview of all command line options.
 
 If you want to compile Cluster 3.0 from the source, change to the @code{windows} directory, and type @code{make}. This will compile the C Clustering Library, the Cluster 3.0 GUI, the Windows help files and the documentation. To compile the GUI, you need an ANSI C compiler such as GNU @code{gcc}. To compile the resources needed for the GUI, you will need the GNU program @code{windres}.  To generate the help files, you need the HTML Help SDK, which can be downloaded from Microsoft. You will also need GNU makeinfo.
 
@@ -3643,7 +3719,7 @@ For this, you will need the Inno Setup Compiler, which can be downloaded from
 @uref{http://www.jrsoftware.org}.
 
 @section Installing Cluster 3.0 for Mac OS X
-Cluster 3.0 for Mac OS X can be installed most easily by using the prebuilt package that is available at @uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}. After installing, you can start Cluster 3.0 as a GUI program by double-clicking on its icon. To run Cluster 3.0 as a command line program (e.g., from the Terminal), most likely you will need to give the full path to the executable (e.g., @code{/Applications/Cluster.app/Contents/MacOS/Cluster}).
+Cluster 3.0 for Mac OS X can be installed most easily by using the prebuilt package that is available at @uref{http://bonsai.hgc.jp/~mdehoon/software/cluster}. After installing, you can start Cluster 3.0 as a GUI program by double-clicking on its icon. To run Cluster 3.0 as a command line program (e.g., from the Terminal), most likely you will need to give the full path to the executable (e.g., @code{/Applications/Cluster.app/Contents/MacOS/Cluster}).
 If you want to recompile Cluster 3.0, it is easiest to use the Project Builder and Interface Builder that are part of Mac OS X. The directory @code{mac} contains the project file that was used.
 
 @section Installing Cluster 3.0 for Linux/Unix
@@ -3659,7 +3735,7 @@ for more information about running Cluster 3.0 as a command line program.
 
 @section Installing Cluster 3.0 as a command line program
 Cluster 3.0 can also be installed without GUI support. In this case, Cluster 3.0 can only be run as a command line program, in which the action taken by the program depends on the command line parameters. To install Cluster 3.0 as a command line program, the Motif libraries are not needed. Simply download the source code for the C Clustering Library from our website
-@uref{http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster}, unpack and untar the file, and change to the directory @code{cluster-@emph{<version>}}. Then type @*
+@uref{http://bonsai.hgc.jp/~mdehoon/software/cluster}, unpack and untar the file, and change to the directory @code{cluster-@emph{<version>}}. Then type @*
 @code{./configure --without-x} @*
 @code{make} @*
 @code{make install} @*

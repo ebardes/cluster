@@ -1,68 +1,93 @@
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created by GNU Texinfo 6.4, http://www.gnu.org/software/texinfo/ -->
 <head>
-<title>Hierarchical - Cluster 3.0 for Windows, Mac OS X, Linux, Unix</title>
-<meta http-equiv="Content-Type" content="text/html">
-<meta name="description" content="Cluster 3.0 for Windows, Mac OS X, Linux, Unix">
-<meta name="generator" content="makeinfo 4.13">
-<link title="Top" rel="start" href="index.html#Top">
-<link rel="up" href="Cluster.html#Cluster" title="Cluster">
-<link rel="next" href="KMeans.html#KMeans" title="KMeans">
-<link href="http://www.gnu.org/software/texinfo/" rel="generator-home" title="Texinfo Homepage">
-<meta http-equiv="Content-Style-Type" content="text/css">
-<style type="text/css"><!--
-  pre.display { font-family:inherit }
-  pre.format  { font-family:inherit }
-  pre.smalldisplay { font-family:inherit; font-size:smaller }
-  pre.smallformat  { font-family:inherit; font-size:smaller }
-  pre.smallexample { font-size:smaller }
-  pre.smalllisp    { font-size:smaller }
-  span.sc    { font-variant:small-caps }
-  span.roman { font-family:serif; font-weight:normal; } 
-  span.sansserif { font-family:sans-serif; font-weight:normal; } 
---></style>
-</head>
-<body>
-<div class="node">
-<a name="Hierarchical"></a>
-<p>
-Next:&nbsp;<a rel="next" accesskey="n" href="KMeans.html#KMeans">KMeans</a>,
-Up:&nbsp;<a rel="up" accesskey="u" href="Cluster.html#Cluster">Cluster</a>
-<hr>
-</div>
+<title>Hierarchical (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)</title>
 
+<meta name="description" content="Hierarchical (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="keywords" content="Hierarchical (Cluster 3.0 for Windows, Mac OS X, Linux, Unix)">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="makeinfo">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link href="index.html#Top" rel="start" title="Top">
+<link href="Contents.html#SEC_Contents" rel="contents" title="Table of Contents">
+<link href="Cluster.html#Cluster" rel="up" title="Cluster">
+<link href="KMeans.html#KMeans" rel="next" title="KMeans">
+<link href="Cluster.html#Cluster" rel="prev" title="Cluster">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.indentedblock {margin-right: 0em}
+blockquote.smallindentedblock {margin-right: 0em; font-size: smaller}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+kbd {font-style: oblique}
+pre.display {font-family: inherit}
+pre.format {font-family: inherit}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: inherit; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: inherit; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nolinebreak {white-space: nowrap}
+span.roman {font-family: initial; font-weight: normal}
+span.sansserif {font-family: sans-serif; font-weight: normal}
+ul.no-bullet {list-style: none}
+-->
+</style>
+
+
+</head>
+
+<body lang="en">
+<a name="Hierarchical"></a>
+<div class="header">
+<p>
+Next: <a href="KMeans.html#KMeans" accesskey="n" rel="next">KMeans</a>, Up: <a href="Cluster.html#Cluster" accesskey="u" rel="up">Cluster</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
+<hr>
+<a name="Hierarchical-Clustering"></a>
 <h3 class="section">4.1 Hierarchical Clustering</h3>
 
-<div class="block-image"><img src="images/hierarchical.png" alt="images/hierarchical.png"></div>
+<img src="images/hierarchical.png" alt="images/hierarchical">
 
-   <p>The <dfn>Hierarchical Clustering</dfn> tab allows you to perform hierarchical clustering on your
+<p>The <em>Hierarchical Clustering</em> tab allows you to perform hierarchical clustering on your
 data. This is a powerful and useful method for analyzing all sorts of large
 genomic datasets. Many published applications of this analysis are given in the references
 section at the end.
-
-   <p>Cluster currently performs four types of binary, agglomerative, hierarchical clustering. 
+</p>
+<p>Cluster currently performs four types of binary, agglomerative, hierarchical clustering.
 The basic idea is to assemble a set of items (genes or arrays) into a tree, where items are
 joined by very short branches if they are very similar to each other, and by increasingly
 longer branches as their similarity decreases.
-
-   <p>The first step in hierarchical clustering is to calculate the distance matrix between the gene expression data. Once this matrix of distances is computed, the clustering begins. 
+</p>
+<p>The first step in hierarchical clustering is to calculate the distance matrix between the gene expression data. Once this matrix of distances is computed, the clustering begins.
 Agglomerative hierarchical processing consists of repeated cycles where
 the two closest remaining items (those with the smallest distance) are joined by a
 node/branch of a tree, with the length of the branch set to the distance between the joined
 items. The two joined items are removed from list of items being processed and replaced by a
 item that represents the new branch. The distances between this new item and all other
 remaining items are computed, and the process is repeated until only one item remains.
-
-   <p>Note that once clustering commences, we are working with items that are true items (e.g. 
+</p>
+<p>Note that once clustering commences, we are working with items that are true items (e.g.
 a single gene) and items that are pseudo-items that contain a number of true items. There
 are a variety of ways to compute distances when we are dealing with pseudo-items, and
-Cluster currently provides four choices, which are called centroid linkage, single linkage, complete linkage, and average linkage. 
+Cluster currently provides four choices, which are called centroid linkage, single linkage, complete linkage, and average linkage.
 <strong>Note that in older versions of Cluster, centroid linkage was referred to as average linkage.</strong>
-
+</p>
+<a name="Centroid-Linkage-Clustering"></a>
 <h4 class="subsection">4.1.1 Centroid Linkage Clustering</h4>
 
 <p>If you click Centroid Linkage Clustering, a vector is assigned to each pseudo-item, and this vector is used to compute the distances between this pseudo-item and all remaining items or pseudo-items using the same similarity metric as was used to calculate the initial similarity matrix. The vector is the average of the vectors of all actual items (e.g. genes) contained within the pseudo-item. Thus, when a new branch of the tree is formed joining together a branch with 5 items and an actual item, the new pseudo-item is assigned a vector that is the average of the 6 vectors it contains, and not the average of the two joined items (note that missing values are not used in the average, and a pseudo-item can have a missing value if all of the items it contains are missing values in the corresponding row/column).
-
-   <p>Note that from a theoretical perspective, Centroid Linkage Clustering is peculiar if it is used in combination with one of the distance measures that are based on the Pearson correlation. For these distance measures, the data vectors are implicitly normalized when calculating the distance (for example, by subtracting the mean and dividing by the standard deviation when calculating the Pearson correlation. However, when two genes are joined and their centroid is calculated by averaging their data vectors, no normalization is applied. This may lead to the surprising result that distances may decrease when we go up in the tree representing the hierarchical clustering result. For example, consider this data set:
+</p>
+<p>Note that from a theoretical perspective, Centroid Linkage Clustering is peculiar if it is used in combination with one of the distance measures that are based on the Pearson correlation. For these distance measures, the data vectors are implicitly normalized when calculating the distance (for example, by subtracting the mean and dividing by the standard deviation when calculating the Pearson correlation. However, when two genes are joined and their centroid is calculated by averaging their data vectors, no normalization is applied. This may lead to the surprising result that distances may decrease when we go up in the tree representing the hierarchical clustering result. For example, consider this data set:
 <DIV ALIGN=center>
 <table cellpadding=5 cellspacing=0 border=1>
   <th>
@@ -100,52 +125,71 @@ Cluster currently provides four choices, which are called centroid linkage, sing
     <td>0.51</td>
   </tr>
 </table>
-</DIV>Performing pairwise centroid-linkage hierarchical clustering on this data set, using the Pearson distance as the distance measure, produces the clustering result
-     <ul>
-<li>Gene 1 joins Gene 2 at distance 0.47
-<li>(Gene 1, Gene 2) joins Gene 4 at distance 0.46
-<li>(Gene 1, Gene 2, Gene 4) joins Gene 3 at distance 1.62
-</ul>
-   This may result in ill-formed dendrograms. For an example, see the Java TreeView manual. A solution is to use the Euclidean or the city-block distance, or to use one of the other hierarchical clustering routines, which don't suffer from this issue regardless of the distance measure being used.
-
+</DIV>
+Performing pairwise centroid-linkage hierarchical clustering on this data set, using the Pearson distance as the distance measure, produces the clustering result
+</p><ul>
+<li> Gene 1 joins Gene 2 at distance 0.47
+</li><li> (Gene 1, Gene 2) joins Gene 4 at distance 0.46
+</li><li> (Gene 1, Gene 2, Gene 4) joins Gene 3 at distance 1.62
+</li></ul>
+<p>This may result in ill-formed dendrograms. For an example, see the Java TreeView manual. A solution is to use the Euclidean or the city-block distance, or to use one of the other hierarchical clustering routines, which don&rsquo;t suffer from this issue regardless of the distance measure being used.
+</p>
+<a name="Single-Linkage-Clustering"></a>
 <h4 class="subsection">4.1.2 Single Linkage Clustering</h4>
 
 <p>In Single Linkage Clustering the distance between two items
-<i>x</i> and
-<i>y</i> is the minimum of all pairwise distances between items contained in
-<i>x</i> and
-<i>y</i>. Unlike centroid linkage clustering, in single linkage clustering no further distances need to be calculated once the distance matrix is known.
-
-   <p>In Cluster 3.0, as of version 1.29 the implementation of single linkage clustering is based on the SLINK algorithm (see Sibson, 1973). Whereas this algorithm yields the exact same clustering result as conventional single-linkage hierarchical clustering, it is much faster and more memory-efficient (being linear in the memory requirements, compared to quadratic for the conventional algorithm). Hence, single-linkage hierarchical clustering can be used to cluster large gene expression data sets, for which centroid-, complete-, and average-linkage fail due to lack of memory.
-
+<i>x</i>
+ and
+<i>y</i>
+ is the minimum of all pairwise distances between items contained in
+<i>x</i>
+ and
+<i>y</i>.
+Unlike centroid linkage clustering, in single linkage clustering no further distances need to be calculated once the distance matrix is known.
+</p>
+<p>In Cluster 3.0, as of version 1.29 the implementation of single linkage clustering is based on the SLINK algorithm (see Sibson, 1973). Whereas this algorithm yields the exact same clustering result as conventional single-linkage hierarchical clustering, it is much faster and more memory-efficient (being linear in the memory requirements, compared to quadratic for the conventional algorithm). Hence, single-linkage hierarchical clustering can be used to cluster large gene expression data sets, for which centroid-, complete-, and average-linkage fail due to lack of memory.
+</p>
+<a name="Complete-Linkage-Clustering"></a>
 <h4 class="subsection">4.1.3 Complete Linkage Clustering</h4>
 
 <p>In Complete Linkage Clustering the distance between two items
-<i>x</i> and
-<i>y</i> is the maximum of all pairwise distances between items contained in
-<i>x</i> and
-<i>y</i>. As in single linkage clustering, no other distances need to be calculated once the distance matrix is known.
-
+<i>x</i>
+ and
+<i>y</i>
+ is the maximum of all pairwise distances between items contained in
+<i>x</i>
+ and
+<i>y</i>.
+As in single linkage clustering, no other distances need to be calculated once the distance matrix is known.
+</p>
+<a name="Average-Linkage-Clustering"></a>
 <h4 class="subsection">4.1.4 Average Linkage Clustering</h4>
 
 <p>In average linkage clustering, the distance between two items
-<i>x</i> and
-<i>y</i> is the mean of all pairwise distances between items contained in
-<i>x</i> and
+<i>x</i>
+ and
+<i>y</i>
+ is the mean of all pairwise distances between items contained in
+<i>x</i>
+ and
 <i>y</i>.
-
+</p>
+<a name="Weighting"></a>
 <h4 class="subsection">4.1.5 Weighting</h4>
 
 <p>Weighting: By default, all of the observations for a given item are treated equally. In
 some cases you may want to give some observations more weight than others. For
 example, if you have duplicate copies of a gene on your array, you might want to
 downweight each individual copy when computing distances between arrays. You can
-specify weights using the &lsquo;<samp><span class="samp">GWEIGHT</span></samp>&rsquo; (gene weight) and &lsquo;<samp><span class="samp">EWEIGHT</span></samp>&rsquo; (experiment weight)
+specify weights using the &lsquo;<samp>GWEIGHT</samp>&rsquo; (gene weight) and &lsquo;<samp>EWEIGHT</samp>&rsquo; (experiment weight)
 parameters in the input file. By default all weights are set to 1.0. Thus, the actual formula,
 with weights included, for the Pearson correlation of
-<i>x</i> = {<i>x</i><SUB>1</SUB>, <i>x</i><SUB>2</SUB>, ..., <i>x<SUB>n</SUB></i>}and
-<i>y</i> = {<i>y</i><SUB>1</SUB>, <i>y</i><SUB>2</SUB>, ..., <i>y<SUB>n</SUB></i>} with observation weights of
-<i>w</i> = {<i>w</i><SUB>1</SUB>, <i>w</i><SUB>2</SUB>, ..., <i>w<SUB>n</SUB></i>} is
+<i>x</i> = {<i>x</i><SUB>1</SUB>, <i>x</i><SUB>2</SUB>, ..., <i>x<SUB>n</SUB></i>}
+and
+<i>y</i> = {<i>y</i><SUB>1</SUB>, <i>y</i><SUB>2</SUB>, ..., <i>y<SUB>n</SUB></i>}
+ with observation weights of
+<i>w</i> = {<i>w</i><SUB>1</SUB>, <i>w</i><SUB>2</SUB>, ..., <i>w<SUB>n</SUB></i>}
+ is
 <DIV ALIGN=center><TABLE CELLSPACING=0 CELLPADDING=0>
 <TR VALIGN=middle><TD NOWRAP><I>r</I> = </TD>
 <TD NOWRAP><TABLE CELLSPACING=0 CELLPADDING=0>
@@ -205,20 +249,23 @@ with weights included, for the Pearson correlation of
     </TR>
   </TABLE></TD>
 </TR></TABLE></TD>
-</TR></TABLE></DIV>Note that when you are clustering rows (genes), you are using column (array) weights. 
-It is possible to compute weights as well based on a not entirely well understood function. 
+</TR></TABLE></DIV>
+Note that when you are clustering rows (genes), you are using column (array) weights.
+It is possible to compute weights as well based on a not entirely well understood function.
 If you want to compute weights for clustering genes, select the check box in the Genes panel of the Hierarchical Clustering tab. <br>
+</p>
+<img src="images/weight.png" alt="images/weight">
 
-   <div class="block-image"><img src="images/weight.png" alt="images/weight.png"></div>
-
-   <p>This will expose a Weight Options dialog box in the Arrays panel (I realize this
-placement is a bit counterintuitive, but it makes sense as you will see below). 
+<p>This will expose a Weight Options dialog box in the Arrays panel (I realize this
+placement is a bit counterintuitive, but it makes sense as you will see below).
 The idea behind the Calculate Weights option is to weight each row (the same idea
 applies to columns as well) based on the local density of row vectors in its vicinity, with a
 high density vicinity resulting in a low weight and a low density vicinity resulting in a
 higher weight. This is implemented by assigning a local density score
-<i>L</i>(<i>i</i>) to each row
-<i>i</i>. <br>
+<i>L</i>(<i>i</i>)
+ to each row
+<i>i</i>.
+<br>
 <DIV ALIGN=center>
 <table cellpadding=0 cellspacing=0>
 <tr>
@@ -239,78 +286,103 @@ higher weight. This is implemented by assigning a local density score
 <td><big><big><big>)</big></big></big></td>
 <td align="center"><small><i>n</i><br><br><br></small></td>
 </tr>
-</table></div> where the cutoff
-<i>k</i> and the exponent
-<i>n</i> are user supplied parameters. The weight for each row is
-1/<i>L</i>. Note that
-<i>L</i>(<i>i</i>) is always at least 1, since
-<i>d</i>(<i>i</i>,<i>i</i>) = 0. Each other row that is within the distance
-<i>k</i> of row
-<i>i</i> increases
-<i>L</i>(<i>i</i>) and decreases the weight. The larger
-<i>d</i>(<i>i</i>,<i>j</i>), the less
-<i>L</i>(<i>i</i>) is increased. Values of
-<i>n</i> greater than 1 mean that the contribution to
-<i>L</i>(<i>i</i>) drops off rapidly as
-<i>d</i>(<i>i</i>,<i>j</i>) increases.
-
+</table></div>
+ where the cutoff
+<i>k</i>
+ and the exponent
+<i>n</i>
+ are user supplied parameters. The weight for each row is
+1/<i>L</i>.
+Note that
+<i>L</i>(<i>i</i>)
+ is always at least 1, since
+<i>d</i>(<i>i</i>,<i>i</i>) = 0.
+Each other row that is within the distance
+<i>k</i>
+ of row
+<i>i</i>
+ increases
+<i>L</i>(<i>i</i>)
+ and decreases the weight. The larger
+<i>d</i>(<i>i</i>,<i>j</i>),
+ the less
+<i>L</i>(<i>i</i>)
+ is increased. Values of
+<i>n</i>
+ greater than 1 mean that the contribution to
+<i>L</i>(<i>i</i>)
+ drops off rapidly as
+<i>d</i>(<i>i</i>,<i>j</i>)
+ increases.
+</p>
+<a name="Ordering-of-Output-File"></a>
 <h4 class="subsection">4.1.6 Ordering of Output File</h4>
-
-<p>The result of a clustering run is a tree or pair of trees (one for genes one for arrays). 
+<p>The result of a clustering run is a tree or pair of trees (one for genes one for arrays).
 However, to visualize the results in TreeView, it is necessary to use this tree to reorder the
 rows and/or columns in the initial datatable. Note that if you simply draw all of the node
 in the tree in the following manner, a natural ordering of items emerges:
 <br>
-<img src="images/order.png" alt="images/order.png">
-
-   <p>Thus, any tree can be used to generate an ordering. However, the ordering for any given
+<img src="images/order.png" alt="images/order">
+</p>
+<p>Thus, any tree can be used to generate an ordering. However, the ordering for any given
 tree is not unique. There is a family of
-2<SUP><i>N</i>-1</SUP>ordering consistent with any tree of
-<i>N</i>items;
+2<SUP><i>N</i>-1</SUP>
+ordering consistent with any tree of
+<i>N</i>
+items;
 you can flip any node on the tree (exchange the bottom and top branches) and you will
 get a new ordering that is equally consistent with the tree. By default, when Cluster joins
 two items, it randomly places one item on the top branch and the other on the bottom
 branch. It is possible to guide this process to generate the best ordering consistent with
-a given tree. This is done by using the &lsquo;<samp><span class="samp">GORDER</span></samp>&rsquo; (gene order) and &lsquo;<samp><span class="samp">EORDER</span></samp>&rsquo; (experiment
+a given tree. This is done by using the &lsquo;<samp>GORDER</samp>&rsquo; (gene order) and &lsquo;<samp>EORDER</samp>&rsquo; (experiment
 order) parameters in the input file, or by running a self-organizing map (see section
 below) prior to clustering. By default, Cluster sets the order parameter for each
 row/column to 1. When a new node is created, Cluster compares the order parameters of
-the two joined items, and places the item with the smaller order value on the top branch. 
-The order parameter for a node is the average of the order parameters of its members. 
+the two joined items, and places the item with the smaller order value on the top branch.
+The order parameter for a node is the average of the order parameters of its members.
 Thus, if you want the gene order produced by Cluster to be as close as possible (without
-violating the structure of the tree) to the order in your input file, you use the &lsquo;<samp><span class="samp">GORDER</span></samp>&rsquo;
+violating the structure of the tree) to the order in your input file, you use the &lsquo;<samp>GORDER</samp>&rsquo;
 column, and assign a value that increases for each row. Note that order parameters do not
 have to be unique.
-
+</p>
+<a name="Output-Files"></a>
 <h4 class="subsection">4.1.7 Output Files</h4>
-
 <p>Cluster writes up to three output files for each hierarchical clustering run. The root
 filename of each file is whatever text you enter into the Job Name dialog box. When you
 load a file, Job Name is set to the root filename of the input file. The three output files are
-<samp><var>JobName</var><span class="file">.cdt</span></samp>, <samp><var>JobName</var><span class="file">.gtr</span></samp>, <samp><var>JobName</var><span class="file">.atr</span></samp>
-The <samp><span class="file">.cdt</span></samp> (for clustered data table) file contains the original data with the rows and
+<samp><var>JobName</var>.cdt</samp>, <samp><var>JobName</var>.gtr</samp>, <samp><var>JobName</var>.atr</samp>
+The <samp>.cdt</samp> (for clustered data table) file contains the original data with the rows and
 columns reordered based on the clustering result. It is the same format as the input files,
 except that an additional column and/or row is added if clustering is performed on genes
 and/or arrays. This additional column/row contains a unique identifier for each
-row/column that is linked to the description of the tree structure in the <samp><span class="file">.gtr</span></samp> and <samp><span class="file">.atr</span></samp> files. 
-The <samp><span class="file">.gtr</span></samp> (gene tree) and <samp><span class="file">.atr</span></samp> (array tree) files are tab-delimited text files that report on the
+row/column that is linked to the description of the tree structure in the <samp>.gtr</samp> and <samp>.atr</samp> files.
+The <samp>.gtr</samp> (gene tree) and <samp>.atr</samp> (array tree) files are tab-delimited text files that report on the
 history of node joining in the gene or array clustering (note that these files are produced
 only when clustering is performed on the corresponding axis). When clustering begins
-each item to be clustered is assigned a unique identifier (e.g. &lsquo;<samp><span class="samp">GENE1X</span></samp>&rsquo; or &lsquo;<samp><span class="samp">ARRY42X</span></samp>&rsquo; &mdash; the
-&lsquo;<samp><span class="samp">X</span></samp>&rsquo; is a relic from the days when this was written in Perl and substring searches were
+each item to be clustered is assigned a unique identifier (e.g. &lsquo;<samp>GENE1X</samp>&rsquo; or &lsquo;<samp>ARRY42X</samp>&rsquo; &mdash; the
+&lsquo;<samp>X</samp>&rsquo; is a relic from the days when this was written in Perl and substring searches were
 used). These identifiers are added to the .cdt file. As each node is generated, it receives a
-unique identifier as well, starting is &lsquo;<samp><span class="samp">NODE1X</span></samp>&rsquo;, &lsquo;<samp><span class="samp">NODE2X</span></samp>&rsquo;, etc. Each joining event is
-stored in the <samp><span class="file">.gtr</span></samp> or <samp><span class="file">.atr</span></samp> file as a row with the node identifier, the identifiers of the two
+unique identifier as well, starting is &lsquo;<samp>NODE1X</samp>&rsquo;, &lsquo;<samp>NODE2X</samp>&rsquo;, etc. Each joining event is
+stored in the <samp>.gtr</samp> or <samp>.atr</samp> file as a row with the node identifier, the identifiers of the two
 joined elements, and the similarity score for the two joined elements. These files look like:<br>
-<img src="images/tree.png" alt="images/tree.png">
-   <p><table summary=""><tr align="left"><td valign="top"><code>NODE1X</code> </td><td valign="top"><code>GENE1X</code> </td><td valign="top"><code>GENE4X</code> </td><td valign="top"><code>0.98</code>
-<br></td></tr><tr align="left"><td valign="top"><code>NODE2X</code> </td><td valign="top"><code>GENE5X</code> </td><td valign="top"><code>GENE2X</code> </td><td valign="top"><code>0.80</code>
-<br></td></tr><tr align="left"><td valign="top"><code>NODE3X</code> </td><td valign="top"><code>NODE1X</code> </td><td valign="top"><code>GENE3X</code> </td><td valign="top"><code>0.72</code>
-<br></td></tr><tr align="left"><td valign="top"><code>NODE4X</code> </td><td valign="top"><code>NODE2X</code> </td><td valign="top"><code>NODE3X</code> </td><td valign="top"><code>0.60</code>
-   <br></td></tr></table>
+<img src="images/tree.png" alt="images/tree">
+</p><table>
+<tr><td><code>NODE1X</code></td><td><code>GENE1X</code></td><td><code>GENE4X</code></td><td><code>0.98</code></td></tr>
+<tr><td><code>NODE2X</code></td><td><code>GENE5X</code></td><td><code>GENE2X</code></td><td><code>0.80</code></td></tr>
+<tr><td><code>NODE3X</code></td><td><code>NODE1X</code></td><td><code>GENE3X</code></td><td><code>0.72</code></td></tr>
+<tr><td><code>NODE4X</code></td><td><code>NODE2X</code></td><td><code>NODE3X</code></td><td><code>0.60</code></td></tr>
+</table>
 <br>
-The <samp><span class="file">.gtr</span></samp> and/or <samp><span class="file">.atr</span></samp> files are automatically read in TreeView when you open the
-corresponding <samp><span class="file">.cdt</span></samp> file.
+<p>The <samp>.gtr</samp> and/or <samp>.atr</samp> files are automatically read in TreeView when you open the
+corresponding <samp>.cdt</samp> file.
+</p>
+<hr>
+<div class="header">
+<p>
+Next: <a href="KMeans.html#KMeans" accesskey="n" rel="next">KMeans</a>, Up: <a href="Cluster.html#Cluster" accesskey="u" rel="up">Cluster</a> &nbsp; [<a href="Contents.html#SEC_Contents" title="Table of contents" rel="contents">Contents</a>]</p>
+</div>
 
-   </body></html>
 
+
+</body>
+</html>

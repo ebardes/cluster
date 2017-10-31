@@ -4,7 +4,7 @@
  * This library was written at the Laboratory of DNA Information Analysis,
  * Human Genome Center, Institute of Medical Science, University of Tokyo,
  * 4-6-1 Shirokanedai, Minato-ku, Tokyo 108-8639, Japan.
- * Contact: mdehoon 'AT' gsc.riken.jp
+ * Contact: michiel.dehoon 'AT' riken.jp
  * 
  * Permission to use, copy, modify, and distribute this software and its
  * documentation with or without modifications and for any purpose and
@@ -41,7 +41,7 @@
 #include "windows.h"
 #include "tchar.h"
 
-int main(int argc, const char* argv[])
+int main(int argc, char* argv[])
 {
   if (argc <= 1) {
     /* Invoked without command-line arguments: start the GUI. */

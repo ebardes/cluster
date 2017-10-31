@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="3.0" toolsVersion="13196" targetRuntime="MacOSX.Cocoa" propertyAccessControl="none">
+    <dependencies>
+        <deployment version="1030" identifier="macosx"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.CocoaPlugin" version="13196"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <customObject id="-2" userLabel="File's Owner" customClass="Controller">
+            <connections>
+                <outlet property="FileFormatPanel" destination="5" id="19"/>
+            </connections>
+        </customObject>
+        <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
+        <customObject id="-3" userLabel="Application"/>
+        <window title="File Format" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" animationBehavior="default" id="5" userLabel="Panel" customClass="NSPanel">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES"/>
+            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+            <rect key="contentRect" x="109" y="95" width="654" height="708"/>
+            <rect key="screenRect" x="0.0" y="0.0" width="1280" height="832"/>
+            <value key="minSize" type="size" width="213" height="107"/>
+            <view key="contentView" id="6">
+                <rect key="frame" x="0.0" y="0.0" width="654" height="708"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <textField verticalHuggingPriority="750" id="8">
+                        <rect key="frame" x="63" y="190" width="528" height="498"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" sendsActionOnEndEditing="YES" state="on" borderStyle="bezel" alignment="left" drawsBackground="YES" id="21">
+                            <font key="font" metaFont="system"/>
+                            <string key="title">The input for the clustering program is a tab-delimited text file.
+An example is shown below.
+
+The cells in red must appear in the file, although they can be any string.
+
+The cells in bold are headers for optional columns/rows.
+
+UNIQID: (string/number)
+This column should contain unique identifiers for each gene.
+
+NAME: (string)
+A text description of each gene which will be used in display.
+
+EWEIGHT: (real number)
+A weight for each experiment that can be used to count certain experiments more
+than others.
+
+GWEIGHT: (real number)
+A similar weight for each gene can be used when clustering arrays.
+
+GORDER: (real number)
+A value to be used for ordering nodes in display program
+
+EXPID: (string, e.g. EXP1, EXP2,...)
+A text description of each experiment that will be used in the display.
+
+DATA:(real number)
+Data for a single gene in a single experiment. Any desired numerical transform
+(e.g. log) should be applied before clustering. Missing values are acceptable.</string>
+                            <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <imageView id="18">
+                        <rect key="frame" x="19" y="14" width="615" height="163"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                        <imageCell key="cell" refusesFirstResponder="YES" alignment="left" image="format" id="22"/>
+                    </imageView>
+                </subviews>
+            </view>
+        </window>
+    </objects>
+    <resources>
+        <image name="format" width="128" height="128"/>
+    </resources>
+</document>

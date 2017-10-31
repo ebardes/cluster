@@ -11,7 +11,7 @@ DefaultDirName={pf}\Stanford University\
 DefaultGroupName=Cluster
 UninstallDisplayIcon=
 AppPublisher=Michiel de Hoon, University of Tokyo
-AppPublisherURL=http://bonsai.ims.u-tokyo.ac.jp/~mdehoon
+AppPublisherURL=http://bonsai.hgc.jp/~mdehoon
 AppVersion=3.0
 OutputDir=.
 ; uncomment the following line if you want your installation to run on NT 3.51 too.
