@@ -1,11 +1,12 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(cluster, 1.54)
+AC_INIT(cluster, 1.54 omp)
 AC_CONFIG_SRCDIR(src/cluster.c)
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS(config.h)
 
 # Checks for programs.
 AC_PROG_CC
+AC_OPENMP
 
 # Checks for header files.
 AC_HEADER_STDC
@@ -58,5 +59,7 @@ For example, if Xm.h is in /usr/X11R6/include/Xm, use
   AM_CONDITIONAL(MOTIF, true)
   AC_CONFIG_FILES([X11/Makefile])
 fi
+
+AC_SUBST(AM_CFLAGS,"$OPENMP_CFLAGS")
 
 AC_OUTPUT
